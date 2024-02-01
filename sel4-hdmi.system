@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This work is Crown Copyright NCSC, 2023. -->
+<system>
+    
+    <!-- Frame buffer memory (should probably be renamed) -->
+    <memory_region name="dma_pool" size="0x2000000"/>
+   
+    
+    <!-- modify THESE physical addresses and sizes to match desired device.
+    Default values are associated with the avnet MaaXBoard (This size needs to reflect what is in the document)-->
+    <memory_region name="dcss_mem" size="0x2d000" phys_addr="0x32e00000"/> 
+    <memory_region name="dcss_blk_mem" size="0x1000" phys_addr="0x32e2f000"/> 
+    <memory_region name="gpc_mem" size="0x10000" phys_addr="0x303a0000"/>
+    <memory_region name="ccm_mem" size="0x10000" phys_addr="0x30380000"/>
+    <memory_region name="rc_mem" size="0x10000" phys_addr="0x30390000"/>
+    <memory_region name="hdmi_mem" size="0x100000 " phys_addr="0x32c00000"/>
+
+    <!-- DCSS -->
+    <protection_domain name="dcss" pp="true" priority="249">
+        <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="false" setvar_vaddr="frame_buffer"/>
+        <map mr="dcss_mem" vaddr="0x32e00000" perms="rw" cached="false" setvar_vaddr="dcss_base"/>
+        <map mr="dcss_blk_mem" vaddr="0x32e2f000" perms="rw" cached="false" setvar_vaddr="dcss_blk_base"/>
+        <map mr="gpc_mem" vaddr="0x303a0000" perms="rw" cached="false" setvar_vaddr="gpc_base"/>
+        <map mr="ccm_mem" vaddr="0x30380000" perms="rw" cached="false" setvar_vaddr="ccm_base"/>
+        <map mr="rc_mem" vaddr="0x30390000" perms="rw" cached="false" setvar_vaddr="rc_base"/>
+        <map mr="hdmi_mem" vaddr="0x32c00000" perms="rw" cached="false" setvar_vaddr="hdmi_base"/>
+
+        <setvar symbol="frame_buffer_paddr" region_paddr="dma_pool" />
+        <program_image path="dcss.elf" />
+    </protection_domain>
+
+</system>
