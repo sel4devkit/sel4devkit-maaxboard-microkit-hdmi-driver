@@ -20,7 +20,7 @@
  * MODIFICATIONS
  * 
  * 1. Converted each u8, u16 and u32 to uint8_t, uint16_t and uint32_t. Need to double check the saftey of this change. 
- * 
+ * 2. Removed hdp_rx_loadfirmware() to resolve undefined reference error.
 */
 
 
@@ -48,27 +48,27 @@ void cdn_api_init(void)
 	memset(&state, 0, sizeof(state_struct));
 }
 
-CDN_API_STATUS hdp_rx_loadfirmware(unsigned char *imem, int imemsize,
-				   unsigned char *dmem, int dmemsize)
-{
-	int i;
+// CDN_API_STATUS hdp_rx_loadfirmware(unsigned char *imem, int imemsize,
+// 				   unsigned char *dmem, int dmemsize)
+// {
+// 	int i;
 
-	for (i = 0; i < imemsize; i += 4)
-		if (hdp_rx_apb_write(ADDR_IMEM + i,
-				     (unsigned int)imem[i] << 0 |
-				     (unsigned int)imem[i + 1] << 8 |
-				     (unsigned int)imem[i + 2] << 16 |
-				     (unsigned int)imem[i + 3] << 24))
-			return CDN_ERR;
-	for (i = 0; i < dmemsize; i += 4)
-		if (hdp_rx_apb_write(ADDR_DMEM + i,
-				     (unsigned int)dmem[i] << 0 |
-				     (unsigned int)dmem[i + 1] << 8 |
-				     (unsigned int)dmem[i + 2] << 16 |
-				     (unsigned int)dmem[i + 3] << 24))
-			return CDN_ERR;
-	return CDN_OK;
-}
+// 	for (i = 0; i < imemsize; i += 4)
+// 		if (hdp_rx_apb_write(ADDR_IMEM + i,
+// 				     (unsigned int)imem[i] << 0 |
+// 				     (unsigned int)imem[i + 1] << 8 |
+// 				     (unsigned int)imem[i + 2] << 16 |
+// 				     (unsigned int)imem[i + 3] << 24))
+// 			return CDN_ERR;
+// 	for (i = 0; i < dmemsize; i += 4)
+// 		if (hdp_rx_apb_write(ADDR_DMEM + i,
+// 				     (unsigned int)dmem[i] << 0 |
+// 				     (unsigned int)dmem[i + 1] << 8 |
+// 				     (unsigned int)dmem[i + 2] << 16 |
+// 				     (unsigned int)dmem[i + 3] << 24))
+// 			return CDN_ERR;
+// 	return CDN_OK;
+// }
 
 CDN_API_STATUS cdn_api_loadfirmware(unsigned char *imem, int imemsize,
 				    unsigned char *dmem, int dmemsize)
