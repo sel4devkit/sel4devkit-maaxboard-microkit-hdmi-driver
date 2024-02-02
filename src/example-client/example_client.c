@@ -1,7 +1,6 @@
 #include <microkit.h>
 #include <stdio.h>
 #include <stddef.h>
-#include <dma.h>
 
 uintptr_t frame_buffer;
 
