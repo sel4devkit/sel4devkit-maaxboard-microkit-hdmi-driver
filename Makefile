@@ -42,7 +42,7 @@ INC_PARAMS=$(foreach d, $(INC), -I$d)
 CFLAGS := -mcpu=$(CPU) -mstrict-align  -nostdlib -nolibc -ffreestanding -g3 -O3 $(WARNINGS) $(INC_PARAMS) -I$(BOARD_DIR)/include --specs=picolibc/picolibc.specs -DSEL4 #-DSEL4_USB_DEBUG
 
 # Define separate configuration for the client to avoid code bloat from unused includes
-CLIENT_INC := $(BOARD_DIR)/include
+CLIENT_INC := $(BOARD_DIR)/include include/hdmi
 CLIENT_INC_PARAMS=$(foreach d, $(INC), -I$d)
 CLIENT_CFLAGS := -mcpu=$(CPU) -mstrict-align  -nostdlib -nolibc -ffreestanding -g3 -O3 $(WARNINGS) $(CLIENT_INC_PARAMS) -I$(BOARD_DIR)/include --specs=picolibc/picolibc.specs -DSEL4 #-DSEL4_USB_DEBUG
 

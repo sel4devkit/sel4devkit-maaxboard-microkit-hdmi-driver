@@ -68,6 +68,7 @@ void write_dtrc_memory_registers();
 void write_dpr_memory_registers(struct hdmi_information* hdmi_info);
 void write_sub_sampler_memory_registers(struct hdmi_information* hdmi_info);
 void write_dtg_memory_registers(struct hdmi_information* hdmi_info);
+void write_scaler_memory_registers(struct hdmi_information* hdmi_info);
 void init_dcss();
 void init_hdmi();
 
