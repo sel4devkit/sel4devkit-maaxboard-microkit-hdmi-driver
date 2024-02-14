@@ -7,11 +7,14 @@
 
 // UBOOT
 #include <inttypes.h>
-#include <vic_table.h>
+#include <address.h>
 #include <externs.h>
-#include "API_General.h"
+#include <API_HDMITX.h>
+#include <source_phy.h> 
+#include "API_AVI.h"
 #include <API_AFE_t28hpc_hdmitx.h>
-
+#include <vic_table.h>
+#include "API_General.h"
 
 uintptr_t dcss_base;
 uintptr_t dcss_blk_base;
@@ -24,12 +27,12 @@ uintptr_t frame_buffer_paddr;
 struct hdmi_information hdmi_info; // does this persist through each notify call? Or is it created again each time?
 
 #define FRAME_BUFFER_SIZE 1280 * 720 * 4 // re define 
-#define VIC_MODE 2 // Understand different vic modes
+#define VIC_MODE 2 // this will go in a configuration file for default settings
 
 void init(void) {
     
-	printf("Init DCSS UPDATE\n");
-	sel4_dma_init(frame_buffer_paddr, frame_buffer, frame_buffer + FRAME_BUFFER_SIZE); // init frame buffer
+	printf("Init DCSS\n");
+	sel4_dma_init(frame_buffer_paddr, frame_buffer, frame_buffer + FRAME_BUFFER_SIZE);
     hdmi_set_timings(&hdmi_info);
 	init_dcss();
 	init_hdmi();
@@ -40,10 +43,8 @@ void
 notified(microkit_channel ch) {
 }
 
-// imx8m_hdmi_set_vic_mode() - uboot-imx/drivers/video/nxp/imx/hdmi/imx8m_hdmi.c
 void hdmi_set_timings(struct hdmi_information* hdmi_info) {
-
-    uint32_t pixel_clock_frequency;
+	
 	hdmi_info->timings.hfront_porch.typ = vic_table[VIC_MODE][FRONT_PORCH];
 	hdmi_info->timings.hback_porch.typ = vic_table[VIC_MODE][BACK_PORCH];
 	hdmi_info->timings.hsync_len.typ = vic_table[VIC_MODE][HSYNC];
@@ -54,8 +55,7 @@ void hdmi_set_timings(struct hdmi_information* hdmi_info) {
 	hdmi_info->timings.vactive.typ = vic_table[VIC_MODE][V_ACTIVE];
 	hdmi_info->horizontal_pulse_polarity = vic_table[VIC_MODE][HSYNC_POL] != 0;
 	hdmi_info->vertical_pulse_polarity = vic_table[VIC_MODE][VSYNC_POL] != 0;
-	pixel_clock_frequency    = vic_table[VIC_MODE][PIXEL_FREQ_KHZ];
-	hdmi_info->timings.pixelclock.typ = pixel_clock_frequency * 1000;
+	hdmi_info->timings.pixelclock.typ = vic_table[VIC_MODE][PIXEL_FREQ_KHZ] * 1000;
 }
 
 void init_dcss(){
@@ -79,8 +79,55 @@ void init_hdmi() {
 	
 	uint8_t bits_per_pixel = 8;
 	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = 1;
-	uint32_t character_freq_khz = phy_cfg_t28hpc(4, VIC_MODE, bits_per_pixel, pixel_encoding_format, 1);
+	VIC_MODES vic_mode = VIC_MODE;
+
+	init_api(); // handle the return
+
+	uint32_t phy_frequency = phy_cfg_t28hpc(4, VIC_MODE, bits_per_pixel, pixel_encoding_format, 1);
 	hdmi_tx_t28hpc_power_config_seq(4);
+
+	call_api(phy_frequency, vic_mode, pixel_encoding_format, bits_per_pixel);
+}
+
+CDN_API_STATUS init_api() {
+
+	CDN_API_STATUS api_status = CDN_OK;
+	
+	cdn_api_init();
+	api_status = cdn_api_checkalive();
+	uint8_t test_message[] = "test message";
+	uint8_t test_response[sizeof(test_message) + 1];
+	api_status = cdn_api_general_test_echo_ext_blocking(test_message,
+														test_response,
+														sizeof(test_message),
+														CDN_BUS_TYPE_APB);
+	return api_status;
+}
+
+CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_MODES vic_mode, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel) {
+	
+	CDN_API_STATUS api_status = CDN_OK;
+	BT_TYPE bt_type = 0;
+	HDMI_TX_MAIL_HANDLER_PROTOCOL_TYPE protocol_type = 1;
+
+	api_status = cdn_api_general_write_register_blocking
+		(ADDR_SOURCD_PHY + (LANES_CONFIG << 2),
+		 F_SOURCE_PHY_LANE0_SWAP(0) | F_SOURCE_PHY_LANE1_SWAP(1) |
+		 F_SOURCE_PHY_LANE2_SWAP(2) | F_SOURCE_PHY_LANE3_SWAP(3) |
+		 F_SOURCE_PHY_COMB_BYPASS(0) | F_SOURCE_PHY_20_10(1));
+
+	api_status = CDN_API_HDMITX_Init_blocking();
+	api_status = CDN_API_HDMITX_Init_blocking();
+	api_status = CDN_API_HDMITX_Set_Mode_blocking(protocol_type, phy_frequency);
+	api_status = cdn_api_set_avi(vic_mode, pixel_encoding_format, bt_type);
+	api_status = CDN_API_HDMITX_SetVic_blocking(vic_mode, bits_per_pixel, pixel_encoding_format);
+
+	// subsitute for a timer
+	// for (int i = 0; i < 5000; i++) {
+	// 	//printf("counting...\n");
+	// 	int j=0;
+	// }
+	return api_status;
 }
 
 
@@ -88,9 +135,9 @@ void write_dcss_memory_registers() {
 	
 	write_dtrc_memory_registers();
 	write_dpr_memory_registers(&hdmi_info);
+	write_scaler_memory_registers(&hdmi_info);
 	write_sub_sampler_memory_registers(&hdmi_info);
 	write_dtg_memory_registers(&hdmi_info);
-	//write_scaler_memory_registers(&hdmi_info);
 }
 
 void write_dtrc_memory_registers() {
@@ -116,10 +163,10 @@ void write_dpr_memory_registers(struct hdmi_information* hdmi_info) {
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_Y_CTRL), 0x000000f0);
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_CTRL0), ((hdmi_info->timings.hactive.typ * 4) << 16));
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), 0x000e4203);
-	// write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), 0x000e4203);
+	// write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), 0x000e4203); // twice?
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_RTRAM_CTRL0), 0x00000038);
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000004);
-	// write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000005); // can this bit be set?
+	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000005); // can this bit be set?
 }
 
 void write_sub_sampler_memory_registers(struct hdmi_information* hdmi_info) {
@@ -177,7 +224,7 @@ void write_dtg_memory_registers(struct hdmi_information* hdmi_info) {
 	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);
 
 	/* disable local alpha */
-	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005184); // Is this needed twice?
+	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005184);
 }
 
 
@@ -405,6 +452,4 @@ void write_scaler_memory_registers(struct hdmi_information* hdmi_info) {
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c2bc), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c2bc), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c000), 0x00000011);
-
-
 }

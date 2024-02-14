@@ -2,6 +2,8 @@
 #define __DCSS_H__
 
 #include <display_timing.h>
+#include <vic_table.h>
+#include "API_General.h"
 
 // CCM
 #define CCM_CCGR93_SET 0x45d4 // 5.1.7.7 CCM Clock Gating Register (CCM_CCGR93_SET)
@@ -71,5 +73,7 @@ void write_dtg_memory_registers(struct hdmi_information* hdmi_info);
 void write_scaler_memory_registers(struct hdmi_information* hdmi_info);
 void init_dcss();
 void init_hdmi();
+CDN_API_STATUS init_api();
+CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_MODES vic_mode, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel);
 
 #endif
