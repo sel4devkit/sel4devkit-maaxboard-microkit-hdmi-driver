@@ -24,13 +24,14 @@ uintptr_t rc_base;
 uintptr_t frame_buffer;
 uintptr_t frame_buffer_paddr;
 
+
 struct hdmi_information hdmi_info; // does this persist through each notify call? Or is it created again each time?
 
-#define FRAME_BUFFER_SIZE 1280 * 720 * 4 // re define 
-#define VIC_MODE 2 // this will go in a configuration file for default settings
+#define FRAME_BUFFER_SIZE 1280 * 720 * 4 // TODO: re define  
+#define VIC_MODE 2 // TODO: this will go in a configuration file for default settings
 
 void init(void) {
-    
+
 	printf("Init DCSS\n");
 	sel4_dma_init(frame_buffer_paddr, frame_buffer, frame_buffer + FRAME_BUFFER_SIZE);
     hdmi_set_timings(&hdmi_info);
@@ -74,19 +75,18 @@ void init_dcss(){
 	write_32bit_to_mem((uint32_t*)(dcss_blk_base + CONTROL0), 0x1);
 }
 
-
 void init_hdmi() {
 	
 	uint8_t bits_per_pixel = 8;
 	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = 1;
 	VIC_MODES vic_mode = VIC_MODE;
 
-	init_api(); // handle the return
+	init_api(); // TODO: handle the return
 
 	uint32_t phy_frequency = phy_cfg_t28hpc(4, VIC_MODE, bits_per_pixel, pixel_encoding_format, 1);
 	hdmi_tx_t28hpc_power_config_seq(4);
 
-	call_api(phy_frequency, vic_mode, pixel_encoding_format, bits_per_pixel);
+	call_api(phy_frequency, vic_mode, pixel_encoding_format, bits_per_pixel); // TODO: handle the return
 }
 
 CDN_API_STATUS init_api() {
@@ -122,11 +122,8 @@ CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_MODES vic_mode, VIC_PXL_ENCO
 	api_status = cdn_api_set_avi(vic_mode, pixel_encoding_format, bt_type);
 	api_status = CDN_API_HDMITX_SetVic_blocking(vic_mode, bits_per_pixel, pixel_encoding_format);
 
-	// subsitute for a timer
-	// for (int i = 0; i < 5000; i++) {
-	// 	//printf("counting...\n");
-	// 	int j=0;
-	// }
+	// TODO: Potentially need timer here
+
 	return api_status;
 }
 
@@ -150,8 +147,8 @@ void write_dtrc_memory_registers() {
 void write_dpr_memory_registers(struct hdmi_information* hdmi_info) {
 	
 	uintptr_t* dma_addr =  getPhys((void*)frame_buffer);
-	printf("dma phys addr =  %" PRIxPTR "\n", (uintptr_t)dma_addr);
-	printf("dma base addr =  %" PRIxPTR "\n", frame_buffer);
+	// printf("dma phys addr =  %" PRIxPTR "\n", (uintptr_t)dma_addr);
+	// printf("dma base addr =  %" PRIxPTR "\n", frame_buffer);
 	
 	//  Chan1_DPR
     write_32bit_to_mem_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr); 
@@ -163,7 +160,6 @@ void write_dpr_memory_registers(struct hdmi_information* hdmi_info) {
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_Y_CTRL), 0x000000f0);
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_CTRL0), ((hdmi_info->timings.hactive.typ * 4) << 16));
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), 0x000e4203);
-	// write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), 0x000e4203); // twice?
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_RTRAM_CTRL0), 0x00000038);
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000004);
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000005); // can this bit be set?
@@ -193,18 +189,15 @@ void write_sub_sampler_memory_registers(struct hdmi_information* hdmi_info) {
 		    (((hdmi_info->timings.vsync_len.typ + hdmi_info->timings.vfront_porch.typ + hdmi_info->timings.vback_porch.typ + hdmi_info->timings.vactive.typ -1) << 16) |
 		    (hdmi_info->timings.hsync_len.typ + hdmi_info->timings.hback_porch.typ + hdmi_info->timings.hactive.typ - 1)));
 
-	/* subsample mode 0 bypass 444, 1 422, 2 420 */
 	write_32bit_to_mem((uint32_t*)(dcss_base + SS_MODE), 0x0000000);
-
 	write_32bit_to_mem((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x00000001);
 }
 
 void write_dtg_memory_registers(struct hdmi_information* hdmi_info) {
 	
-	/* DTG */
-	/*write_32bit_to_mem((uint32_t*)(dcss_base + 0x20000, 0xff000484); */
-	/* disable local alpha */
+	// disable local alpha
 	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005084);
+	
 	write_32bit_to_mem((uint32_t*)(dcss_base + TC_DTG_REG1),
 		    (((hdmi_info->timings.vfront_porch.typ + hdmi_info->timings.vback_porch.typ + hdmi_info->timings.vsync_len.typ + hdmi_info->timings.vactive.typ -
 		       1) << 16) | (hdmi_info->timings.hfront_porch.typ + hdmi_info->timings.hback_porch.typ + hdmi_info->timings.hsync_len.typ +
@@ -223,7 +216,7 @@ void write_dtg_memory_registers(struct hdmi_information* hdmi_info) {
 		       1) << 16) | (hdmi_info->timings.hsync_len.typ + hdmi_info->timings.hback_porch.typ + hdmi_info->timings.hactive.typ - 1)));
 	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);
 
-	/* disable local alpha */
+	// disable local alpha
 	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005184);
 }
 
@@ -241,7 +234,7 @@ void write_scaler_memory_registers(struct hdmi_information* hdmi_info) {
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c020),
 		    ((hdmi_info->timings.vactive.typ - 1) << 16 | (hdmi_info->timings.hactive.typ - 1)));
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c024),
-		    ((hdmi_info->timings.vactive.typ - 1) << 16 | (hdmi_info->timings.hactive.typ - 1))); //
+		    ((hdmi_info->timings.vactive.typ - 1) << 16 | (hdmi_info->timings.hactive.typ - 1)));
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c028), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c02c), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c030), 0x00000000);
@@ -250,7 +243,7 @@ void write_scaler_memory_registers(struct hdmi_information* hdmi_info) {
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c03c), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c040), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c044), 0x00000000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c048), 0x00000000); //
+	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c048), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c04c), 0x00002000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c050), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c054), 0x00002000);
@@ -307,7 +300,7 @@ void write_scaler_memory_registers(struct hdmi_information* hdmi_info) {
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c0fc), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c13c), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c140), 0x00000000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c180), 0x00040000); //
+	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c180), 0x00040000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c1c0), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c144), 0x00000000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c184), 0x00000000);
