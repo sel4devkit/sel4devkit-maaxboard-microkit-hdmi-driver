@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <dcss.h>
 #include <dma.h>
+#include <timer.h>
+#include <time.h>
 
 // UBOOT
 #include <inttypes.h>
@@ -16,6 +18,8 @@
 #include <vic_table.h>
 #include "API_General.h"
 
+#include <hdmi_data.h>
+
 uintptr_t dcss_base;
 uintptr_t dcss_blk_base;
 uintptr_t gpc_base;
@@ -25,65 +29,128 @@ uintptr_t frame_buffer;
 uintptr_t frame_buffer_paddr;
 
 
+
+
+
+int glob_mode = 0;
+
 struct hdmi_information hdmi_info; // does this persist through each notify call? Or is it created again each time?
 
+struct vic_data *v_data	= NULL;
+
 #define FRAME_BUFFER_SIZE 1280 * 720 * 4 // TODO: re define  
-#define VIC_MODE 2 // TODO: this will go in a configuration file for default settings
 
 void init(void) {
 
 	printf("Init DCSS\n");
 	sel4_dma_init(frame_buffer_paddr, frame_buffer, frame_buffer + FRAME_BUFFER_SIZE);
-    hdmi_set_timings(&hdmi_info);
-	init_dcss();
-	init_hdmi();
-    write_dcss_memory_registers();
+
+	// could initialise a default configuration here - maybe leave it up to the client though... 
+	//init_dcss(2);
+
 }
 
 void
 notified(microkit_channel ch) {
+
+	printf("notified\n");
+	switch (ch) {
+        case 46:
+			init_dcss(glob_mode);
+			glob_mode++;
+			break;
+		default:
+			printf("Unexpected channel id: %d in dcss::notified() \n", ch);
+	}
 }
 
-void hdmi_set_timings(struct hdmi_information* hdmi_info) {
+microkit_msginfo
+protected(microkit_channel ch, microkit_msginfo msginfo) {
+	printf("protected procedure called\n");
+	switch (ch) {
+		case 1:
+		    v_data = (struct vic_data *) microkit_msginfo_get_label(msginfo);
+            return seL4_MessageInfo_new(0,0,0,0); // why?
+			break;
+		default:
+			printf("Unexpected channel id: %d in dcss::protected() \n", ch);
+	}
+}
+
+void init_dcss(int vic_mode) {
+
+	printf("init dcss called\n");
+	if (v_data != NULL) {
+		printf("v data A = %d\n", v_data->a);
+	}
+	else {
+		printf("v data not yet set\n");
+	}
+
+	write_32bit_to_mem((uint32_t*)(dcss_base +  0x20000), 0);
+	/* scaler */
+	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1c000), 0);
+	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1c400), 0);
+	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1c800), 0);
+	/* dpr */
+	write_32bit_to_mem((uint32_t*)(dcss_base +  0x18000), 0);
+	write_32bit_to_mem((uint32_t*)(dcss_base +  0x19000), 0);
+	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1a000), 0);
+	/* sub-sampler*/
+	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1b000), 0);
+
+
+	init_ccm(); // ccm and gpc may not need to be set here (doesn't really matter, but worth noting)
+	init_gpc();
+	hdmi_set_timings(&hdmi_info, vic_mode); // instead of using the vic table, we can instead provide the user with the option of providing these themselves (but also provide an option of using the vic table to get these values)
+	reset_dcss();
+	init_hdmi(vic_mode);
+    write_dcss_memory_registers();
+}
+
+void hdmi_set_timings(struct hdmi_information* hdmi_info, int vic_mode) {
 	
-	hdmi_info->timings.hfront_porch.typ = vic_table[VIC_MODE][FRONT_PORCH];
-	hdmi_info->timings.hback_porch.typ = vic_table[VIC_MODE][BACK_PORCH];
-	hdmi_info->timings.hsync_len.typ = vic_table[VIC_MODE][HSYNC];
-	hdmi_info->timings.vfront_porch.typ = vic_table[VIC_MODE][TYPE_EOF];
-	hdmi_info->timings.vback_porch.typ = vic_table[VIC_MODE][SOF];
-	hdmi_info->timings.vsync_len.typ = vic_table[VIC_MODE][VSYNC];
-	hdmi_info->timings.hactive.typ = vic_table[VIC_MODE][H_ACTIVE];
-	hdmi_info->timings.vactive.typ = vic_table[VIC_MODE][V_ACTIVE];
-	hdmi_info->horizontal_pulse_polarity = vic_table[VIC_MODE][HSYNC_POL] != 0;
-	hdmi_info->vertical_pulse_polarity = vic_table[VIC_MODE][VSYNC_POL] != 0;
-	hdmi_info->timings.pixelclock.typ = vic_table[VIC_MODE][PIXEL_FREQ_KHZ] * 1000;
+	hdmi_info->timings.hfront_porch.typ = vic_table[vic_mode][FRONT_PORCH];
+	hdmi_info->timings.hback_porch.typ = vic_table[vic_mode][BACK_PORCH];
+	hdmi_info->timings.hsync_len.typ = vic_table[vic_mode][HSYNC];
+	hdmi_info->timings.vfront_porch.typ = vic_table[vic_mode][TYPE_EOF];
+	hdmi_info->timings.vback_porch.typ = vic_table[vic_mode][SOF];
+	hdmi_info->timings.vsync_len.typ = vic_table[vic_mode][VSYNC];
+	hdmi_info->timings.hactive.typ = vic_table[vic_mode][H_ACTIVE];
+	hdmi_info->timings.vactive.typ = vic_table[vic_mode][V_ACTIVE];
+	hdmi_info->horizontal_pulse_polarity = vic_table[vic_mode][HSYNC_POL] != 0;
+	hdmi_info->vertical_pulse_polarity = vic_table[vic_mode][VSYNC_POL] != 0;
+	hdmi_info->timings.pixelclock.typ = vic_table[vic_mode][PIXEL_FREQ_KHZ] * 1000;
 }
 
-void init_dcss(){
+void init_ccm() {
 
-	// CCM
 	write_32bit_to_mem((uint32_t*)(ccm_base + CCM_CCGR93_SET), 0x3);
 	write_32bit_to_mem((uint32_t*)(gpc_base + GPC_PGC_CPU_0_1_MAPPING), 0xffff); 
 	write_32bit_to_mem((uint32_t*)(gpc_base + GPC_PU_PGC_SW_PUP_REQ), 0x1 << 10);
+}
 
+void init_gpc() {
 	// GPC
 	write_32bit_to_mem((uint32_t*)(ccm_base + CCM_TARGET_ROOT20), 0x12000000); 
 	write_32bit_to_mem((uint32_t*)(ccm_base + CCM_TARGET_ROOT22), 0x11010000);
+}
+
+void reset_dcss(){
 
 	// DCSS BLK 
 	write_32bit_to_mem((uint32_t*)(dcss_blk_base), 0xffffffff);
 	write_32bit_to_mem((uint32_t*)(dcss_blk_base + CONTROL0), 0x1);
 }
 
-void init_hdmi() {
+void init_hdmi(int vic_mode) {
 	
-	uint8_t bits_per_pixel = 8;
-	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = 1;
-	VIC_MODES vic_mode = VIC_MODE;
+	uint8_t bits_per_pixel = 8; // 8 actualyl goes down as 32 (this has no affect)
+	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = PXL_RGB;
 
 	init_api(); // TODO: handle the return
 
-	uint32_t phy_frequency = phy_cfg_t28hpc(4, VIC_MODE, bits_per_pixel, pixel_encoding_format, 1);
+	uint32_t phy_frequency = phy_cfg_t28hpc(4, vic_mode, bits_per_pixel, pixel_encoding_format, 1);
 	hdmi_tx_t28hpc_power_config_seq(4);
 
 	call_api(phy_frequency, vic_mode, pixel_encoding_format, bits_per_pixel); // TODO: handle the return
@@ -224,7 +291,7 @@ void write_dtg_memory_registers(struct hdmi_information* hdmi_info) {
 void write_scaler_memory_registers(struct hdmi_information* hdmi_info) {
 
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c008), 0x00000000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c00c), 0x00000000);
+	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c00c), 0x00000000); // 8bit colour depth 
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c010), 0x00000002);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c014), 0x00000002);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c018),

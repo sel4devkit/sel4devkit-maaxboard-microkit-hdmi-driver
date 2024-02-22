@@ -64,15 +64,18 @@ struct hdmi_information {
 };
 
 
-void hdmi_set_timings(struct hdmi_information* hdmi_info);
+void hdmi_set_timings(struct hdmi_information* hdmi_info, int vic_mode);
 void write_dcss_memory_registers();
 void write_dtrc_memory_registers();
 void write_dpr_memory_registers(struct hdmi_information* hdmi_info);
 void write_sub_sampler_memory_registers(struct hdmi_information* hdmi_info);
 void write_dtg_memory_registers(struct hdmi_information* hdmi_info);
 void write_scaler_memory_registers(struct hdmi_information* hdmi_info);
-void init_dcss();
-void init_hdmi();
+void init_dcss(int vic_mode);
+void reset_dcss();
+void init_gpc();
+void init_ccm();
+void init_hdmi(int vic_mode);
 CDN_API_STATUS init_api();
 CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_MODES vic_mode, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel);
 
