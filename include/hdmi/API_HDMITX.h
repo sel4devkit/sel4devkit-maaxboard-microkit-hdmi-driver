@@ -50,6 +50,7 @@
 # include "API_General.h"
 # include "hdmi.h"
 # include "vic_table.h"
+# include <hdmi_data.h>
 
 /**
  * \addtogroup HDMI_TX_API
@@ -147,7 +148,7 @@ CDN_API_STATUS CDN_API_HDMITX_Init_blocking(void);
  * \brief change to vid id vicMode
  * \returns status
  */
-CDN_API_STATUS CDN_API_HDMITX_SetVic_blocking(VIC_MODES vicMode,
+CDN_API_STATUS CDN_API_HDMITX_SetVic_blocking(struct vic_mode* vic_mode, // MODIFIED
 					      int bpp,
 					      VIC_PXL_ENCODING_FORMAT format);
 

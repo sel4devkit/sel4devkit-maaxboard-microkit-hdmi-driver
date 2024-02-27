@@ -289,27 +289,27 @@ CDN_API_STATUS CDN_API_HDMITX_Init_blocking(void)
 }
 
 
-CDN_API_STATUS CDN_API_HDMITX_SetVic_blocking(VIC_MODES vicMode, int bpp,
+CDN_API_STATUS CDN_API_HDMITX_SetVic_blocking(struct vic_mode* vic_mode, int bpp,
 					      VIC_PXL_ENCODING_FORMAT format)
 {
 	CDN_API_STATUS ret;
 	GENERAL_READ_REGISTER_RESPONSE resp;
-	unsigned int vsync_lines = vic_table[vicMode][VSYNC];
-	unsigned int eof_lines = vic_table[vicMode][TYPE_EOF];
-	unsigned int sof_lines = vic_table[vicMode][SOF];
-	unsigned int hblank = vic_table[vicMode][H_BLANK];
-	unsigned int hactive = vic_table[vicMode][H_TOTAL] - hblank;
+	unsigned int vsync_lines = vic_mode->VSYNC;
+	unsigned int eof_lines = vic_mode->TYPE_EOF;
+	unsigned int sof_lines = vic_mode->SOF;
+	unsigned int hblank = vic_mode->H_BLANK;
+	unsigned int hactive = vic_mode->H_TOTAL - hblank;
 	unsigned int vblank = vsync_lines + eof_lines + sof_lines;
-	unsigned int vactive = vic_table[vicMode][V_TOTAL] - vblank;
-	unsigned int hfront = vic_table[vicMode][FRONT_PORCH];
-	unsigned int hback = vic_table[vicMode][BACK_PORCH];
+	unsigned int vactive = vic_mode->V_TOTAL - vblank;
+	unsigned int hfront = vic_mode->FRONT_PORCH;
+	unsigned int hback = vic_mode->BACK_PORCH;
 	unsigned int vfront = eof_lines;
 	unsigned int hsync = hblank - hfront - hback;
 	unsigned int vsync = vsync_lines;
 	unsigned int vback = sof_lines;
-	unsigned int v_h_polarity = ((vic_table[vicMode][HSYNC_POL] ==
+	unsigned int v_h_polarity = ((vic_mode->HSYNC_POL ==
 				      ACTIVE_LOW) ? 0 : 1) +
-		((vic_table[vicMode][VSYNC_POL] == ACTIVE_LOW) ? 0 : 2);
+		((vic_mode->VSYNC_POL == ACTIVE_LOW) ? 0 : 2);
 
 	ret = cdn_api_general_write_register_blocking(ADDR_SOURCE_MHL_HD +
 						      (SCHEDULER_H_SIZE << 2),

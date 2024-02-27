@@ -49,9 +49,10 @@
 
 #include "vic_table.h"
 #include "API_General.h"
+#include <hdmi_data.h>
 
 CDN_API_STATUS cdn_api_set_avi(
-	VIC_MODES vic_mode,
+	struct vic_mode* vic_mode,
 	VIC_PXL_ENCODING_FORMAT color_mode,
 	BT_TYPE itu_ver);
 

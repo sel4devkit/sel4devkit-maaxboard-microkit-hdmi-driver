@@ -108,14 +108,14 @@ void aux_cfg_t28hpc(void)
 	write16(0x5021, 0x030F);
 }
 
-int phy_cfg_t28hpc(int num_lanes, VIC_MODES vic_mode, int bpp,
+int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 	VIC_PXL_ENCODING_FORMAT format, int pixel_clk_from_phy)
 {
 	const int phy_reset_workaround = 1;
 	unsigned int vco_freq;
 	unsigned char k;
 	uint32_t reg_val;
-	uint32_t pixel_freq_khz = vic_table[vic_mode][PIXEL_FREQ_KHZ];
+	uint32_t pixel_freq_khz = pixel_clock_frequency; // MODIFIED
 	uint32_t character_clock_ratio_num = 1;
 	uint32_t character_clock_ratio_den = 1;
 	uint32_t character_freq_khz;
@@ -149,7 +149,7 @@ int phy_cfg_t28hpc(int num_lanes, VIC_MODES vic_mode, int bpp,
 	cmnda_pll0_fb_div_high.value = 0x00A;
 	ftemp = pixel_freq_khz;
 
-	printf(" VIC %d, pixel clock %u kHz\n", vic_mode, ftemp);
+	printf("pixel clock %u kHz\n", ftemp); // MODIFIED
 
 	/* Set field position */
 	cmnda_pll0_hs_sym_div_sel.msb = 9;

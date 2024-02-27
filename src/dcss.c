@@ -27,41 +27,24 @@ uintptr_t frame_buffer;
 uintptr_t frame_buffer_paddr;
 
 
-
-
-
-int glob_mode = 0;
-
 struct hdmi_information hdmi_info; // does this persist through each notify call? Or is it created again each time?
-
-struct vic_data *v_data	= NULL;
-struct vic_data *v_data_other;
+struct vic_mode *v_data	= NULL;
 
 #define FRAME_BUFFER_SIZE 1280 * 720 * 4 // TODO: re define  
 
 
-//void v_intr(void* v);
-
 void init(void) {
-
-	printf("Init DCSS\n");
+	
+	printf("Init Dcss\n");
 	sel4_dma_init(frame_buffer_paddr, frame_buffer, frame_buffer + FRAME_BUFFER_SIZE);
-
-	// could initialise a default configuration here - maybe leave it up to the client though... 
-	//init_dcss(2);
-
-	//malloc(2);
-
 }
 
 void
 notified(microkit_channel ch) {
-
-	printf("notified\n");
+	
 	switch (ch) {
         case 46:
-			init_dcss(glob_mode);
-			glob_mode++;
+			init_dcss();
 			break;
 		default:
 			printf("Unexpected channel id: %d in dcss::notified() \n", ch);
@@ -70,10 +53,11 @@ notified(microkit_channel ch) {
 
 microkit_msginfo
 protected(microkit_channel ch, microkit_msginfo msginfo) {
+	
 	printf("protected procedure called\n");
 	switch (ch) {
 		case 0:
-		    v_data = (struct vic_data *) microkit_msginfo_get_label(msginfo);
+		    v_data = (struct vic_mode *) microkit_msginfo_get_label(msginfo);
 			return seL4_MessageInfo_new((uint64_t)v_data,1 ,0,0); // why?
 			break;
 		default:
@@ -83,12 +67,11 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 
 
 
-void init_dcss(int vic_mode) {
+void init_dcss() {
 
 	printf("init dcss called\n");
 	if (v_data != NULL) {
-		printf("v data A = %d\n", v_data->a);
-		//v_intr(v_data);
+		printf("v data frequency = %d\n", v_data->PIXEL_FREQ_KHZ);
 	}
 	else {
 		printf("v data not yet set\n");
@@ -109,25 +92,25 @@ void init_dcss(int vic_mode) {
 
 	init_ccm(); // ccm and gpc may not need to be set here (doesn't really matter, but worth noting)
 	init_gpc();
-	hdmi_set_timings(&hdmi_info, vic_mode); // instead of using the vic table, we can instead provide the user with the option of providing these themselves (but also provide an option of using the vic table to get these values)
+	hdmi_set_timings(&hdmi_info); // instead of using the vic table, we can instead provide the user with the option of providing these themselves (but also provide an option of using the vic table to get these values)
 	reset_dcss();
-	init_hdmi(vic_mode);
+	init_hdmi();
     write_dcss_memory_registers();
 }
 
-void hdmi_set_timings(struct hdmi_information* hdmi_info, int vic_mode) {
+void hdmi_set_timings(struct hdmi_information* hdmi_info) { // This is redundant - i can just use these values directly - no need to set them
 	
-	hdmi_info->timings.hfront_porch.typ = vic_table[vic_mode][FRONT_PORCH];
-	hdmi_info->timings.hback_porch.typ = vic_table[vic_mode][BACK_PORCH];
-	hdmi_info->timings.hsync_len.typ = vic_table[vic_mode][HSYNC];
-	hdmi_info->timings.vfront_porch.typ = vic_table[vic_mode][TYPE_EOF];
-	hdmi_info->timings.vback_porch.typ = vic_table[vic_mode][SOF];
-	hdmi_info->timings.vsync_len.typ = vic_table[vic_mode][VSYNC];
-	hdmi_info->timings.hactive.typ = vic_table[vic_mode][H_ACTIVE];
-	hdmi_info->timings.vactive.typ = vic_table[vic_mode][V_ACTIVE];
-	hdmi_info->horizontal_pulse_polarity = vic_table[vic_mode][HSYNC_POL] != 0;
-	hdmi_info->vertical_pulse_polarity = vic_table[vic_mode][VSYNC_POL] != 0;
-	hdmi_info->timings.pixelclock.typ = vic_table[vic_mode][PIXEL_FREQ_KHZ] * 1000;
+	hdmi_info->timings.hfront_porch.typ = v_data->FRONT_PORCH;
+	hdmi_info->timings.hback_porch.typ = v_data->BACK_PORCH;
+	hdmi_info->timings.hsync_len.typ = v_data->HSYNC;
+	hdmi_info->timings.vfront_porch.typ = v_data->TYPE_EOF;
+	hdmi_info->timings.vback_porch.typ = v_data->SOF;
+	hdmi_info->timings.vsync_len.typ = v_data->VSYNC;
+	hdmi_info->timings.hactive.typ = v_data->H_ACTIVE;
+	hdmi_info->timings.vactive.typ = v_data->V_ACTIVE;
+	hdmi_info->horizontal_pulse_polarity = v_data->HSYNC_POL != 0;
+	hdmi_info->vertical_pulse_polarity = v_data->VSYNC_POL != 0;
+	hdmi_info->timings.pixelclock.typ = v_data->PIXEL_FREQ_KHZ * 1000;
 }
 
 void init_ccm() {
@@ -150,17 +133,17 @@ void reset_dcss(){
 	write_32bit_to_mem((uint32_t*)(dcss_blk_base + CONTROL0), 0x1);
 }
 
-void init_hdmi(int vic_mode) {
+void init_hdmi() {
 	
 	uint8_t bits_per_pixel = 8; // 8 actualyl goes down as 32 (this has no affect)
 	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = PXL_RGB;
 
 	init_api(); // TODO: handle the return
 
-	uint32_t phy_frequency = phy_cfg_t28hpc(4, vic_mode, bits_per_pixel, pixel_encoding_format, 1);
+	uint32_t phy_frequency = phy_cfg_t28hpc(4, v_data->PIXEL_FREQ_KHZ, bits_per_pixel, pixel_encoding_format, 1);
 	hdmi_tx_t28hpc_power_config_seq(4);
 
-	call_api(phy_frequency, vic_mode, pixel_encoding_format, bits_per_pixel); // TODO: handle the return
+	call_api(phy_frequency, pixel_encoding_format, bits_per_pixel); // TODO: handle the return
 }
 
 CDN_API_STATUS init_api() {
@@ -178,7 +161,7 @@ CDN_API_STATUS init_api() {
 	return api_status;
 }
 
-CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_MODES vic_mode, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel) {
+CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel) {
 	
 	CDN_API_STATUS api_status = CDN_OK;   
 	BT_TYPE bt_type = 0;
@@ -193,8 +176,8 @@ CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_MODES vic_mode, VIC_PXL_ENCO
 	api_status = CDN_API_HDMITX_Init_blocking();
 	api_status = CDN_API_HDMITX_Init_blocking();
 	api_status = CDN_API_HDMITX_Set_Mode_blocking(protocol_type, phy_frequency);
-	api_status = cdn_api_set_avi(vic_mode, pixel_encoding_format, bt_type);
-	api_status = CDN_API_HDMITX_SetVic_blocking(vic_mode, bits_per_pixel, pixel_encoding_format);
+	api_status = cdn_api_set_avi(v_data, pixel_encoding_format, bt_type);
+	api_status = CDN_API_HDMITX_SetVic_blocking(v_data, bits_per_pixel, pixel_encoding_format);
 
 	// TODO: Potentially need timer here
 
