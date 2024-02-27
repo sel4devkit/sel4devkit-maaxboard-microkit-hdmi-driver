@@ -5,8 +5,8 @@
     <!-- Frame buffer memory (should probably be renamed) -->
     <memory_region name="dma_pool" size="0x2000000"/>
 
-    <!-- <memory_region name="shared_heap" size="0x200_000"/>
-    <memory_region name="shared_heap_end" size="0x1000"/> -->
+    <memory_region name="shared_heap" size="0x200_000"/>
+    <memory_region name="shared_heap_end" size="0x1000"/>
    
     
     <!-- modify THESE physical addresses and sizes to match desired device.
@@ -28,6 +28,8 @@
         <map mr="ccm_mem" vaddr="0x30380000" perms="rw" cached="false" setvar_vaddr="ccm_base"/>
         <map mr="rc_mem" vaddr="0x30390000" perms="rw" cached="false" setvar_vaddr="rc_base"/>
         <map mr="hdmi_mem" vaddr="0x32c00000" perms="rw" cached="false" setvar_vaddr="hdmi_base"/>
+        <map mr="shared_heap" vaddr="0x5_a00_000" perms="rw" cached="false"/>
+        <map mr="shared_heap_end" vaddr="0x5_bf0_000" perms="rw" cached="false"/>
 
 
         <setvar symbol="frame_buffer_paddr" region_paddr="dma_pool" />
@@ -39,8 +41,8 @@
     <protection_domain name="example_client" pp="true" priority="249">
         <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="false" setvar_vaddr="frame_buffer"/>
         <map mr="timer_mem" vaddr="0x306c0000" perms="rw" cached="false" setvar_vaddr="timer_base"/>
-        <!-- <map mr="shared_heap" vaddr="0x5_a00_000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
-        <map mr="shared_heap_end" vaddr="0x5_bf0_000" perms="rw" cached="false" setvar_vaddr="__heap_end"/> -->
+        <map mr="shared_heap" vaddr="0x5_a00_000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
+        <map mr="shared_heap_end" vaddr="0x5_bf0_000" perms="rw" cached="false" setvar_vaddr="__heap_end"/>
         <program_image path="example-client.elf" />
     </protection_domain>
 
@@ -51,8 +53,8 @@
     </channel>
 
     <channel>
-        <end pd="example_client" id="1"/>
-        <end pd="dcss" id="1"/>
+        <end pd="example_client" id="0"/>
+        <end pd="dcss" id="0"/>
     </channel>
 
 

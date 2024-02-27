@@ -1,11 +1,9 @@
 #include <microkit.h>
-#include <unistd.h>
 #include <stdio.h>
-#include <stddef.h>
+#include <stdlib.h>
+
 #include <dcss.h>
 #include <dma.h>
-#include <timer.h>
-#include <time.h>
 
 // UBOOT
 #include <inttypes.h>
@@ -37,8 +35,12 @@ int glob_mode = 0;
 struct hdmi_information hdmi_info; // does this persist through each notify call? Or is it created again each time?
 
 struct vic_data *v_data	= NULL;
+struct vic_data *v_data_other;
 
 #define FRAME_BUFFER_SIZE 1280 * 720 * 4 // TODO: re define  
+
+
+//void v_intr(void* v);
 
 void init(void) {
 
@@ -47,6 +49,8 @@ void init(void) {
 
 	// could initialise a default configuration here - maybe leave it up to the client though... 
 	//init_dcss(2);
+
+	//malloc(2);
 
 }
 
@@ -68,20 +72,23 @@ microkit_msginfo
 protected(microkit_channel ch, microkit_msginfo msginfo) {
 	printf("protected procedure called\n");
 	switch (ch) {
-		case 1:
+		case 0:
 		    v_data = (struct vic_data *) microkit_msginfo_get_label(msginfo);
-            return seL4_MessageInfo_new(0,0,0,0); // why?
+			return seL4_MessageInfo_new((uint64_t)v_data,1 ,0,0); // why?
 			break;
 		default:
 			printf("Unexpected channel id: %d in dcss::protected() \n", ch);
 	}
 }
 
+
+
 void init_dcss(int vic_mode) {
 
 	printf("init dcss called\n");
 	if (v_data != NULL) {
 		printf("v data A = %d\n", v_data->a);
+		//v_intr(v_data);
 	}
 	else {
 		printf("v data not yet set\n");
@@ -173,7 +180,7 @@ CDN_API_STATUS init_api() {
 
 CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_MODES vic_mode, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel) {
 	
-	CDN_API_STATUS api_status = CDN_OK;
+	CDN_API_STATUS api_status = CDN_OK;   
 	BT_TYPE bt_type = 0;
 	HDMI_TX_MAIL_HANDLER_PROTOCOL_TYPE protocol_type = 1;
 

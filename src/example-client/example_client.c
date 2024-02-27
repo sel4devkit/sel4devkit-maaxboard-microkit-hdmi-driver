@@ -1,7 +1,9 @@
-#include <microkit.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
+
+#include <microkit.h>
+
 #include <vic_table.h>
 #include <timer.h>
 #include <hdmi_data.h>
@@ -10,29 +12,36 @@ uintptr_t frame_buffer;
 uintptr_t frame_buffer_start_addr;
 uintptr_t timer_base;
 
+uintptr_t v_data_other;
+
+struct vic_data *glob_v_data = NULL;
+
 int dimensions[3][2] = {{720, 480}, {1280, 720}, {1920, 1080}};
 
 void write_sample_frame_buffer(int width, int height);
 void write_test_frame_buffer(int width, int height);
 void write_static_frame_buffer(int width);
 void clear_frame_buffer(int width, int height);
+void api_example1();
 
 void init(void) {
 	printf("INIT CLIENT UPDATE\n");
 
 	initialise_and_start_timer(timer_base);
-	
-	int vic_mode;
 	frame_buffer_start_addr = frame_buffer; // original starting point
 
+	api_example1();
+}
 
-	//struct vic_data *v_data = malloc(sizeof(struct vic_data));
-	// v_data->a = 100;
-	// v_data->b = 200;
+void api_example1() {
 
-
-	// microkit_ppcall(0, seL4_MessageInfo_new((uint64_t) v_data,1,0,0));
-
+	int vic_mode;
+	struct vic_data *v_data = malloc(sizeof(struct vic_data));
+	v_data->a = 100;
+	v_data->b = 200;
+	
+	microkit_msginfo mkaddr = microkit_ppcall(0, seL4_MessageInfo_new((uint64_t) v_data,1,0,0));
+	// v_data_other = microkit_msginfo_get_label(mkaddr);
 
 	for (int i = 0; i < 3; i++) {
 		printf("testing timer... %d\n", i);
