@@ -54,6 +54,10 @@
 #define TC_CH1_REG5 0x20014 // 15.3.3.1.7 Channel_1 window Register: BOTTOM Window Coordinates forchannel_1 window (TC_CH1_REG5)
 #define TC_CTX_LD_REG10 0x20028 // 15.3.3.1.12 Context Loader Register: Coordinates in the raster table wherethe context loader is started. (TC_CTX_LD_REG10)
 
+// Scaler
+#define SCALE_CTRL 0x1c000 // 15.8.3.1.2 Scale Control Register (SCALE_CTRL)
+#define SCALE_OFIFO_CTRL 0x1c400 // 15.8.3.1.3 Scale Output FIFO Control Register (SCALE_OFIFO_CTRL)
+#define SCALE_SRC_DATA_CTRL 0x1c800 // 15.8.3.1.4 Scale Source Data Control Register (SCALE_SRC_DATA_CTRL)
 
 void write_dcss_memory_registers();
 void write_dtrc_memory_registers();

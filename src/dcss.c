@@ -101,19 +101,12 @@ void reset_dcss(){
 	// DCSS BLK 
 	write_32bit_to_mem((uint32_t*)(dcss_blk_base), 0xffffffff);
 	write_32bit_to_mem((uint32_t*)(dcss_blk_base + CONTROL0), 0x1);
-
-	/* DTG */
-	write_32bit_to_mem((uint32_t*)(dcss_base +  0x20000), 0);
-	/* scaler */
-	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1c000), 0);
-	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1c400), 0);
-	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1c800), 0);
-	/* dpr */
-	write_32bit_to_mem((uint32_t*)(dcss_base +  0x18000), 0);
-	write_32bit_to_mem((uint32_t*)(dcss_base +  0x19000), 0);
-	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1a000), 0);
-	/* sub-sampler*/
-	write_32bit_to_mem((uint32_t*)(dcss_base +  0x1b000), 0);
+	write_32bit_to_mem((uint32_t*)(dcss_base +  TC_CONTROL_STATUS), 0); 
+	write_32bit_to_mem((uint32_t*)(dcss_base +  SCALE_CTRL), 0);
+	write_32bit_to_mem((uint32_t*)(dcss_base +  SCALE_OFIFO_CTRL), 0);
+	write_32bit_to_mem((uint32_t*)(dcss_base +  SCALE_SRC_DATA_CTRL), 0);
+	write_32bit_to_mem((uint32_t*)(dcss_base +  DPR_1_SYSTEM_CTRL0), 0);
+	write_32bit_to_mem((uint32_t*)(dcss_base +  SS_SYS_CTRL), 0);
 }
 
 void init_hdmi() {
