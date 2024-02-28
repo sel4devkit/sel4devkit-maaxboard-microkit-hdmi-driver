@@ -36,6 +36,8 @@ void init(void) {
 	// Api examples
 	api_example1(v_data);
 	api_example2(v_data);
+
+	free(v_data);
 }
 
 void api_example1(struct vic_mode *v_data) {
