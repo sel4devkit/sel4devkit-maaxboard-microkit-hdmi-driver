@@ -67,6 +67,11 @@ void api_example1(struct vic_mode *v_data) {
 	// Display Red, blue green and white collumns on the screen
 	write_sample_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
 	ms_delay(10000);
+
+
+	// Clear the frame buffer
+	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
+	ms_delay(5000);
 }
 
 
