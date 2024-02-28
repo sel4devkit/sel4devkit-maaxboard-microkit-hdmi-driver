@@ -55,22 +55,12 @@
 #define TC_CTX_LD_REG10 0x20028 // 15.3.3.1.12 Context Loader Register: Coordinates in the raster table wherethe context loader is started. (TC_CTX_LD_REG10)
 
 
-struct hdmi_information {
-    uint32_t base_address;
-    int vic_mode;
-    int horizontal_pulse_polarity;
-    int vertical_pulse_polarity;
-    struct display_timing timings;
-};
-
-
-void hdmi_set_timings(struct hdmi_information* hdmi_info);
 void write_dcss_memory_registers();
 void write_dtrc_memory_registers();
-void write_dpr_memory_registers(struct hdmi_information* hdmi_info);
-void write_sub_sampler_memory_registers(struct hdmi_information* hdmi_info);
-void write_dtg_memory_registers(struct hdmi_information* hdmi_info);
-void write_scaler_memory_registers(struct hdmi_information* hdmi_info);
+void write_dpr_memory_registers();
+void write_sub_sampler_memory_registers();
+void write_dtg_memory_registers();
+void write_scaler_memory_registers();
 void init_dcss();
 void reset_dcss();
 void init_gpc();
