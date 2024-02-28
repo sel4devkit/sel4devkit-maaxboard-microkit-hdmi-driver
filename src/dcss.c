@@ -35,6 +35,7 @@ void init(void) {
 	
 	printf("Init Dcss\n");
 	sel4_dma_init(frame_buffer_paddr, frame_buffer, frame_buffer + FRAME_BUFFER_SIZE);
+	init_gpc();
 }
 
 void
@@ -76,7 +77,6 @@ void init_dcss() {
 	}
 
 	init_ccm(); // TODO: Investigate if ccm and gpc should just be set once (in main init function)
-	init_gpc();
 	reset_dcss();
 	init_hdmi();
     write_dcss_memory_registers();
