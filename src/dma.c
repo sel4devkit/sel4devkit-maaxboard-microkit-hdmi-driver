@@ -8,7 +8,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <dma.h>
+
+#include "dma.h"
 
 uintptr_t phys_base;
 uintptr_t virt_base;

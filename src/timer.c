@@ -13,7 +13,8 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <timer.h>
+
+#include "timer.h"
 
 #include <microkit.h>
 

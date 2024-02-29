@@ -5,8 +5,9 @@
 #include <microkit.h>
 
 #include <vic_table.h>
-#include <timer.h>
-#include <hdmi_data.h>
+
+#include "timer.h"
+#include "hdmi_data.h"
 
 uintptr_t frame_buffer;
 uintptr_t frame_buffer_start_addr;
@@ -22,6 +23,7 @@ void vic_table_api_example(int v_mode,struct vic_mode *v_data);
 void api_example2(struct vic_mode *v_data);
 
 void init(void) {
+	
 	printf("Init Client \n");
 	
 	// Initialise timer
@@ -121,6 +123,7 @@ void vic_table_api_example(int v_mode,struct vic_mode *v_data) {
 }
 
 void clear_frame_buffer(int width, int height) {
+	
 	printf("clearing buffer\n");
 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
 
@@ -133,7 +136,6 @@ void clear_frame_buffer(int width, int height) {
 			*(frame_buffer_addr++) = 0x00; // Alpha
 		}
 	}
-	
 }
 
 void
@@ -141,8 +143,8 @@ notified(microkit_channel ch) {
 }
 
 void write_static_frame_buffer(int width) {
+	
 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
-
 	int side_length = 300;
 
 	for (int i = 0; i < side_length; i++) {
@@ -157,6 +159,7 @@ void write_static_frame_buffer(int width) {
 }
 
 void write_sample_frame_buffer(int width, int height) {
+	
 	printf("writing frame buffer...\n");
 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
 
@@ -166,7 +169,6 @@ void write_sample_frame_buffer(int width, int height) {
 
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
-			
 			if (j < first_quarter)
 			{
 				*(frame_buffer_addr++) = 0xff; // Blue

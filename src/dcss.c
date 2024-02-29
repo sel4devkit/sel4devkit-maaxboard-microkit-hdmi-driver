@@ -2,21 +2,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <dcss.h>
-#include <dma.h>
-
 // UBOOT
 #include <inttypes.h>
 #include <address.h>
 #include <externs.h>
 #include <API_HDMITX.h>
 #include <source_phy.h> 
-#include "API_AVI.h"
+#include <API_AVI.h>
 #include <API_AFE_t28hpc_hdmitx.h>
 #include <vic_table.h>
-#include "API_General.h"
+#include <API_General.h>
 
-#include <hdmi_data.h>
+#include "dcss.h"
+#include "dma.h"
+#include "hdmi_data.h"
 
 uintptr_t dcss_base;
 uintptr_t dcss_blk_base;
@@ -76,7 +75,7 @@ void init_dcss() {
 		printf("v data not yet set\n");
 	}
 
-	init_ccm(); // TODO: Investigate if ccm and gpc should just be set once (in main init function)
+	init_ccm();
 	reset_dcss();
 	init_hdmi();
     write_dcss_memory_registers();
@@ -96,6 +95,7 @@ void init_gpc() {
 }
 
 void reset_dcss(){
+	
 	write_32bit_to_mem((uint32_t*)(dcss_blk_base), 0xffffffff);
 	write_32bit_to_mem((uint32_t*)(dcss_blk_base + CONTROL0), 0x1);
 	write_32bit_to_mem((uint32_t*)(dcss_base +  TC_CONTROL_STATUS), 0); 
@@ -193,7 +193,6 @@ void write_dpr_memory_registers() {
 
 void write_sub_sampler_memory_registers() {
 
-	/* SUBSAM */
 	write_32bit_to_mem((uint32_t*)(dcss_base + SS_COEFF), 0x21612161);
 	write_32bit_to_mem((uint32_t*)(dcss_base + SS_CLIP_CB), 0x03ff0000);
 	write_32bit_to_mem((uint32_t*)(dcss_base + SS_CLIP_CR), 0x03ff0000);
@@ -249,24 +248,25 @@ void write_dtg_memory_registers() {
 
 void write_scaler_memory_registers() {
 
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c008), 0x00000000); // This must stay!
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c010), 0x00000002);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c014), 0x00000002);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c018),
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_DATA_CTRL), 0x00000000); // This must stay!
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_FORMAT), 0x00000002);
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_DST_FORMAT), 0x00000002);
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_LUMA_RES),
 		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c01c),
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_CHROMA_RES),
 		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c020),
 		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c024),
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_DST_CHROMA_RES),
 		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c04c), 0x00002000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c054), 0x00002000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c05c), 0x00002000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c064), 0x00002000);
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_V_LUMA_INC), 0x00002000);
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_H_LUMA_INC), 0x00002000);
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_V_CHROMA_INC), 0x00002000);
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_H_CHROMA_INC), 0x00002000);
+	
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c0c0), 0x00040000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c140), 0x00000000);// This must stay
+	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c140), 0x00000000); // This must stay
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c180), 0x00040000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c1c0), 0x00000000);// This one must stay!
+	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c1c0), 0x00000000); // This must stay!
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c000), 0x00000011);
 }
