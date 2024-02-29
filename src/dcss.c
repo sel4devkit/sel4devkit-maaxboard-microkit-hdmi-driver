@@ -29,7 +29,6 @@ struct vic_mode *v_data	= NULL;
 
 #define FRAME_BUFFER_SIZE 1280 * 720 * 4 // TODO: re define  
 
-
 void init(void) {
 	
 	printf("Init Dcss\n");
@@ -62,8 +61,6 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 			printf("Unexpected channel id: %d in dcss::protected() \n", ch);
 	}
 }
-
-
 
 void init_dcss() {
 
@@ -111,12 +108,14 @@ void init_hdmi() {
 	uint8_t bits_per_pixel = 8; // 8 actualyl goes down as 32 (this has no affect)
 	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = PXL_RGB;
 
-	init_api(); // TODO: handle the return
-
-	uint32_t phy_frequency = phy_cfg_t28hpc(4, v_data->PIXEL_FREQ_KHZ, bits_per_pixel, pixel_encoding_format, 1);
-	hdmi_tx_t28hpc_power_config_seq(4);
-
-	call_api(phy_frequency, pixel_encoding_format, bits_per_pixel); // TODO: handle the return
+	if (init_api() == CDN_OK) {
+		uint32_t phy_frequency = phy_cfg_t28hpc(4, v_data->PIXEL_FREQ_KHZ, bits_per_pixel, pixel_encoding_format, 1);
+		hdmi_tx_t28hpc_power_config_seq(4);
+		call_api(phy_frequency, pixel_encoding_format, bits_per_pixel); // TODO: handle the return
+	}
+	else {
+		printf("Failed to initialise API ensure the hdmi firmware is enabled in your boot loader.\n");
+	}
 }
 
 CDN_API_STATUS init_api() {
@@ -124,17 +123,23 @@ CDN_API_STATUS init_api() {
 	CDN_API_STATUS api_status = CDN_OK;
 	
 	cdn_api_init();
+	
 	api_status = cdn_api_checkalive();
+	print_api_status_msg(api_status, "cdn_api_checkalive()");
+	
 	uint8_t test_message[] = "test message";
 	uint8_t test_response[sizeof(test_message) + 1];
+	
 	api_status = cdn_api_general_test_echo_ext_blocking(test_message,
 														test_response,
 														sizeof(test_message),
 														CDN_BUS_TYPE_APB);
+	print_api_status_msg(api_status, "cdn_api_general_test_echo_ext_blocking()");						
+	
 	return api_status;
 }
 
-CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel) {
+void call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel) {
 	
 	CDN_API_STATUS api_status = CDN_OK;   
 	BT_TYPE bt_type = 0;
@@ -145,18 +150,33 @@ CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_en
 		 F_SOURCE_PHY_LANE0_SWAP(0) | F_SOURCE_PHY_LANE1_SWAP(1) |
 		 F_SOURCE_PHY_LANE2_SWAP(2) | F_SOURCE_PHY_LANE3_SWAP(3) |
 		 F_SOURCE_PHY_COMB_BYPASS(0) | F_SOURCE_PHY_20_10(1));
+	print_api_status_msg(api_status, "cdn_api_general_write_register_blocking");
 
 	api_status = CDN_API_HDMITX_Init_blocking();
-	api_status = CDN_API_HDMITX_Init_blocking();
+	print_api_status_msg(api_status, "CDN_API_HDMITX_Init_blocking");
+	
 	api_status = CDN_API_HDMITX_Set_Mode_blocking(protocol_type, phy_frequency);
+	print_api_status_msg(api_status, "CDN_API_HDMITX_Set_Mode_blocking");
+
 	api_status = cdn_api_set_avi(v_data, pixel_encoding_format, bt_type);
+	print_api_status_msg(api_status, "cdn_api_set_avi");
+
 	api_status = CDN_API_HDMITX_SetVic_blocking(v_data, bits_per_pixel, pixel_encoding_format);
+	print_api_status_msg(api_status, "CDN_API_HDMITX_SetVic_blocking");
 
 	// TODO: Potentially need timer here
-
-	return api_status;
+	// TODO: This only prints if one of these calls fail - it should potentially return something to say at least one of them has returned with a non 0 status.
 }
 
+void print_api_status_msg(CDN_API_STATUS status, char* function_name) {
+	
+	if (status != CDN_OK){
+		printf("%s returned non 0 status %d\n", function_name, status);
+	}
+	else {
+		printf("%s returned successfully\n", function_name);
+	}
+}
 
 void write_dcss_memory_registers() {
 	

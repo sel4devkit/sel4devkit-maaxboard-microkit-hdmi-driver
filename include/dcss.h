@@ -88,6 +88,7 @@ void init_gpc();
 void init_ccm();
 void init_hdmi();
 CDN_API_STATUS init_api();
-CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel);
+void call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel);
+void print_api_status_msg(CDN_API_STATUS status, char* function_name);
 
 #endif
