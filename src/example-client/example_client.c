@@ -30,7 +30,7 @@ void init(void) {
 	initialise_and_start_timer(timer_base);
 	
 	// Store the start of frame buffer
-	frame_buffer_start_addr = frame_buffer; // original starting point
+	frame_buffer_start_addr = frame_buffer;
 	
 	// Create structure to hold the vic data
 	struct vic_mode *v_data = malloc(sizeof(struct vic_mode));
@@ -44,23 +44,9 @@ void init(void) {
 
 void api_example1(struct vic_mode *v_data) {
 
-	// Set these values to desired configuration 
-	v_data->FRONT_PORCH = 110; // 4
-	v_data->BACK_PORCH= 220; // 5
-	v_data->HSYNC = 40; // 3
-	v_data->TYPE_EOF = 5; // 10
-	v_data->SOF = 20; // 11
-	v_data->VSYNC= 5; // 9
-	v_data->H_ACTIVE = 1280; // 1
-	v_data->V_ACTIVE = 720; // 7
-	v_data->HSYNC_POL = 1; // 15 (ACTIVE_HIGH)
-	v_data->VSYNC_POL = 1; // 16 (ACTIVE HIGH)
-	v_data->PIXEL_FREQ_KHZ = 74250; // 13
-	v_data->H_BLANK = 370; // 2
-	v_data->H_TOTAL = 1650; // 0
-	v_data->VIC_R3_0 = 8; // 24
-	v_data->VIC_PR = 0; // 25
-	v_data->V_TOTAL = 750;
+	// Initialise the vic mode with custom values
+	struct vic_mode v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23};
+	*v_data = v;
 
 	// Send the vic mode data to the dcss PD
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
@@ -72,10 +58,8 @@ void api_example1(struct vic_mode *v_data) {
 	write_sample_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
 	ms_delay(15000);
 
-
 	// Clear the frame buffer
 	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
-	ms_delay(1000);
 }
 
 
@@ -119,7 +103,6 @@ void vic_table_api_example(int v_mode,struct vic_mode *v_data) {
 	
 	// Clear the frame buffer
 	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
-	ms_delay(1000);
 }
 
 void clear_frame_buffer(int width, int height) {

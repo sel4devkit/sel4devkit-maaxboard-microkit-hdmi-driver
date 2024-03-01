@@ -285,7 +285,7 @@ void write_scaler_memory_registers() {
 	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_H_CHROMA_INC), 0x00002000);
 	
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c0c0), 0x00040000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c140), 0x00000000); // This must stay
+	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c140), 0x00000000); // This must stay!
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c180), 0x00040000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c1c0), 0x00000000); // This must stay!
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c000), 0x00000011);
