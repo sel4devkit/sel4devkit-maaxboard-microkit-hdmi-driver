@@ -98,7 +98,8 @@ void vic_table_api_example(int v_mode,struct vic_mode *v_data) {
 	microkit_notify(46);
 
 	// Write a square to buffer at current resolution 
-	write_static_frame_buffer(v_data->H_ACTIVE);
+	//write_static_frame_buffer(v_data->H_ACTIVE);
+	write_sample_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
 	ms_delay(5000);
 	
 	// Clear the frame buffer

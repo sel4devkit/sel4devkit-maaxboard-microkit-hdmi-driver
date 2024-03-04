@@ -29,6 +29,8 @@ struct vic_mode *v_data	= NULL;
 
 #define FRAME_BUFFER_SIZE 1280 * 720 * 4 // TODO: re define  
 
+
+
 void init(void) {
 	
 	printf("Init Dcss\n");
@@ -105,7 +107,7 @@ void reset_dcss(){
 
 void init_hdmi() {
 	
-	uint8_t bits_per_pixel = 8; // 8 actualyl goes down as 32 (this has no affect)
+	uint8_t bits_per_pixel = 10; // 8 = 24 + alpha, 10= 30 +alpha
 	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = PXL_RGB;
 
 	if (init_api() == CDN_OK) {
@@ -269,8 +271,8 @@ void write_dtg_memory_registers() {
 void write_scaler_memory_registers() {
 
 	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_DATA_CTRL), 0x00000000); // This must stay!
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_FORMAT), 0x00000002);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_DST_FORMAT), 0x00000002);
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_FORMAT), 0x00000002); // RGB
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_DST_FORMAT), 0x00000002); // RGB
 	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_LUMA_RES),
 		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
 	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_CHROMA_RES),
@@ -283,6 +285,20 @@ void write_scaler_memory_registers() {
 	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_H_LUMA_INC), 0x00002000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_V_CHROMA_INC), 0x00002000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_H_CHROMA_INC), 0x00002000);
+
+
+	#define   LUM_BIT_DEPTH_POS			0
+	#define   LUM_BIT_DEPTH_MASK			GENMASK(1, 0)
+	#define   CHR_BIT_DEPTH_POS			4
+	#define   CHR_BIT_DEPTH_MASK			GENMASK(5, 4)
+
+
+	int val = 2;
+	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_BIT_DEPTH), ((val << CHR_BIT_DEPTH_POS) & CHR_BIT_DEPTH_MASK) |
+			  ((val << LUM_BIT_DEPTH_POS) & LUM_BIT_DEPTH_MASK));
+
+
+
 	
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c0c0), 0x00040000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c140), 0x00000000); // This must stay!
