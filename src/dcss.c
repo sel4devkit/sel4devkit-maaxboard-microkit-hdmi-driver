@@ -243,8 +243,12 @@ void write_sub_sampler_memory_registers() {
 
 void write_dtg_memory_registers() {
 	
-	// disable local alpha
-	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005084);
+	if (v_data->alpha_toggle == ALPHA_ON) {
+		write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xFF005484);
+	}
+	else {
+		write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005084);
+	}
 	
 	write_32bit_to_mem((uint32_t*)(dcss_base + TC_DTG_REG1),
 		    (((v_data->TYPE_EOF + v_data->SOF +  v_data->VSYNC + v_data->V_ACTIVE -
@@ -264,8 +268,12 @@ void write_dtg_memory_registers() {
 		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH + v_data->H_ACTIVE - 1)));
 	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);
 
-	// disable local alpha
-	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005184);
+	if (v_data->alpha_toggle == ALPHA_ON) {
+		write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xFF005584);
+	}
+	else {
+		write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005184); 
+	}
 }
 
 

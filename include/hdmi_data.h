@@ -20,6 +20,13 @@ enum RGB_FORMAT {
 	BRGA = 0xd8203
 };
 
+// Explain how the bits are set and point to the spec.
+enum ALPHA_TOGGLE {
+
+	ALPHA_OFF,
+	ALPHA_ON
+};
+
 struct hdmi_data { // rename 
 
     int H_TOTAL;
@@ -40,6 +47,7 @@ struct hdmi_data { // rename
 	int VIC_PR;
 	int VIC;
 	enum RGB_FORMAT rgb_format;
+	enum ALPHA_TOGGLE alpha_toggle;
 };
 
 

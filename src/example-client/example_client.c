@@ -36,8 +36,8 @@ void init(void) {
 	struct hdmi_data *v_data = malloc(sizeof(struct hdmi_data));
 
 	// Api examples
-	api_example1(v_data); // Display 4 colour bars RGB and white split evenly across the screen
-	api_example2(v_data); // Loop through each predefined VIC table values to draw the same sized square at different resolutions
+	api_example1(v_data); // Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
+	//api_example2(v_data); // Loop through each predefined VIC table values to draw the same sized square at different resolutions
 
 	free(v_data);
 }
@@ -45,7 +45,7 @@ void init(void) {
 void api_example1(struct hdmi_data *v_data) {
 
 	// Initialise the vic mode with custom values
-	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA};
+	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_ON};
 	*v_data = v;
 
 	// Send the vic mode data to the dcss PD
@@ -90,7 +90,8 @@ void vic_table_api_example(int v_mode,struct hdmi_data *v_data) {
 	v_data->VIC_PR = vic_table[v_mode][VIC_PR];
 	v_data->V_TOTAL = vic_table[v_mode][V_TOTAL];
 	v_data->rgb_format = RBGA;
-	
+	v_data->alpha_toggle = ALPHA_OFF;
+
 	// Send the vic mode data to the dcss PD
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
 	
@@ -131,16 +132,18 @@ void write_static_frame_buffer(int width) {
 	int side_length = 300;
 	
 	/*
-		Each of the 4 values written to the frame buffer reprsents an RGBA channel.
+		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
 		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
 		Then the order of the values written below will be green, blue, red, alpha.
+		The alpha channel configures the opacity of the colour, at 0xff it will be completely visible and 0x00 it will not be visible.
+		It is turned on or off using hdmi_data.alpha.
 	*/ 
 	for (int i = 0; i < side_length; i++) {
 		for (int j = 0; j < side_length; j++) {
 			*(frame_buffer_addr++) = 0xff;
 			*(frame_buffer_addr++) = 0x00;
 			*(frame_buffer_addr++) = 0x00;
-			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0xff;
 		}
 		frame_buffer_addr += 4*(width-side_length);
 	}
@@ -154,40 +157,54 @@ void write_sample_frame_buffer(int width, int height) {
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
 	int third_quarter = width * 0.75;
+	int alpha = 0;
 
 	/*
 		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
 		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
-		Then the order of the values written below will be green, blue, red, alpha.
+		Then the order of the values written below will be green, blue, red, alpha. The alpha channel configures the
+		opacity of the colour, at 0xff it will be completely visible and 0x00 it will not be visible.
+		It is turned on or off using hdmi_data.alpha. With this option turned on, this example will display each colour bar
+		starting with a 0 alhpa increasing every 3 pixels.
 	*/ 
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
+			
+			// reset alpha for each colour bar
+			if (j % first_quarter == 0) {
+				alpha = 0;
+			}
+			
 			if (j < first_quarter)
 			{
 				*(frame_buffer_addr++) = 0xff; 
 				*(frame_buffer_addr++) = 0x00;
 				*(frame_buffer_addr++) = 0x00;
-				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = alpha;
 			}
 			else if (j < second_quarter)
 			{
 				*(frame_buffer_addr++) = 0x00;
 				*(frame_buffer_addr++) = 0xff;
 				*(frame_buffer_addr++) = 0x00;
-				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = alpha;
 			}
 			else if (j < third_quarter)
 			{
 				*(frame_buffer_addr++) = 0x00;
 				*(frame_buffer_addr++) = 0x00;
 				*(frame_buffer_addr++) = 0xff;
-				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = alpha;
 			}
 			else {
 				*(frame_buffer_addr++) = 0xff;
 				*(frame_buffer_addr++) = 0xff;
 				*(frame_buffer_addr++) = 0xff;
-				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = alpha;
+			}
+
+			if (j %3 == 0) {
+				alpha++;
 			}
 		}
 	}
