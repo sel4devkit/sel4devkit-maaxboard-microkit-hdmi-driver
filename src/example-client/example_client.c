@@ -17,10 +17,12 @@ struct vic_data *glob_v_data = NULL;
 
 void write_sample_frame_buffer(int width, int height);
 void write_static_frame_buffer(int width);
+void write_static_frame_buffer_line(int width, int height);
 void clear_frame_buffer(int width, int height);
 void api_example1(struct vic_mode *v_data);
 void vic_table_api_example(int v_mode,struct vic_mode *v_data);
 void api_example2(struct vic_mode *v_data);
+void test_bit_depth(struct vic_mode *v_data);
 
 void init(void) {
 	
@@ -36,8 +38,10 @@ void init(void) {
 	struct vic_mode *v_data = malloc(sizeof(struct vic_mode));
 
 	// Api examples
-	api_example1(v_data);
-	api_example2(v_data);
+	//api_example1(v_data);
+	// api_example2(v_data);
+
+	test_bit_depth(v_data);
 
 	free(v_data);
 }
@@ -71,6 +75,44 @@ void api_example2(struct vic_mode *v_data) {
 	}
 }
 
+
+void test_bit_depth(struct vic_mode *v_data) {
+
+	// Initialise the data from the predefined vic_table
+	v_data->FRONT_PORCH = vic_table[2][FRONT_PORCH];
+	v_data->BACK_PORCH= vic_table[2][BACK_PORCH];
+	v_data->HSYNC = vic_table[2][HSYNC];
+	v_data->TYPE_EOF = vic_table[2][TYPE_EOF];
+	v_data->SOF = vic_table[2][SOF];
+	v_data->VSYNC= vic_table[2][VSYNC];
+	v_data->H_ACTIVE = vic_table[2][H_ACTIVE];
+	v_data->V_ACTIVE = vic_table[2][V_ACTIVE]; 
+	v_data->HSYNC_POL = vic_table[2][HSYNC_POL];
+	v_data->VSYNC_POL = vic_table[2][VSYNC_POL];
+	v_data->PIXEL_FREQ_KHZ = vic_table[2][PIXEL_FREQ_KHZ];
+	v_data->H_BLANK = vic_table[2][H_BLANK];
+	v_data->H_TOTAL = vic_table[2][H_TOTAL];
+	v_data->VIC_R3_0 = vic_table[2][VIC_R3_0];
+	v_data->VIC_PR = vic_table[2][VIC_PR];
+	v_data->V_TOTAL = vic_table[2][V_TOTAL];
+	
+	// Send the vic mode data to the dcss PD
+	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
+	
+	// Send a message to the dcss PD to initialise the DCSS using the vic data
+	microkit_notify(46);
+
+	// Write a square to buffer at current resolution 
+	//write_static_frame_buffer(v_data->H_ACTIVE);
+	write_static_frame_buffer_line(v_data->H_ACTIVE, v_data->V_ACTIVE);
+	//write_sample_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
+	ms_delay(500000);
+	
+	// Clear the frame buffer
+	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
+
+}
+
 void vic_table_api_example(int v_mode,struct vic_mode *v_data) {
 
 	// Initialise the data from the predefined vic_table
@@ -100,7 +142,7 @@ void vic_table_api_example(int v_mode,struct vic_mode *v_data) {
 	// Write a square to buffer at current resolution 
 	//write_static_frame_buffer(v_data->H_ACTIVE);
 	write_sample_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
-	ms_delay(5000);
+	ms_delay(30000);
 	
 	// Clear the frame buffer
 	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
@@ -126,6 +168,21 @@ void
 notified(microkit_channel ch) {
 }
 
+void write_static_frame_buffer_line(int width, int height) {
+
+	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
+	int side_length = 300;
+
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height/2; j++) {
+			*(frame_buffer_addr++) = 0x00; // Blue
+			*(frame_buffer_addr++) = 0xff; // Green
+			*(frame_buffer_addr++) = 0x00; // Red
+			*(frame_buffer_addr++) = 0x00; // Alpha
+		}
+	}
+
+}
 void write_static_frame_buffer(int width) {
 	
 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;

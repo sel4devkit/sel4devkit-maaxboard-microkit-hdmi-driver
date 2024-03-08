@@ -107,7 +107,7 @@ void reset_dcss(){
 
 void init_hdmi() {
 	
-	uint8_t bits_per_pixel = 10; // 8 = 24 + alpha, 10= 30 +alpha
+	uint8_t bits_per_pixel = 8; // 8 = 24 + alpha, 10= 30 +alpha
 	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = PXL_RGB;
 
 	if (init_api() == CDN_OK) {
@@ -207,7 +207,10 @@ void write_dpr_memory_registers() {
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_X_CTRL), 0x00000280);
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_Y_CTRL), 0x000000f0);
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_CTRL0), ((v_data->H_ACTIVE * 4) << 16));
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), 0x000e4203);
+	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), 0x000e4203); // 32 bits per pixel (with rgba set to a certain value) This needs to be configured for differrent RGB ordering.
+	// write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), 0x000e4003); // 8 bit per pixel potentially? (Other things must be changed i believe)
+	//write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), 0x000e4103); // 16 bits per pixel
+	
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_RTRAM_CTRL0), 0x00000038);
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000004);
 	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000005); // can this bit be set?
@@ -287,19 +290,17 @@ void write_scaler_memory_registers() {
 	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_H_CHROMA_INC), 0x00002000);
 
 
-	#define   LUM_BIT_DEPTH_POS			0
-	#define   LUM_BIT_DEPTH_MASK			GENMASK(1, 0)
-	#define   CHR_BIT_DEPTH_POS			4
-	#define   CHR_BIT_DEPTH_MASK			GENMASK(5, 4)
+	// #define   LUM_BIT_DEPTH_POS			0
+	// #define   CHR_BIT_DEPTH_POS			4
+
+	// int val = 2;
+	// write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_BIT_DEPTH), ((val << CHR_BIT_DEPTH_POS) & 0x20) |
+	// 		  ((val << LUM_BIT_DEPTH_POS) & 0x2));
 
 
-	int val = 2;
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_BIT_DEPTH), ((val << CHR_BIT_DEPTH_POS) & CHR_BIT_DEPTH_MASK) |
-			  ((val << LUM_BIT_DEPTH_POS) & LUM_BIT_DEPTH_MASK));
+	// int test_val = ((val << CHR_BIT_DEPTH_POS) & 0x2) | ((val << LUM_BIT_DEPTH_POS) & 0x20);
+	// printf("test val === %d\n", test_val);
 
-
-
-	
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c0c0), 0x00040000);
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c140), 0x00000000); // This must stay!
 	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c180), 0x00040000);
