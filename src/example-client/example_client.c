@@ -136,7 +136,7 @@ void write_static_frame_buffer(int width) {
 		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
 		Then the order of the values written below will be green, blue, red, alpha.
 		The alpha channel configures the opacity of the colour, at 0xff it will be completely visible and 0x00 it will not be visible.
-		It is turned on or off using hdmi_data.alpha.
+		It is turned on or off using hdmi_data.alpha_toggle.
 	*/ 
 	for (int i = 0; i < side_length; i++) {
 		for (int j = 0; j < side_length; j++) {
@@ -164,7 +164,7 @@ void write_sample_frame_buffer(int width, int height) {
 		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
 		Then the order of the values written below will be green, blue, red, alpha. The alpha channel configures the
 		opacity of the colour, at 0xff it will be completely visible and 0x00 it will not be visible.
-		It is turned on or off using hdmi_data.alpha. With this option turned on, this example will display each colour bar
+		It is turned on or off using hdmi_data.alpha_toggle. With this option turned on, this example will display each colour bar
 		starting with a 0 alhpa increasing every 3 pixels.
 	*/ 
 	for (int i = 0; i < height; i++) {
