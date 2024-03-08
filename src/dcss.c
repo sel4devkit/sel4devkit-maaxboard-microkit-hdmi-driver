@@ -25,7 +25,7 @@ uintptr_t rc_base;
 uintptr_t frame_buffer;
 uintptr_t frame_buffer_paddr;
 
-struct vic_mode *v_data	= NULL;
+struct hdmi_data *v_data	= NULL;
 
 #define FRAME_BUFFER_SIZE 1280 * 720 * 4 // TODO: re define  
 
@@ -56,7 +56,7 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 	printf("protected procedure called\n");
 	switch (ch) {
 		case 0:
-		    v_data = (struct vic_mode *) microkit_msginfo_get_label(msginfo);
+		    v_data = (struct hdmi_data *) microkit_msginfo_get_label(msginfo);
 			return seL4_MessageInfo_new((uint64_t)v_data,1 ,0,0); // why?
 			break;
 		default:

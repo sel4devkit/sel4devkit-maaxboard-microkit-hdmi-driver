@@ -289,27 +289,27 @@ CDN_API_STATUS CDN_API_HDMITX_Init_blocking(void)
 }
 
 
-CDN_API_STATUS CDN_API_HDMITX_SetVic_blocking(struct vic_mode* vic_mode, int bpp,
+CDN_API_STATUS CDN_API_HDMITX_SetVic_blocking(struct hdmi_data* hdmi_data, int bpp,
 					      VIC_PXL_ENCODING_FORMAT format)
 {
 	CDN_API_STATUS ret;
 	GENERAL_READ_REGISTER_RESPONSE resp;
-	unsigned int vsync_lines = vic_mode->VSYNC;
-	unsigned int eof_lines = vic_mode->TYPE_EOF;
-	unsigned int sof_lines = vic_mode->SOF;
-	unsigned int hblank = vic_mode->H_BLANK;
-	unsigned int hactive = vic_mode->H_TOTAL - hblank;
+	unsigned int vsync_lines = hdmi_data->VSYNC;
+	unsigned int eof_lines = hdmi_data->TYPE_EOF;
+	unsigned int sof_lines = hdmi_data->SOF;
+	unsigned int hblank = hdmi_data->H_BLANK;
+	unsigned int hactive = hdmi_data->H_TOTAL - hblank;
 	unsigned int vblank = vsync_lines + eof_lines + sof_lines;
-	unsigned int vactive = vic_mode->V_TOTAL - vblank;
-	unsigned int hfront = vic_mode->FRONT_PORCH;
-	unsigned int hback = vic_mode->BACK_PORCH;
+	unsigned int vactive = hdmi_data->V_TOTAL - vblank;
+	unsigned int hfront = hdmi_data->FRONT_PORCH;
+	unsigned int hback = hdmi_data->BACK_PORCH;
 	unsigned int vfront = eof_lines;
 	unsigned int hsync = hblank - hfront - hback;
 	unsigned int vsync = vsync_lines;
 	unsigned int vback = sof_lines;
-	unsigned int v_h_polarity = ((vic_mode->HSYNC_POL ==
+	unsigned int v_h_polarity = ((hdmi_data->HSYNC_POL ==
 				      ACTIVE_LOW) ? 0 : 1) +
-		((vic_mode->VSYNC_POL == ACTIVE_LOW) ? 0 : 2);
+		((hdmi_data->VSYNC_POL == ACTIVE_LOW) ? 0 : 2);
 
 	ret = cdn_api_general_write_register_blocking(ADDR_SOURCE_MHL_HD +
 						      (SCHEDULER_H_SIZE << 2),

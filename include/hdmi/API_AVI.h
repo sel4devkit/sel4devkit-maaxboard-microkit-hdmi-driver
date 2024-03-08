@@ -52,7 +52,7 @@
 #include <hdmi_data.h>
 
 CDN_API_STATUS cdn_api_set_avi(
-	struct vic_mode* vic_mode,
+	struct hdmi_data* hdmi_data,
 	VIC_PXL_ENCODING_FORMAT color_mode,
 	BT_TYPE itu_ver);
 

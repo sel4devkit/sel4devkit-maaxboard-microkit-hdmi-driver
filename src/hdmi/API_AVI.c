@@ -48,14 +48,14 @@
 #include "API_Infoframe.h"
 
 
-CDN_API_STATUS cdn_api_set_avi(struct vic_mode* vic_mode,	// MODIFIED - All uses of vic_mode
+CDN_API_STATUS cdn_api_set_avi(struct hdmi_data* hdmi_data,	// MODIFIED - All uses of hdmi_data
 	VIC_PXL_ENCODING_FORMAT color_mode,
 	BT_TYPE itu_ver)
 {
-	unsigned int active_slot = vic_mode->H_BLANK;
-	unsigned int line_width = vic_mode->H_TOTAL;
+	unsigned int active_slot = hdmi_data->H_BLANK;
+	unsigned int line_width = hdmi_data->H_TOTAL;
 	unsigned int hactive = line_width - active_slot + 1;
-	unsigned int vactive = vic_mode->V_ACTIVE + 1;
+	unsigned int vactive = hdmi_data->V_ACTIVE + 1;
 
 	unsigned int hactive_l = hactive - 256 * ((unsigned int)hactive / 256);
 	unsigned int hactive_h = hactive / 256;
@@ -119,7 +119,7 @@ CDN_API_STATUS cdn_api_set_avi(struct vic_mode* vic_mode,	// MODIFIED - All uses
 
 	/* Active Format Aspec Ratio: Same As Picture = 0x8 4:3(Center)=0x9
 	   16:9=0xA 14:9=0xB */
-	packet_r = vic_mode->VIC_R3_0;
+	packet_r = hdmi_data->VIC_R3_0;
 	/* Aspect Ratio: Nodata=0 4:3=1 16:9=2 */
 	unsigned int packet_m = 0;
 	/* Quantization Range Default=0 Limited Range=0x1 FullRange=0x2
@@ -132,9 +132,9 @@ CDN_API_STATUS cdn_api_set_avi(struct vic_mode* vic_mode,	// MODIFIED - All uses
 	/*IT content nodata=0 ITcontent=1 */
 	unsigned int packet_it = 0;
 	/* Video Code (CEA) */
-	packet_vic = vic_mode->VIC;
+	packet_vic = hdmi_data->VIC;
 	/* Pixel Repetition 0 ... 9 (1-10) */
-	packet_pr = vic_mode->VIC_PR;
+	packet_pr = hdmi_data->VIC_PR;
 	/* Content Type */
 	unsigned int packet_cn = 0;
 

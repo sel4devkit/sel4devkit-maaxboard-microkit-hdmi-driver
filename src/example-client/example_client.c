@@ -19,10 +19,10 @@ void write_sample_frame_buffer(int width, int height);
 void write_static_frame_buffer(int width);
 void write_static_frame_buffer_line(int width, int height);
 void clear_frame_buffer(int width, int height);
-void api_example1(struct vic_mode *v_data);
-void vic_table_api_example(int v_mode,struct vic_mode *v_data);
-void api_example2(struct vic_mode *v_data);
-void test_bit_depth(struct vic_mode *v_data);
+void api_example1(struct hdmi_data *v_data);
+void vic_table_api_example(int v_mode,struct hdmi_data *v_data);
+void api_example2(struct hdmi_data *v_data);
+void test_bit_depth(struct hdmi_data *v_data);
 
 void init(void) {
 	
@@ -35,21 +35,21 @@ void init(void) {
 	frame_buffer_start_addr = frame_buffer;
 	
 	// Create structure to hold the vic data
-	struct vic_mode *v_data = malloc(sizeof(struct vic_mode));
+	struct hdmi_data *v_data = malloc(sizeof(struct hdmi_data));
 
 	// Api examples
-	//api_example1(v_data);
+	// api_example1(v_data);
 	// api_example2(v_data);
 
-	test_bit_depth(v_data);
+	// test_bit_depth(v_data);
 
 	free(v_data);
 }
 
-void api_example1(struct vic_mode *v_data) {
+void api_example1(struct hdmi_data *v_data) {
 
 	// Initialise the vic mode with custom values
-	struct vic_mode v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23};
+	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA};
 	*v_data = v;
 
 	// Send the vic mode data to the dcss PD
@@ -67,7 +67,7 @@ void api_example1(struct vic_mode *v_data) {
 }
 
 
-void api_example2(struct vic_mode *v_data) {
+void api_example2(struct hdmi_data *v_data) {
 	
 	// Loop through the first three vic table values to display an image of the same size in three different resolutions
 	for (int i = 0; i < 3; i++) {
@@ -76,7 +76,7 @@ void api_example2(struct vic_mode *v_data) {
 }
 
 
-void test_bit_depth(struct vic_mode *v_data) {
+void test_bit_depth(struct hdmi_data *v_data) {
 
 	// Initialise the data from the predefined vic_table
 	v_data->FRONT_PORCH = vic_table[2][FRONT_PORCH];
@@ -95,6 +95,7 @@ void test_bit_depth(struct vic_mode *v_data) {
 	v_data->VIC_R3_0 = vic_table[2][VIC_R3_0];
 	v_data->VIC_PR = vic_table[2][VIC_PR];
 	v_data->V_TOTAL = vic_table[2][V_TOTAL];
+	v_data->rgb_format = RBGA;
 	
 	// Send the vic mode data to the dcss PD
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
@@ -113,7 +114,7 @@ void test_bit_depth(struct vic_mode *v_data) {
 
 }
 
-void vic_table_api_example(int v_mode,struct vic_mode *v_data) {
+void vic_table_api_example(int v_mode,struct hdmi_data *v_data) {
 
 	// Initialise the data from the predefined vic_table
 	v_data->FRONT_PORCH = vic_table[v_mode][FRONT_PORCH];
@@ -132,6 +133,7 @@ void vic_table_api_example(int v_mode,struct vic_mode *v_data) {
 	v_data->VIC_R3_0 = vic_table[v_mode][VIC_R3_0];
 	v_data->VIC_PR = vic_table[v_mode][VIC_PR];
 	v_data->V_TOTAL = vic_table[v_mode][V_TOTAL];
+	v_data->rgb_format = RBGA;
 	
 	// Send the vic mode data to the dcss PD
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));

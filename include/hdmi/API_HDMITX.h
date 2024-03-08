@@ -148,7 +148,7 @@ CDN_API_STATUS CDN_API_HDMITX_Init_blocking(void);
  * \brief change to vid id vicMode
  * \returns status
  */
-CDN_API_STATUS CDN_API_HDMITX_SetVic_blocking(struct vic_mode* vic_mode, // MODIFIED
+CDN_API_STATUS CDN_API_HDMITX_SetVic_blocking(struct hdmi_data* hdmi_data, // MODIFIED
 					      int bpp,
 					      VIC_PXL_ENCODING_FORMAT format);
 
