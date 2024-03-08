@@ -15,14 +15,12 @@ uintptr_t timer_base;
 
 struct vic_data *glob_v_data = NULL;
 
+void api_example1(struct hdmi_data *v_data);
+void api_example2(struct hdmi_data *v_data);
+void clear_frame_buffer(int width, int height);
+void vic_table_api_example(int v_mode,struct hdmi_data *v_data);
 void write_sample_frame_buffer(int width, int height);
 void write_static_frame_buffer(int width);
-void write_static_frame_buffer_line(int width, int height);
-void clear_frame_buffer(int width, int height);
-void api_example1(struct hdmi_data *v_data);
-void vic_table_api_example(int v_mode,struct hdmi_data *v_data);
-void api_example2(struct hdmi_data *v_data);
-void test_bit_depth(struct hdmi_data *v_data);
 
 void init(void) {
 	
@@ -38,10 +36,8 @@ void init(void) {
 	struct hdmi_data *v_data = malloc(sizeof(struct hdmi_data));
 
 	// Api examples
-	// api_example1(v_data);
-	// api_example2(v_data);
-
-	// test_bit_depth(v_data);
+	api_example1(v_data); // Display 4 colour bars RGB and white split evenly across the screen
+	api_example2(v_data); // Loop through each predefined VIC table values to draw the same sized square at different resolutions
 
 	free(v_data);
 }
@@ -49,7 +45,7 @@ void init(void) {
 void api_example1(struct hdmi_data *v_data) {
 
 	// Initialise the vic mode with custom values
-	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA};
+	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA};
 	*v_data = v;
 
 	// Send the vic mode data to the dcss PD
@@ -66,52 +62,12 @@ void api_example1(struct hdmi_data *v_data) {
 	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
 }
 
-
 void api_example2(struct hdmi_data *v_data) {
 	
 	// Loop through the first three vic table values to display an image of the same size in three different resolutions
 	for (int i = 0; i < 3; i++) {
 		vic_table_api_example(i, v_data);
 	}
-}
-
-
-void test_bit_depth(struct hdmi_data *v_data) {
-
-	// Initialise the data from the predefined vic_table
-	v_data->FRONT_PORCH = vic_table[2][FRONT_PORCH];
-	v_data->BACK_PORCH= vic_table[2][BACK_PORCH];
-	v_data->HSYNC = vic_table[2][HSYNC];
-	v_data->TYPE_EOF = vic_table[2][TYPE_EOF];
-	v_data->SOF = vic_table[2][SOF];
-	v_data->VSYNC= vic_table[2][VSYNC];
-	v_data->H_ACTIVE = vic_table[2][H_ACTIVE];
-	v_data->V_ACTIVE = vic_table[2][V_ACTIVE]; 
-	v_data->HSYNC_POL = vic_table[2][HSYNC_POL];
-	v_data->VSYNC_POL = vic_table[2][VSYNC_POL];
-	v_data->PIXEL_FREQ_KHZ = vic_table[2][PIXEL_FREQ_KHZ];
-	v_data->H_BLANK = vic_table[2][H_BLANK];
-	v_data->H_TOTAL = vic_table[2][H_TOTAL];
-	v_data->VIC_R3_0 = vic_table[2][VIC_R3_0];
-	v_data->VIC_PR = vic_table[2][VIC_PR];
-	v_data->V_TOTAL = vic_table[2][V_TOTAL];
-	v_data->rgb_format = RBGA;
-	
-	// Send the vic mode data to the dcss PD
-	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
-	
-	// Send a message to the dcss PD to initialise the DCSS using the vic data
-	microkit_notify(46);
-
-	// Write a square to buffer at current resolution 
-	//write_static_frame_buffer(v_data->H_ACTIVE);
-	write_static_frame_buffer_line(v_data->H_ACTIVE, v_data->V_ACTIVE);
-	//write_sample_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
-	ms_delay(500000);
-	
-	// Clear the frame buffer
-	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
-
 }
 
 void vic_table_api_example(int v_mode,struct hdmi_data *v_data) {
@@ -141,16 +97,15 @@ void vic_table_api_example(int v_mode,struct hdmi_data *v_data) {
 	// Send a message to the dcss PD to initialise the DCSS using the vic data
 	microkit_notify(46);
 
-	// Write a square to buffer at current resolution 
-	//write_static_frame_buffer(v_data->H_ACTIVE);
-	write_sample_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
+	// Write a square of a fixed size to the frame buffer at current resolution 
+	write_static_frame_buffer(v_data->H_ACTIVE);
 	ms_delay(30000);
 	
 	// Clear the frame buffer
 	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
 }
 
-void clear_frame_buffer(int width, int height) {
+void clear_frame_buffer(int width, int height) { // TODO: We may not always want to clear the entire frame buffer if only part of it is filled. 
 	
 	printf("clearing buffer\n");
 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
@@ -158,10 +113,10 @@ void clear_frame_buffer(int width, int height) {
 	int side_length = 300;
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
-			*(frame_buffer_addr++) = 0x00; // Blue
-			*(frame_buffer_addr++) = 0x00; // Green
-			*(frame_buffer_addr++) = 0x00; // Red
-			*(frame_buffer_addr++) = 0x00; // Alpha
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
 		}
 	}
 }
@@ -170,32 +125,22 @@ void
 notified(microkit_channel ch) {
 }
 
-void write_static_frame_buffer_line(int width, int height) {
-
-	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
-	int side_length = 300;
-
-	for (int i = 0; i < width; i++) {
-		for (int j = 0; j < height/2; j++) {
-			*(frame_buffer_addr++) = 0x00; // Blue
-			*(frame_buffer_addr++) = 0xff; // Green
-			*(frame_buffer_addr++) = 0x00; // Red
-			*(frame_buffer_addr++) = 0x00; // Alpha
-		}
-	}
-
-}
 void write_static_frame_buffer(int width) {
 	
 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
 	int side_length = 300;
-
+	
+	/*
+		Each of the 4 values written to the frame buffer reprsents an RGBA channel.
+		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
+		Then the order of the values written below will be green, blue, red, alpha.
+	*/ 
 	for (int i = 0; i < side_length; i++) {
 		for (int j = 0; j < side_length; j++) {
-			*(frame_buffer_addr++) = 0xff; // Blue
-			*(frame_buffer_addr++) = 0x00; // Green
-			*(frame_buffer_addr++) = 0x00; // Red
-			*(frame_buffer_addr++) = 0x00; // Alpha
+			*(frame_buffer_addr++) = 0xff;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
 		}
 		frame_buffer_addr += 4*(width-side_length);
 	}
@@ -210,34 +155,39 @@ void write_sample_frame_buffer(int width, int height) {
 	int second_quarter = width * 0.5;
 	int third_quarter = width * 0.75;
 
+	/*
+		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
+		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
+		Then the order of the values written below will be green, blue, red, alpha.
+	*/ 
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			if (j < first_quarter)
 			{
-				*(frame_buffer_addr++) = 0xff; // Blue
-				*(frame_buffer_addr++) = 0x00; // Green
-				*(frame_buffer_addr++) = 0x00; // Red
-				*(frame_buffer_addr++) = 0x00; // Alpha
+				*(frame_buffer_addr++) = 0xff; 
+				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = 0x00;
 			}
 			else if (j < second_quarter)
 			{
-				*(frame_buffer_addr++) = 0x00; // Blue
-				*(frame_buffer_addr++) = 0xff; // Green
-				*(frame_buffer_addr++) = 0x00; // Red
-				*(frame_buffer_addr++) = 0x00; // Alpha
+				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = 0xff;
+				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = 0x00;
 			}
 			else if (j < third_quarter)
 			{
-				*(frame_buffer_addr++) = 0x00; // Blue
-				*(frame_buffer_addr++) = 0x00; // Green
-				*(frame_buffer_addr++) = 0xff; // Red
-				*(frame_buffer_addr++) = 0x00; // Alpha
+				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = 0x00;
+				*(frame_buffer_addr++) = 0xff;
+				*(frame_buffer_addr++) = 0x00;
 			}
 			else {
-				*(frame_buffer_addr++) = 0xff; // Blue
-				*(frame_buffer_addr++) = 0xff; // Green
-				*(frame_buffer_addr++) = 0xff; // Red
-				*(frame_buffer_addr++) = 0x00; // Alpha
+				*(frame_buffer_addr++) = 0xff;
+				*(frame_buffer_addr++) = 0xff;
+				*(frame_buffer_addr++) = 0xff;
+				*(frame_buffer_addr++) = 0x00;
 			}
 		}
 	}
