@@ -40,7 +40,7 @@ void init(void) {
 	// Api examples
 	//api_example1(v_data); // Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
 	//api_example2(v_data); // Loop through each predefined VIC table values to draw the same sized square at different resolutions
-	api_example3(v_data); 
+	//api_example3(v_data); 
 
 	free(v_data);
 }

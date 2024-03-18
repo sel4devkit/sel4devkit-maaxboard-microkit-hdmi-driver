@@ -22,20 +22,140 @@ uintptr_t dcss_blk_base;
 uintptr_t gpc_base;
 uintptr_t ccm_base;
 uintptr_t rc_base;
-uintptr_t frame_buffer;
-uintptr_t frame_buffer_paddr;
+uintptr_t frame_buffer1;
+uintptr_t frame_buffer2;
+uintptr_t frame_buffer1_paddr;
+uintptr_t frame_buffer2_paddr;
+uintptr_t frame_buffer1_start_addr;
+uintptr_t frame_buffer2_start_addr;
 
-struct hdmi_data *v_data	= NULL;
+uintptr_t ctx_ld_db1;
+uintptr_t ctx_ld_db2;
+uintptr_t ctx_ld_db1_paddr;
+uintptr_t ctx_ld_db2_paddr;
+
+struct hdmi_data *v_data = NULL;
 
 #define FRAME_BUFFER_SIZE 1280 * 720 * 4 // TODO: re define  
+#define CTX_LD_DMA_SIZE 0x100000 // Have a proper think about this size (how big does it realisticly need to be, probably no way near as large as this)
 
+void write_frame_buffer1(int width, int height, int offset); // temporary
+void write_frame_buffer2(int width, int height, int offset); // temporary
 
+void write_frame_buffer1(int width, int height, int offset) {
+
+uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer1_start_addr;
+	int side_length = height;
+	int side_width = 20;
+
+	for (int i = 0; i < side_length; i++) {
+		frame_buffer_addr += 4*(offset);
+		for (int j = 0; j < side_width; j++) {
+			*(frame_buffer_addr++) = 0xff;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0xff;
+		}
+		frame_buffer_addr += 4*(width-side_width-offset);
+	}
+}
+
+// two functions are not needed, but just here for testing purposes to reduce chances of error using pointers.
+void write_frame_buffer2(int width, int height, int offset) {
+
+uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer2_start_addr;
+	int side_length = height;
+	int side_width = 20;
+	
+	for (int i = 0; i < side_length; i++) {
+		frame_buffer_addr += 4*(offset);
+		for (int j = 0; j < side_width; j++) {
+			*(frame_buffer_addr++) = 0xff;
+			*(frame_buffer_addr++) = 0xff;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0xff;
+		}
+		frame_buffer_addr += 4*(width-side_width-offset);
+	}
+}
 
 void init(void) {
 	
 	printf("Init Dcss\n");
-	sel4_dma_init(frame_buffer_paddr, frame_buffer, frame_buffer + FRAME_BUFFER_SIZE);
+	sel4_dma_init(frame_buffer1_paddr, frame_buffer1, frame_buffer1 + FRAME_BUFFER_SIZE);
+	sel4_dma_init(frame_buffer2_paddr, frame_buffer2, frame_buffer2 + FRAME_BUFFER_SIZE);
+	
+	sel4_dma_init(ctx_ld_db1_paddr, ctx_ld_db1, ctx_ld_db1 + CTX_LD_DMA_SIZE);
+	sel4_dma_init(ctx_ld_db2_paddr, ctx_ld_db2, ctx_ld_db2 + CTX_LD_DMA_SIZE);
+	
 	init_gpc();
+
+	// test it works without context switching first.
+	v_data = malloc(sizeof(struct hdmi_data));
+	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_ON};
+	*v_data = v;
+
+	// to test the context loader load dcss from here and comment out code in example client.
+	init_dcss();
+
+	write_frame_buffer1(v_data->H_ACTIVE, v_data->V_ACTIVE, 100);
+
+	frame_buffer1_start_addr = frame_buffer1;
+	frame_buffer2_start_addr = frame_buffer2;
+}
+
+void double_buffer_test(){
+
+	int context = 0;
+	int i = 0;
+
+	// This whole thing can be properly tidied up and neatly in a structure or something.
+
+
+	// Tell the two shadow registers (for each context) where the DPR address is
+	// The first 32 bits is the frame buffer address itself and the next 32 bits is the memory register
+	// Then in the contex loader i need to say where the base of this DMA memory is
+
+	uintptr_t* frame_buffer1_addr = getPhys((void*)frame_buffer1);
+	uintptr_t* frame_buffer2_addr = getPhys((void*)frame_buffer2);
+
+	uint32_t* ctx_ld_db1_addr = (uint32_t*)ctx_ld_db1;
+	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr;				// Set the address of the first frame buffer
+	ctx_ld_db1_addr++; // should move it along by 32 bits
+	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; // The memory register that we are changing (the DPR Address)
+
+	uint32_t* ctx_ld_db2_addr = (uint32_t*)ctx_ld_db2;
+	*ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr;				// Set the address of the first frame buffer
+	ctx_ld_db2_addr++; // should move it along by 32 bits
+	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; // The memory register that we are changing (the DPR Address)
+
+	while (i == 0) { // don't have this go forever in future
+
+		// write frame buffer (context 1 first time) The idea here is that it will write the frame buffer that it will need next time
+		// So the first frame buffer should be written before this
+		// if (context == 0) {
+		// 	write_frame_buffer2();
+		// }
+		// else {	
+		// 	write_frame_buffer1();
+		// }
+		
+		// clear old frame buffer (context 1 first time) (Don't need to worry about this for an image that isn't moving)
+		// clear_frame_buffer();
+
+		// write the DB register config based on the context
+
+		// enable the context loader
+
+
+		// could use something a little more sophisticated 
+		if (context == 0) {
+			context = 1;
+		}
+		else {
+			context = 0;
+		}
+	}
 }
 
 void
@@ -197,7 +317,7 @@ void write_dtrc_memory_registers() {
 
 void write_dpr_memory_registers() {
 	
-	uintptr_t* dma_addr =  getPhys((void*)frame_buffer);
+	uintptr_t* dma_addr =  getPhys((void*)frame_buffer1);
 
     write_32bit_to_mem_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr); 
     write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x00000002); 
@@ -253,7 +373,7 @@ void write_dtg_memory_registers() {
 	write_32bit_to_mem((uint32_t*)(dcss_base + TC_DTG_REG1),
 		    (((v_data->TYPE_EOF + v_data->SOF +  v_data->VSYNC + v_data->V_ACTIVE -
 		       1) << 16) | (v_data->FRONT_PORCH + v_data->BACK_PORCH + v_data->HSYNC+
-			v_data->H_ACTIVE - 1)));
+			v_data->H_ACTIVE - 1)));	
 	write_32bit_to_mem((uint32_t*)(dcss_base + TC_DISPLAY_REG2),
 		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF -
 		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH - 1)));
