@@ -17,10 +17,12 @@ struct vic_data *glob_v_data = NULL;
 
 void api_example1(struct hdmi_data *v_data);
 void api_example2(struct hdmi_data *v_data);
+void api_example3(struct hdmi_data *v_data);
 void clear_frame_buffer(int width, int height);
 void vic_table_api_example(int v_mode,struct hdmi_data *v_data);
 void write_sample_frame_buffer(int width, int height);
 void write_static_frame_buffer(int width);
+void write_moveable_frame_buffer(int width, int height, int offset);
 
 void init(void) {
 	
@@ -36,8 +38,9 @@ void init(void) {
 	struct hdmi_data *v_data = malloc(sizeof(struct hdmi_data));
 
 	// Api examples
-	api_example1(v_data); // Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
+	//api_example1(v_data); // Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
 	//api_example2(v_data); // Loop through each predefined VIC table values to draw the same sized square at different resolutions
+	api_example3(v_data); 
 
 	free(v_data);
 }
@@ -68,6 +71,34 @@ void api_example2(struct hdmi_data *v_data) {
 	for (int i = 0; i < 3; i++) {
 		vic_table_api_example(i, v_data);
 	}
+}
+
+void api_example3(struct hdmi_data *v_data) {
+	
+	// Initialise the vic mode with custom values
+	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RBGA, ALPHA_OFF};
+	*v_data = v;
+
+	// Send the vic mode data to the dcss PD
+	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
+	
+	// Send a message to the dcss PD to initialise the DCSS using the vic data
+	microkit_notify(46);
+	
+	// Display Red, blue green and white collumns on the screen
+
+	for (int offset = 0; offset < 500; offset++) {
+		write_moveable_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE, offset);
+		// Clear the frame buffer
+		// ms_delay(100);
+		// clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
+		//ms_delay(250);
+	}
+		
+	ms_delay(15000);
+
+	// Clear the frame buffer
+	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
 }
 
 void vic_table_api_example(int v_mode,struct hdmi_data *v_data) {
@@ -124,6 +155,55 @@ void clear_frame_buffer(int width, int height) { // TODO: We may not always want
 
 void
 notified(microkit_channel ch) {
+}
+
+void write_moveable_frame_buffer(int width, int height, int offset) {
+
+	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
+	int side_length = height;
+	int side_width = 20;
+
+	// is offset increasing??
+	printf("Offset = %d\n", offset);
+	
+	/*
+		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
+		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
+		Then the order of the values written below will be green, blue, red, alpha.
+		The alpha channel configures the opacity of the colour, at 0xff it will be completely visible and 0x00 it will not be visible.
+		It is turned on or off using hdmi_data.alpha_toggle.
+	*/ 
+	for (int i = 0; i < side_length; i++) {
+		frame_buffer_addr += 4*(offset);
+		for (int j = 0; j < side_width; j++) {
+			*(frame_buffer_addr++) = 0xff;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0xff;
+
+			// could we get a 32bit pointer to store all of these addresses, then when it comes to clearing it just goes through thees?
+			// initially i can just go for the straight clear
+		}
+		frame_buffer_addr += 4*(width-side_width-offset);
+	}
+	
+	ms_delay(100);
+	frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
+	// Clear only the pixels that were drawn
+	for (int i = 0; i < side_length; i++) {
+		frame_buffer_addr += 4*(offset);
+		for (int j = 0; j < side_width; j++) {
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
+			*(frame_buffer_addr++) = 0x00;
+
+			// could we get a 32bit pointer to store all of these addresses, then when it comes to clearing it just goes through thees?
+			// initially i can just go for the straight clear
+		}
+		frame_buffer_addr += 4*(width-side_width-offset);
+	}
+
 }
 
 void write_static_frame_buffer(int width) {
