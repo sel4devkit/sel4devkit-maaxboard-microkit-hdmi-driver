@@ -75,6 +75,11 @@
 // #define SCALE_CTRL 0x1c180 
 // #define SCALE_CTRL 0x1c1c0 
 
+// Context loader
+#define CTXLD_CTRL_STATUS 0x23000
+#define DB_BASE_ADDR 0x23010
+#define DB_COUNT 0x23014
+
 
 
 void write_dcss_memory_registers();

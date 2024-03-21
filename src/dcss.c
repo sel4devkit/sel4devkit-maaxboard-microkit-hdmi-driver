@@ -1,6 +1,7 @@
-#include <microkit.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <microkit.h>
 
 // UBOOT
 #include <inttypes.h>
@@ -16,147 +17,376 @@
 #include "dcss.h"
 #include "dma.h"
 #include "hdmi_data.h"
+#include "dma_offsets.h"
+
+#include "timer.h"
 
 uintptr_t dcss_base;
 uintptr_t dcss_blk_base;
 uintptr_t gpc_base;
 uintptr_t ccm_base;
 uintptr_t rc_base;
-uintptr_t frame_buffer1;
-uintptr_t frame_buffer2;
-uintptr_t frame_buffer1_paddr;
-uintptr_t frame_buffer2_paddr;
+uintptr_t dma_base;
+uintptr_t dma_base_paddr;
 uintptr_t frame_buffer1_start_addr;
 uintptr_t frame_buffer2_start_addr;
 
-uintptr_t ctx_ld_db1;
-uintptr_t ctx_ld_db2;
-uintptr_t ctx_ld_db1_paddr;
-uintptr_t ctx_ld_db2_paddr;
+uintptr_t timer_base;
+
+// uintptr_t ctx_ld_db1;
+// uintptr_t ctx_ld_db2;
+// uintptr_t ctx_ld_db1_paddr;
+// uintptr_t ctx_ld_db2_paddr;
 
 struct hdmi_data *v_data = NULL;
 
-#define FRAME_BUFFER_SIZE 1280 * 720 * 4 // TODO: re define  
-#define CTX_LD_DMA_SIZE 0x100000 // Have a proper think about this size (how big does it realisticly need to be, probably no way near as large as this)
+// #define FRAME_BUFFER_SIZE 1280 * 720 * 3 // TODO: re define  
+// #define CTX_LD_DMA_SIZE 0x100000 // Have a proper think about this size (how big does it realisticly need to be, probably no way near as large as this)
 
-void write_frame_buffer1(int width, int height, int offset); // temporary
-void write_frame_buffer2(int width, int height, int offset); // temporary
+void run_context_loader();
 
-void write_frame_buffer1(int width, int height, int offset) {
 
-uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer1_start_addr;
-	int side_length = height;
-	int side_width = 20;
+// I could potentially have a frame buffer PD
+// This will need to keep track of whats written so it can clear it easily. (I can try clearing the whole thing first of all to be easier)
+// This frame buffer PD will manage the clearing and the writing. The user will simply just write their frame buffer (if its moving) to one place
+// So if the user is writing to it directly, then in the example client PD it must be pointing to either one of the frame buffers at any given time.
+// So if there was a frame buffer PD, this would potentially be responsible for switching what the pointer in the client points to.
 
-	for (int i = 0; i < side_length; i++) {
-		frame_buffer_addr += 4*(offset);
-		for (int j = 0; j < side_width; j++) {
-			*(frame_buffer_addr++) = 0xff;
-			*(frame_buffer_addr++) = 0x00;
-			*(frame_buffer_addr++) = 0x00;
-			*(frame_buffer_addr++) = 0xff;
-		}
-		frame_buffer_addr += 4*(width-side_width-offset);
-	}
-}
 
-// two functions are not needed, but just here for testing purposes to reduce chances of error using pointers.
-void write_frame_buffer2(int width, int height, int offset) {
 
-uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer2_start_addr;
-	int side_length = height;
-	int side_width = 20;
+// void write_frame_buffer1(int width, int height, int offset); // temporary
+// void write_frame_buffer2(int width, int height, int offset); // temporary
+
+// void clear_frame_buffer1(int width, int height, int offset);
+// void clear_frame_buffer2(int width, int height, int offset);
+
+
+// void write_frame_buffer1(int width, int height, int offset) {
+
+// 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer1_start_addr;
+// 	int side_length = height;
+// 	//int side_length = 20;
+// 	int side_width = 80;
+
+// 	for (int i = 0; i < side_length; i++) {
+// 		frame_buffer_addr += 4*(offset);
+// 		for (int j = 0; j < side_width; j++) {
+// 			*(frame_buffer_addr++) = 0xff;
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0xff;
+// 		}
+// 		frame_buffer_addr += 4*(width-side_width-offset);
+// 	}
+
+// 	// for (int i = 0; i < side_length; i++) {
+// 	// 	for (int j = 0; j < side_length; j++) {
+// 	// 		*(frame_buffer_addr++) = 0xff;
+// 	// 		*(frame_buffer_addr++) = 0x00;
+// 	// 		*(frame_buffer_addr++) = 0x00;
+// 	// 		*(frame_buffer_addr++) = 0xff;
+// 	// 	}
+// 	// 	frame_buffer_addr += 4*(width-side_length);
+// 	// }
+// }
+
+// // // two functions are not needed, but just here for testing purposes to reduce chances of error using pointers.
+// void write_frame_buffer2(int width, int height, int offset) {
+
+// 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer2_start_addr;
+// 	int side_length = height;
+// 	//int side_length = 20;
+// 	int side_width = 80;
 	
-	for (int i = 0; i < side_length; i++) {
-		frame_buffer_addr += 4*(offset);
-		for (int j = 0; j < side_width; j++) {
-			*(frame_buffer_addr++) = 0xff;
-			*(frame_buffer_addr++) = 0xff;
-			*(frame_buffer_addr++) = 0x00;
-			*(frame_buffer_addr++) = 0xff;
-		}
-		frame_buffer_addr += 4*(width-side_width-offset);
-	}
-}
+// 	for (int i = 0; i < side_length; i++) {
+// 		frame_buffer_addr += 4*(offset);
+// 		for (int j = 0; j < side_width; j++) {
+// 			*(frame_buffer_addr++) = 0xff;
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0xff;
+// 		}
+// 		frame_buffer_addr += 4*(width-side_width-offset);
+// 	}
+
+// 	// for (int i = 0; i < side_length; i++) {
+// 	// 	for (int j = 0; j < side_length; j++) {
+// 	// 		*(frame_buffer_addr++) = 0xff;
+// 	// 		*(frame_buffer_addr++) = 0x00;
+// 	// 		*(frame_buffer_addr++) = 0xff;
+// 	// 		*(frame_buffer_addr++) = 0xff;
+// 	// 	}
+// 	// 	frame_buffer_addr += 4*(width-side_length);
+// 	// }
+// }
+
+
+// void clear_frame_buffer1(int width, int height, int offset) { // TODO: We may not always want to clear the entire frame buffer if only part of it is filled. 
+	
+// 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer1_start_addr;
+// 	int side_length = height;
+// 	int side_width = 80;
+
+// 	for (int i = 0; i < side_length; i++) {
+// 		frame_buffer_addr += 4*(offset);
+// 		for (int j = 0; j < side_width; j++) {
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0x00;
+// 		}
+// 		frame_buffer_addr += 4*(width-side_width-offset);
+// 	}
+
+// 	// for (int i = 0; i < side_length; i++) {
+// 	// 	for (int j = 0; j < side_length; j++) {
+// 	// 		*(frame_buffer_addr++) = 0xff;
+// 	// 		*(frame_buffer_addr++) = 0x00;
+// 	// 		*(frame_buffer_addr++) = 0x00;
+// 	// 		*(frame_buffer_addr++) = 0xff;
+// 	// 	}
+// 	// 	frame_buffer_addr += 4*(width-side_length);
+// 	// }
+// }
+
+
+// void clear_frame_buffer2(int width, int height, int offset) { // TODO: We may not always want to clear the entire frame buffer if only part of it is filled. 
+	
+// 	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer2_start_addr;
+// 	int side_length = height;
+// 	int side_width = 80;
+
+// 	for (int i = 0; i < side_length; i++) {
+// 		frame_buffer_addr += 4*(offset);
+// 		for (int j = 0; j < side_width; j++) {
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0x00;
+// 			*(frame_buffer_addr++) = 0x00;
+// 		}
+// 		frame_buffer_addr += 4*(width-side_width-offset);
+// 	}
+
+// 	// for (int i = 0; i < side_length; i++) {
+// 	// 	for (int j = 0; j < side_length; j++) {
+// 	// 		*(frame_buffer_addr++) = 0xff;
+// 	// 		*(frame_buffer_addr++) = 0x00;
+// 	// 		*(frame_buffer_addr++) = 0x00;
+// 	// 		*(frame_buffer_addr++) = 0xff;
+// 	// 	}
+// 	// 	frame_buffer_addr += 4*(width-side_length);
+// 	// }
+// }
+
 
 void init(void) {
 	
 	printf("Init Dcss\n");
-	sel4_dma_init(frame_buffer1_paddr, frame_buffer1, frame_buffer1 + FRAME_BUFFER_SIZE);
-	sel4_dma_init(frame_buffer2_paddr, frame_buffer2, frame_buffer2 + FRAME_BUFFER_SIZE);
-	
-	sel4_dma_init(ctx_ld_db1_paddr, ctx_ld_db1, ctx_ld_db1 + CTX_LD_DMA_SIZE);
-	sel4_dma_init(ctx_ld_db2_paddr, ctx_ld_db2, ctx_ld_db2 + CTX_LD_DMA_SIZE);
-	
+	initialise_and_start_timer(timer_base);
+	sel4_dma_init(dma_base_paddr, dma_base, dma_base + CTX_LD_DMA_SIZE); // This is too big and needs to be thought of more carefully.
 	init_gpc();
 
+		// ms_delay(1000);
+
+
+
+
+// This is the only initialisation needed ^^^^^^
+
+// This can go once the current api examples have been set up to work across channels
+
 	// test it works without context switching first.
-	v_data = malloc(sizeof(struct hdmi_data));
-	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_ON};
-	*v_data = v;
+	// v_data = malloc(sizeof(struct hdmi_data));
+	// struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_ON};
+	// *v_data = v;
 
-	// to test the context loader load dcss from here and comment out code in example client.
-	init_dcss();
+	int i = malloc(sizeof(int)); // hack not needed
+	// // to test the context loader load dcss from here and comment out code in example client.
+	// init_dcss();
 
-	write_frame_buffer1(v_data->H_ACTIVE, v_data->V_ACTIVE, 100);
+	// frame_buffer1_start_addr = dma_base;
+	// frame_buffer2_start_addr = dma_base + (FRAME_BUFFER_SIZE * 3); // have a better way of doing this, the sizing should be reconsidered
 
-	frame_buffer1_start_addr = frame_buffer1;
-	frame_buffer2_start_addr = frame_buffer2;
+	// write_frame_buffer1(v_data->H_ACTIVE, v_data->V_ACTIVE, 10);
+
+	// double_buffer_test();
+
+	// // frame_buffer1_start_addr = frame_buffer1;
+	// // frame_buffer2_start_addr = frame_buffer2;
+
+
+	// printf("Should be calling notify\n");
+	// microkit_notify(52);
+	// printf("end of calling notify\n");
 }
 
-void double_buffer_test(){
+void run_context_loader(){
 
 	int context = 0;
 	int i = 0;
 
 	// This whole thing can be properly tidied up and neatly in a structure or something.
 
-
 	// Tell the two shadow registers (for each context) where the DPR address is
 	// The first 32 bits is the frame buffer address itself and the next 32 bits is the memory register
 	// Then in the contex loader i need to say where the base of this DMA memory is
 
-	uintptr_t* frame_buffer1_addr = getPhys((void*)frame_buffer1);
-	uintptr_t* frame_buffer2_addr = getPhys((void*)frame_buffer2);
+	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);
+	uintptr_t* frame_buffer2_addr = getPhys((void*)dma_base + FRAME_BUFFER_TWO_OFFSET);
 
-	uint32_t* ctx_ld_db1_addr = (uint32_t*)ctx_ld_db1;
-	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr;				// Set the address of the first frame buffer
+	printf("Frame buffer 1 addr = %x\n", (uintptr_t)frame_buffer1_addr);
+	printf("Frame buffer 2 addr = %x\n", (uintptr_t)frame_buffer2_addr);
+	printf("Frame buffer 1 addr pointer = %p\n", frame_buffer1_addr);
+	printf("Frame buffer 2 addr pointer = %p\n", frame_buffer2_addr);
+
+	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + (FRAME_BUFFER_SIZE * 2)); // This needs to be an offset from the dma base (frame buffer size *2)
+	printf("Context load adress addr = %p\n", ctx_ld_db1_addr);
+	
+	*ctx_ld_db1_addr = (uint32_t)frame_buffer1_addr;				// Set the address of the first frame buffer
+	printf("Context load value  = %x\n", *ctx_ld_db1_addr);
+
 	ctx_ld_db1_addr++; // should move it along by 32 bits
 	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; // The memory register that we are changing (the DPR Address)
+	printf("Context load adress 2 addr = %p\n", ctx_ld_db1_addr);
+	printf("Context load value 2 = %x\n", *ctx_ld_db1_addr);
+	ctx_ld_db1_addr--;												// To use the physical one we can just use getPhys() so decrementing it back shouldn't need to be a thing
+	printf("Context load adress 3 addr = %p\n", ctx_ld_db1_addr);
+	printf("Context load value 3 = %x\n", *ctx_ld_db1_addr);
 
-	uint32_t* ctx_ld_db2_addr = (uint32_t*)ctx_ld_db2;
-	*ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr;				// Set the address of the first frame buffer
+	uint32_t* ctx_ld_db2_addr = (uint32_t*)(dma_base + (FRAME_BUFFER_SIZE * 2) + 1000000); // This needs to be an offset from the dma base (frame buffer size *2) + something
+	printf("2Context load adress addr = %p\n", ctx_ld_db2_addr);
+	
+	*ctx_ld_db2_addr = (uint32_t)frame_buffer2_addr;				// Set the address of the second frame buffer
+	printf("2Context load value  = %x\n", *ctx_ld_db2_addr);
+
 	ctx_ld_db2_addr++; // should move it along by 32 bits
 	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; // The memory register that we are changing (the DPR Address)
+	printf("2Context load adress 2 addr = %p\n", ctx_ld_db2_addr);
+	printf("2Context load value 2 = %x\n", *ctx_ld_db2_addr);
+	ctx_ld_db2_addr--;												// To use the physical one we can just use getPhys() so decrementing it back shouldn't need to be a thing
+	printf("2Context load adress 3 addr = %p\n", ctx_ld_db2_addr);
+	printf("2Context load value 3 = %x\n", *ctx_ld_db2_addr);
 
-	while (i == 0) { // don't have this go forever in future
+	// All of the above code can go in a separate initilsation function done just once.
 
-		// write frame buffer (context 1 first time) The idea here is that it will write the frame buffer that it will need next time
-		// So the first frame buffer should be written before this
-		// if (context == 0) {
-		// 	write_frame_buffer2();
+	uint32_t* enable_status = (uint32_t*)(dcss_base + CTXLD_CTRL_STATUS);
+	int context_ld_enabled = 0;
+	int db_load_sequence_complete = 0;
+	int sb_lp_load_sequence_complete = 0;
+	int sb_hp_load_sequence_complete = 0;
+
+	*enable_status |= ((int)1 << 1); // set the enable status bit to 1 to kickstart process.
+
+	//int count = 10;
+	while (i == 0) { // don't have this go forever in future - I should call this loop at an interval that i want it to draw a new image at. This will just flash very quickly
+
+		int arb_sel = (*enable_status >> 1) & (int)1;
+		printf("ARB sel = %d\n", arb_sel);
+
+		// printf("enable status = %d\n", context_ld_enabled);			// this isn't the nicest code (or i could instead change it to ctx_ld enabled )
+		// while (context_ld_enabled == 1) {
+		// 	context_ld_enabled = (*enable_status >> 0) & (int)1;
+		// 	printf("enable status = %d\n", context_ld_enabled);		
 		// }
-		// else {	
-		// 	write_frame_buffer1();
-		// }
+
+		if (context == 0) {
+			// if our context is 0 make sure that it is currently looking at the first frame buffer
+			printf("Setting the current context to use the first frame buffer.\n");
+			//write_32bit_to_mem((uint32_t*)(dcss_base + DB_BASE_ADDR), getPhys((void*)dma_base + ((FRAME_BUFFER_SIZE * 2)+1000000)));
+			write_32bit_to_mem((uint32_t*)(dcss_base + DB_BASE_ADDR), getPhys((void*)dma_base + ((FRAME_BUFFER_SIZE * 2))));
+		}
+		else {	
+			printf("Setting the current context to use the second frame buffer.\n");
+			write_32bit_to_mem((uint32_t*)(dcss_base + DB_BASE_ADDR), getPhys((void*)dma_base + ((FRAME_BUFFER_SIZE * 2)+1000000)));
+			//write_32bit_to_mem((uint32_t*)(dcss_base + DB_BASE_ADDR), getPhys((void*)dma_base + ((FRAME_BUFFER_SIZE * 2)+1000000)));
+		}
+
+		write_32bit_to_mem((uint32_t*)(dcss_base + DB_COUNT), 1);
+
+
+
+		db_load_sequence_complete = (*enable_status >> 17) & (int)1;
+		printf("db loading sequence default = %d\n", db_load_sequence_complete);		
 		
-		// clear old frame buffer (context 1 first time) (Don't need to worry about this for an image that isn't moving)
-		// clear_frame_buffer();
+		printf("enable status = %x\n", *enable_status);
+		context_ld_enabled = (*enable_status >> 0) & (int)1; // if that bit is set then it is 1
+		printf("enable status check = %d\n", context_ld_enabled);
+		
+		*enable_status |= ((int)1 << 0); // set the enable status bit to 1 to kickstart process.
+		
+		printf("enable status after = %x\n", *enable_status);
+		context_ld_enabled = (*enable_status >> 0) & (int)1; // if that bit is set then it is 1
+		printf("enable status check after = %d\n", context_ld_enabled);
 
-		// write the DB register config based on the context
 
-		// enable the context loader
+		// in this time now that it is enabled and writing a context. It should write the other contexts frame buffer
+		// It is important that there is a slight delay here so it can clear it before it starts doing things. (This feels a little bit hacky, in the spec it says wait until its not busy)
+		
+		// db_load_sequence_complete = (*enable_status >> 17) & (int)1;
+		// sb_hp_load_sequence_complete = (*enable_status >> 18) & (int)1;
+		// sb_lp_load_sequence_complete = (*enable_status >> 19) & (int)1;
+		// while (db_load_sequence_complete == 0) {
+		// 	  // sb_hp_load_sequence_complete == 0 ||
+		// 	 //  sb_lp_load_sequence_complete == 0) {
+			
+		// 	db_load_sequence_complete = (*enable_status >> 17) & (int)1;
+		// 	//sb_hp_load_sequence_complete = (*enable_status >> 18) & (int)1;
+		// 	//sb_lp_load_sequence_complete = (*enable_status >> 19) & (int)1;
+		// 	printf("db loading sequence active = %d\n", db_load_sequence_complete);	
+		// 	//printf("sb lp loading sequence active = %d\n", sb_lp_load_sequence_complete);	
+		// 	//printf("sb hp loading sequence active = %d\n", sb_hp_load_sequence_complete);	
+		// }
 
+
+		// While this is happening i shouldn't alter either frame buffer. (I think... )
+		while (context_ld_enabled == 1) {
+			context_ld_enabled = (*enable_status >> 0) & (int)1;
+			printf("enable status second time = %d\n", context_ld_enabled);		
+		}
+
+		printf("db loading sequence complete = %d\n", db_load_sequence_complete);	
+
+
+		// ms_delay(1000);
+		printf("Should be calling notify\n");
+		microkit_notify(52);
+
+		ms_delay(1000);
+		printf("end of calling notify\n");
+
+		// It shouldn't matter what the context is - it will just tell it to write the frame buffer
+		// The other PD will just switch and use the other buffer that it was using.
+		// It could just increment a counter in an array to do this
+
+	//	ms_delay(8000);
+
+		
 
 		// could use something a little more sophisticated 
-		if (context == 0) {
-			context = 1;
-		}
-		else {
-			context = 0;
-		}
+		context = context == 1 ? 0 : 1;
+		//count +=1;
 	}
 }
+
+
+
+
+		// int b = 6;	//10011
+		// // check the the bits to see if they are what they say they are
+
+		// int check = (b >> 0) & (int)1;
+		// printf("bit 1 set = %d\n", check);
+		// check = (b >> 1) & (int)1;
+		// printf("bit 2 set = %d\n", check);
+		// check = (b >> 2) & (int)1;
+		// printf("bit 3 set = %d\n", check);
+		// check = (b >> 3) & (int)1;
+		// printf("bit 4 set = %d\n", check);
+
+
+		// // Toggle a bit to 1 so the number changes
+		// b |= ((int)1 << 3);
+		// printf("b after = %d\n", b);
 
 void
 notified(microkit_channel ch) {
@@ -191,13 +421,22 @@ void init_dcss() {
 		printf("v data frequency = %d\n", v_data->PIXEL_FREQ_KHZ);
 	}
 	else {
-		printf("v data not yet set\n");
+		printf("v data not yet set\n"); // This should then not go try init things, handle case properly 
 	}
 
 	init_ccm();
 	reset_dcss();
 	init_hdmi();
     write_dcss_memory_registers();
+
+
+
+	// This wont happen here - instead it will be called from the client depending on the db_toggle in v_data
+	// A function pointer to the write frame buffer call would be useful so it knows which frame buffer example to use.
+	if (v_data->db_toggle) {
+		run_context_loader();
+	}
+	// microkit_notify(46);
 }
 
 void init_ccm() {
@@ -317,7 +556,7 @@ void write_dtrc_memory_registers() {
 
 void write_dpr_memory_registers() {
 	
-	uintptr_t* dma_addr =  getPhys((void*)frame_buffer1);
+	uintptr_t* dma_addr =  getPhys((void*) (dma_base));
 
     write_32bit_to_mem_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr); 
     write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x00000002); 

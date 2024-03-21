@@ -43,6 +43,12 @@ enum ALPHA_TOGGLE {
 	ALPHA_ON
 };
 
+enum DOUBLE_BUFFER_TOGGLE {
+
+	DB_OFF,
+	DB_ON
+};
+
 
 /*
 	This struct holds the user defined display configurations that are set in the client PD and used in the DCSS PD to configure the maaxboard.
@@ -69,6 +75,7 @@ struct hdmi_data {
 	int VIC;
 	enum RGB_FORMAT rgb_format;
 	enum ALPHA_TOGGLE alpha_toggle;
+	enum DOUBLE_BUFFER_TOGGLE db_toggle;
 };
 
 #endif

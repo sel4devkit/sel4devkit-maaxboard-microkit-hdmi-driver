@@ -33,7 +33,7 @@ AS := $(TOOLCHAIN)-as
 WARNINGS := -Wall -Wno-comment -Wno-return-type -Wno-unused-function -Wno-unused-value -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label -Wno-pointer-sign
 
 # List of the object files needed for each protection domain
-DCSS_OBJS 		:=  dcss.o dma.o picolibc_link.o vic_table.o API_general.o test_base_sw.o util.o API_AFE_t28hpc_hdmitx.o API_AFE.o vic_table.o API_HDMITX.o API_AVI.o API_Infoframe.o
+DCSS_OBJS 		:=  dcss.o timer.o dma.o picolibc_link.o vic_table.o API_general.o test_base_sw.o util.o API_AFE_t28hpc_hdmitx.o API_AFE.o vic_table.o API_HDMITX.o API_AVI.o API_Infoframe.o
 CLIENT_OBJS		:=  example_client.o timer.o picolibc_link.o vic_table.o
 
 # define c flags and includes for the dcss protection domain 
