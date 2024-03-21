@@ -88,6 +88,8 @@ void write_dpr_memory_registers();
 void write_sub_sampler_memory_registers();
 void write_dtg_memory_registers();
 void write_scaler_memory_registers();
+void run_context_loader();
+void init_context_loader();
 void init_dcss();
 void reset_dcss();
 void init_gpc();
