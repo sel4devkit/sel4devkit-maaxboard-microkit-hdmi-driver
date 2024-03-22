@@ -70,5 +70,10 @@
         <end pd="example_client" id="52"/>
     </channel>
 
+    <channel>
+        <end pd="dcss" id="55"/>
+        <end pd="example_client" id="55"/>
+    </channel>
+
 
 </system>

@@ -50,9 +50,7 @@ void init(void) {
 
 
 	api_example1(); // Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
-
 	api_example2();
-
 	api_example3();
 
 	//free(v_data); (This will need to be freed at some point)
@@ -60,6 +58,8 @@ void init(void) {
 }
 
 
+// Could this go in a separate frame buffer file? This file would only have access to the frame buffers.
+// It would call the appopriate function using a function pointer
 void
 notified(microkit_channel ch) {
 
@@ -93,6 +93,9 @@ void api_example1() {
 
 	// Clear the frame buffer
 	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
+
+	// Reset the DCSS for next example to avoid strange visual effects caused by prewriting the buffer.
+	microkit_notify(55); 
 }
 
 void api_example2() {
@@ -139,6 +142,9 @@ void vic_table_api_example(int v_mode) {
 	
 	// Clear the frame buffer
 	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
+
+	// Reset the DCSS for next example to avoid strange visual effects caused by prewriting the buffer.
+	microkit_notify(55); 
 }
 
 

@@ -95,6 +95,9 @@ notified(microkit_channel ch) {
 		case 52:
 			run_context_loader();
 			break;
+		case 55:
+			reset_dcss();
+			break;
 		default:
 			printf("Unexpected channel id: %d in dcss::notified() \n", ch);
 	}
