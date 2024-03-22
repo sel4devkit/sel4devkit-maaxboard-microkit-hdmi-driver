@@ -51,12 +51,12 @@ void init_context_loader() {
 	uintptr_t* frame_buffer2_addr = getPhys((void*)dma_base + FRAME_BUFFER_TWO_OFFSET);
 
 	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + CTX_LD_DB_ONE_ADDR); 	// This needs to be an offset from the dma base (frame buffer size *2)
-	*ctx_ld_db1_addr = (uint32_t)frame_buffer1_addr;							// Set the address of the first frame buffer
+	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr;							// Set the address of the first frame buffer
 	ctx_ld_db1_addr++; 															// Increase pointer by 32 bits
 	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 				// The memory register that we are changing (the DPR Address)
 
 	uint32_t* ctx_ld_db2_addr = (uint32_t*)(dma_base + CTX_LD_DB_TWO_ADDR); 	// This needs to be an offset from the dma base (frame buffer size *2) + something
-	*ctx_ld_db2_addr = (uint32_t)frame_buffer2_addr;							// Set the address of the second frame buffer
+	*ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr;									// Set the address of the second frame buffer
 	ctx_ld_db2_addr++; 															// Increase pointer by 32 bits
 	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 				// The memory register that we are changing (the DPR Address)
 	
@@ -71,7 +71,7 @@ void run_context_loader(){
 	int arb_sel = (*enable_status >> 1) & (int)1;
 
 	int contex_offset = (context == 0) ? CTX_LD_DB_ONE_ADDR : CTX_LD_DB_TWO_ADDR;							// Set the context offset in memory
-	write_32bit_to_mem((uint32_t*)(dcss_base + DB_BASE_ADDR), getPhys((void*)dma_base + contex_offset));	// set the base adress for the double buffered context
+	write_32bit_to_mem((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));	// set the base adress for the double buffered context
 	write_32bit_to_mem((uint32_t*)(dcss_base + DB_COUNT), 1);												// Set how many registers are being processed
 	
 	*enable_status |= ((int)1 << 0); 																		// set the enable status bit to 1 to kickstart process.

@@ -49,8 +49,8 @@ void init(void) {
 	v_data = malloc(sizeof(struct hdmi_data));
 
 
-	api_example1(); // Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
-	api_example2();
+	//api_example1(); // Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
+	//api_example2();
 	api_example3();
 
 	//free(v_data); (This will need to be freed at some point)
