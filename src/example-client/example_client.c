@@ -14,22 +14,22 @@
 #define API_EXAMPLE_2_SIDE_LENGTH 300
 
 uintptr_t dma_base; // This should be called the DMA pool
-uintptr_t frame_buffers[2];
-uintptr_t frame_buffer_start_addr;
 uintptr_t timer_base;
 
 struct hdmi_data *v_data = NULL;
-int current_buffer_index = 0;
+
+// this could be wrappe up in a structure of some sort so its clear it belongs to the api_3 example
 int width_offset = 0;
+int ctx_ld_enable = 0;
 
 void api_example1();
 void api_example2();
 void api_example3();
-void clear_frame_buffer(int width, int height);
+void clear_frame_buffer();
 void vic_table_api_example(int v_mode);
-void write_api_example_1_frame_buffer(int width, int height);
-void write_api_example_3_frame_buffer(int width, int height, int ctx_ld_enable);
-void write_api_example_2_frame_buffer(int width);
+void write_api_example_1_frame_buffer();
+void write_api_example_3_frame_buffer();
+void write_api_example_2_frame_buffer();
 
 void init(void) {
 	
@@ -37,37 +37,25 @@ void init(void) {
 	
 	// Initialise timer
 	initialise_and_start_timer(timer_base);
-
-	// Set up location of both frame buffers
-	frame_buffers[0] = dma_base; 
-	frame_buffers[1] = dma_base + FRAME_BUFFER_TWO_OFFSET; 
-
-	// Set the current frame buffer
-	frame_buffer_start_addr = frame_buffers[0];
 	
 	// Allocate memory to hold the vic data
 	v_data = malloc(sizeof(struct hdmi_data));
 
-
-	//api_example1(); // Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
-	//api_example2();
-	api_example3();
+	api_example1(); 	// Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
+	api_example2();		// Display a square with the same number of pixels at three different resolutions
+	api_example3();		// Display 4 coloiur bars RGB and white split evenly across the screen, moving a number of pixels across the screen
 
 	//free(v_data); (This will need to be freed at some point)
 	printf("Finished Init Client \n");
 }
 
 
-// Could this go in a separate frame buffer file? This file would only have access to the frame buffers.
-// It would call the appopriate function using a function pointer
 void
 notified(microkit_channel ch) {
 
 	switch (ch) {
-        case 52:
-			current_buffer_index = current_buffer_index == 1 ? 0 : 1; // switch the current buffer index
-			frame_buffer_start_addr = frame_buffers[current_buffer_index];
-			write_api_example_3_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE, 1);
+        case 52:								// Notified by the context loader to draw the frame buffer that is not being displayed
+			write_api_example_3_frame_buffer(); // Put in a mechanism so that there is a global function pointer at the correct function.
 			break;
 		default:
 			printf("Unexpected channel id: %d in example_client::notified() \n", ch);
@@ -75,24 +63,25 @@ notified(microkit_channel ch) {
 }
 
 void api_example1() {
-
-	// Initialise the vic mode with custom values
+	
+	// Initialise the hdmi data with custom values
 	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_ON, DB_OFF};
 	*v_data = v;
 
-	// pre write the buffer before display configuration
-	write_api_example_1_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE); // this will be defined in a separate file. The frame buffer ADDR will be psased in
+	// prewrite the buffer before it is displayed
+	write_api_example_1_frame_buffer();
 
-	// Send the vic mode data to the dcss PD and init the dcss.
+	// Send the hdmi data to the dcss PD and init the dcss.
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0)); // This funciton is no longer needed as the v_data can just be passed straight in.
 	
 	// Send a message to the dcss PD to initialise the DCSS using the vic data
-	microkit_notify(46); // This will just need the V data passed in but it will call init_dcss().
+	microkit_notify(46);
 
+	// how long the example will be shown
 	ms_delay(10000);
 
 	// Clear the frame buffer
-	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
+	clear_frame_buffer();
 
 	// Reset the DCSS for next example to avoid strange visual effects caused by prewriting the buffer.
 	microkit_notify(55); 
@@ -130,7 +119,7 @@ void vic_table_api_example(int v_mode) {
 	v_data->db_toggle = DB_OFF;
 
 	// Write a square of a fixed size to the frame buffer at current resolution 
-	write_api_example_2_frame_buffer(v_data->H_ACTIVE);
+	write_api_example_2_frame_buffer();
 
 	// Send the vic mode data to the dcss PD
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
@@ -141,7 +130,7 @@ void vic_table_api_example(int v_mode) {
 	ms_delay(10000);
 	
 	// Clear the frame buffer
-	clear_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE);
+	clear_frame_buffer();
 
 	// Reset the DCSS for next example to avoid strange visual effects caused by prewriting the buffer.
 	microkit_notify(55); 
@@ -155,7 +144,7 @@ void api_example3() {
 	*v_data = v;
 
 	// pre write the buffer before display configuration (This would probably be done in a separate PD?)
-	write_api_example_3_frame_buffer(v_data->H_ACTIVE, v_data->V_ACTIVE, 0);
+	write_api_example_3_frame_buffer(0);
 
 	// Send the vic mode data to the dcss PD
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
@@ -164,10 +153,19 @@ void api_example3() {
 	microkit_notify(46);
 }
 
-void write_api_example_1_frame_buffer(int width, int height) {
+void write_api_example_1_frame_buffer() {
 	
 	printf("writing frame buffer...\n");
-	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
+	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
+
+	if (v_data == NULL){
+		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+		return;
+	}
+
+	int height = v_data->V_ACTIVE;
+	int width = v_data->H_ACTIVE;
 
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
@@ -226,9 +224,17 @@ void write_api_example_1_frame_buffer(int width, int height) {
 	}
 }
 
-void write_api_example_2_frame_buffer(int width) {
+void write_api_example_2_frame_buffer() {
 	
-	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
+	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
+
+	if (v_data == NULL){
+		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+		return;
+	}
+
+	int width = v_data->H_ACTIVE;
 	
 	/*
 		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
@@ -248,11 +254,18 @@ void write_api_example_2_frame_buffer(int width) {
 	}
 }
 
-void write_api_example_3_frame_buffer(int width, int height, int ctx_ld_enable) {
+void write_api_example_3_frame_buffer() {
 	
-	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
-	printf("EXAMPLE 3 !!!!!!!!!!!! frame buffer addr = %p\n", frame_buffer_addr);
-	printf("EXAMPLE 3 height %d width %d\n", height, width);
+	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
+
+	if (v_data == NULL){
+		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+		return;
+	}
+
+	int height = v_data->V_ACTIVE;
+	int width = v_data->H_ACTIVE;
 
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
@@ -321,25 +334,29 @@ void write_api_example_3_frame_buffer(int width, int height, int ctx_ld_enable) 
 		width_offset = 0;
 	}
 
+	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.
 	if (ctx_ld_enable == 1) {
-		microkit_notify(52);
+		microkit_notify(52);	// Call the context loader to signify the buffer has finished being written to.
+	}
+	else {
+		ctx_ld_enable = 1;
 	}
 }
 
-
-
-
-
-
-
-
-
-
 // It could save the settings for drawing the frame buffer in a struct, then those same settings could be saved and used to clear the frame buffer where it was written at.
-void clear_frame_buffer(int width, int height) { // TODO: We may not always want to clear the entire frame buffer if only part of it is filled.
+void clear_frame_buffer() { // TODO: We may not always want to clear the entire frame buffer if only part of it is filled.
 	
 	printf("clearing buffer\n");
-	uint8_t* frame_buffer_addr = (uint8_t*)frame_buffer_start_addr;
+	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
+
+	if (v_data == NULL){
+		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+		return;
+	}
+	
+	int height = v_data->V_ACTIVE;
+	int width = v_data->H_ACTIVE;
 
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
@@ -351,6 +368,3 @@ void clear_frame_buffer(int width, int height) { // TODO: We may not always want
 	}
 }
 
-
-
-// Api example 1

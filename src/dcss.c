@@ -30,6 +30,7 @@ uintptr_t rc_base; // where was this needed?
 uintptr_t dma_base;
 uintptr_t dma_base_paddr;
 uintptr_t timer_base;
+uint32_t* current_frame_buffer_offset;
 
 struct hdmi_data *v_data = NULL;
 
@@ -40,6 +41,11 @@ void init(void) {
 	printf("Init Dcss\n");
 	initialise_and_start_timer(timer_base);
 	sel4_dma_init(dma_base_paddr, dma_base, dma_base + CTX_LD_DMA_SIZE); // This is too big and needs to be thought of more carefully.
+	
+	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);
+	current_frame_buffer_offset = (uint32_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET); 	// This needs to be an offset from the dma base (frame buffer size *2)
+	*current_frame_buffer_offset = 0;
+
 	init_gpc();
 	int* i = malloc(sizeof(int)); // hack not needed
 	free(i);
@@ -81,7 +87,9 @@ void run_context_loader(){
 		context_ld_enabled = (*enable_status >> 0) & (int)1;
 	}
 
-	context = context == 1 ? 0 : 1; 																		// Switch context for next time
+	*current_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET :0;
+	context = context == 1 ? 0 : 1; // Switch context for next time
+
 	microkit_notify(52);
 }
 
