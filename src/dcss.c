@@ -42,9 +42,10 @@ void init(void) {
 	initialise_and_start_timer(timer_base);
 	sel4_dma_init(dma_base_paddr, dma_base, dma_base + DMA_SIZE); // This is too big and needs to be thought of more carefully.
 	
+	// Set the current buffer offset for the client to read from
 	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);
-	current_frame_buffer_offset = (uint32_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET); 	// This needs to be an offset from the dma base (frame buffer size *2)
-	*current_frame_buffer_offset = 0;
+	current_frame_buffer_offset = (uint32_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);	
+	*current_frame_buffer_offset = FRAME_BUFFER_ONE_OFFSET; // The client will set the frame buffer pointer to what ever is at this address. By default this is 0, which is at beginning of the DMA pool.
 
 	init_gpc();
 	int* i = malloc(sizeof(int)); // This must be implemented so that the hdmi_data struct can be allocated new memory. (It will need to be freed then also)
@@ -88,7 +89,7 @@ void run_context_loader(){
 		context_ld_enabled = (*enable_status >> 0) & (int)1;
 	}
 
-	*current_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET :0;
+	*current_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET : FRAME_BUFFER_ONE_OFFSET;
 	context = context == 1 ? 0 : 1; 																			// Switch context for next time
 	printf("Switching context took %d ms\n", stop_timer());
 	microkit_notify(52);
@@ -117,8 +118,6 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 		case 0:
 		    hdmi_config = (struct hdmi_data *) microkit_msginfo_get_label(msginfo);
 			init_dcss();
-			// init_dcss(); // This is a possibility instead of going through the notified function. It may not reach the return statement though
-			// Instead of the case 46 for notified, it could call this and pass in the hdmi_config struct. That way the hdmi_config struct doesn't need to be malloced.
 			return seL4_MessageInfo_new((uint64_t)hdmi_config,1 ,0,0); // why?
 			break;
 		default:
@@ -359,7 +358,6 @@ void write_scaler_memory_registers() {
 	write_register((uint32_t*)(dcss_base  + SCALE_H_LUMA_INC), 0x00002000);
 	write_register((uint32_t*)(dcss_base  + SCALE_V_CHROMA_INC), 0x00002000);
 	write_register((uint32_t*)(dcss_base  + SCALE_H_CHROMA_INC), 0x00002000);
-
 
 	write_register((uint32_t*)(dcss_base  + 0x1c0c0), 0x00040000);
 	write_register((uint32_t*)(dcss_base  + 0x1c140), 0x00000000); // This must stay!

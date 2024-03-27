@@ -55,9 +55,8 @@ notified(microkit_channel ch) {
 
 	switch (ch) {
         case 52:								// Notified by the context loader to draw the frame buffer that is not being displayed
-			//write_api_example_3_frame_buffer(); // Put in a mechanism so that there is a global function pointer at the correct function.
 			start_timer();
-			write_api_example_3_frame_buffer();
+			write_api_example_3_frame_buffer(); // Put in a mechanism so that there is a global function pointer at the correct function.
 			printf("Writing frame buffer took %d ms\n", stop_timer());
 			break;
 		default:
@@ -151,14 +150,14 @@ void api_example3() {
 
 void write_api_example_1_frame_buffer() {
 	
-	//printf("writing frame buffer...\n");
-	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
-	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
-
 	if (hdmi_config == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
 		return;
 	}
+	
+	//printf("writing frame buffer...\n");
+	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 
 	int height = hdmi_config->V_ACTIVE;
 	int width = hdmi_config->H_ACTIVE;
@@ -222,13 +221,13 @@ void write_api_example_1_frame_buffer() {
 
 void write_api_example_2_frame_buffer() {
 	
-	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
-	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
-
 	if (hdmi_config == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
 		return;
 	}
+
+	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 
 	int width = hdmi_config->H_ACTIVE;
 	
@@ -252,20 +251,19 @@ void write_api_example_2_frame_buffer() {
 
 void write_api_example_3_frame_buffer() {
 	
+	if (hdmi_config == NULL){
+		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+		return;
+	}
+	
 	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
 	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 
 	uint8_t* frame_buffer_start_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 	printf("frame buffer addr before write = %p\n", frame_buffer_addr);
 
-	if (hdmi_config == NULL){
-		printf("hdmi data not yet set, cannot write frame buffer.\n;");
-		return;
-	}
-
 	int height = hdmi_config->V_ACTIVE;
 	int width = hdmi_config->H_ACTIVE;
-
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
 	int third_quarter = width * 0.75;
@@ -328,7 +326,7 @@ void write_api_example_3_frame_buffer() {
 		}
 	}
 
-	width_offset+=2;
+	width_offset += 2;
 	if (width_offset == width) {
 		width_offset = 0;
 	}
@@ -349,7 +347,6 @@ void write_api_example_3_frame_buffer() {
 	}
 }
 
-// It could save the settings for drawing the frame buffer in a struct, then those same settings could be saved and used to clear the frame buffer where it was written at.
 void clear_frame_buffer() { // TODO: We may not always want to clear the entire frame buffer if only part of it is filled.
 	
 	printf("clearing buffer\n");
