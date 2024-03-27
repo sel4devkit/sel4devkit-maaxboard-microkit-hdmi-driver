@@ -72,21 +72,12 @@ void api_example1() {
 	*hdmi_config = v;
 
 	// prewrite the buffer before it is displayed
-	start_timer();
 	write_api_example_1_frame_buffer();
-	printf("Writing frame buffer took %d ms\n", stop_timer());
 
-	start_timer();
-	ms_delay(1000);
-	printf("Pausing for 1000 ms took %d ms\n", stop_timer());
-
-	// Send the hdmi data to the dcss PD and init the dcss.
+	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0)); // This funciton is no longer needed as the hdmi_config can just be passed straight in.
-	
-	// Send a message to the dcss PD to initialise the DCSS using the vic data
-	microkit_notify(46);
 
-	// how long the example will be shown
+	// how long the example is shown for
 	ms_delay(10000);
 
 	// Clear the frame buffer
@@ -130,12 +121,10 @@ void vic_table_api_example(int v_mode) {
 	// Write a square of a fixed size to the frame buffer at current resolution 
 	write_api_example_2_frame_buffer();
 
-	// Send the vic mode data to the dcss PD
+	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
-	
-	// Send a message to the dcss PD to initialise the DCSS using the vic data
-	microkit_notify(46);
 
+	// how long the example is shown for
 	ms_delay(10000);
 	
 	// Clear the frame buffer
@@ -155,11 +144,9 @@ void api_example3() {
 	// pre write the buffer before display configuration (This would probably be done in a separate PD?)
 	write_api_example_3_frame_buffer(0);
 
-	// Send the vic mode data to the dcss PD
+	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
 	
-	// Send a message to the dcss PD to initialise the DCSS using the vic data
-	microkit_notify(46);
 }
 
 void write_api_example_1_frame_buffer() {
@@ -351,7 +338,7 @@ void write_api_example_3_frame_buffer() {
 	//printf("Return from cache flush = %d\n", ret);
 	printf("frame buffer start addr = %p\n", frame_buffer_start_addr);
 	printf("frame buffer addr after write = %p\n", frame_buffer_addr);
-	ms_delay(5000);
+	//ms_delay(5000);
 
 	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.
 	if (ctx_ld_enable == 1) {

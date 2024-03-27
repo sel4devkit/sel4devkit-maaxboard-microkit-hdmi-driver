@@ -40,7 +40,7 @@ void init(void) {
 	
 	printf("Init Dcss\n");
 	initialise_and_start_timer(timer_base);
-	sel4_dma_init(dma_base_paddr, dma_base, dma_base + CTX_LD_DMA_SIZE); // This is too big and needs to be thought of more carefully.
+	sel4_dma_init(dma_base_paddr, dma_base, dma_base + DMA_SIZE); // This is too big and needs to be thought of more carefully.
 	
 	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);
 	current_frame_buffer_offset = (uint32_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET); 	// This needs to be an offset from the dma base (frame buffer size *2)
@@ -98,9 +98,6 @@ void
 notified(microkit_channel ch) {
 	
 	switch (ch) {
-        case 46:
-			init_dcss();
-			break;
 		case 52:
 			run_context_loader();
 			break;
@@ -119,6 +116,7 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 	switch (ch) {
 		case 0:
 		    hdmi_config = (struct hdmi_data *) microkit_msginfo_get_label(msginfo);
+			init_dcss();
 			// init_dcss(); // This is a possibility instead of going through the notified function. It may not reach the return statement though
 			// Instead of the case 46 for notified, it could call this and pass in the hdmi_config struct. That way the hdmi_config struct doesn't need to be malloced.
 			return seL4_MessageInfo_new((uint64_t)hdmi_config,1 ,0,0); // why?
