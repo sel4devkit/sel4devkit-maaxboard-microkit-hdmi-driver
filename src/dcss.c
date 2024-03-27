@@ -56,13 +56,13 @@ void init_context_loader() {
 	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);
 	uintptr_t* frame_buffer2_addr = getPhys((void*)dma_base + FRAME_BUFFER_TWO_OFFSET);
 
-	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + CTX_LD_DB_ONE_ADDR); 	// This needs to be an offset from the dma base (frame buffer size *2)
+	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + CTX_LD_DB_ONE_ADDR); 	
 	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr;							// Set the address of the first frame buffer
 	ctx_ld_db1_addr++; 															// Increase pointer by 32 bits
 	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 				// The memory register that we are changing (the DPR Address)
 
-	uint32_t* ctx_ld_db2_addr = (uint32_t*)(dma_base + CTX_LD_DB_TWO_ADDR); 	// This needs to be an offset from the dma base (frame buffer size *2) + something
-	*ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr;									// Set the address of the second frame buffer
+	uint32_t* ctx_ld_db2_addr = (uint32_t*)(dma_base + CTX_LD_DB_TWO_ADDR); 	
+	*ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr;							// Set the address of the second frame buffer
 	ctx_ld_db2_addr++; 															// Increase pointer by 32 bits
 	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 				// The memory register that we are changing (the DPR Address)
 	
@@ -71,6 +71,8 @@ void init_context_loader() {
 
 void run_context_loader(){
 	printf("Running context loader in context: %d\n", context);
+	
+	start_timer();
 	uint32_t* enable_status = (uint32_t*)(dcss_base + CTXLD_CTRL_STATUS);
 	int context_ld_enabled = 0;
 
@@ -83,13 +85,13 @@ void run_context_loader(){
 	*enable_status |= ((int)1 << 0); 																		// set the enable status bit to 1 to kickstart process.
 	context_ld_enabled = (*enable_status >> 0) & (int)1; 
 	while (context_ld_enabled == 1) {																		// poll contiously until context loader is not being used.
-		printf("context  = %d\n", context_ld_enabled); 														// If this print statement isn't here it doesn't do anything... FIX THIS
+		seL4_Yield();	
 		context_ld_enabled = (*enable_status >> 0) & (int)1;
 	}
 
 	*current_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET :0;
 	context = context == 1 ? 0 : 1; // Switch context for next time
-
+	printf("Switching context took %d ms\n", stop_timer());
 	microkit_notify(52);
 }
 

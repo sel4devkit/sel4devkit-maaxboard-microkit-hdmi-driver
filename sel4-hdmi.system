@@ -3,7 +3,7 @@
 <system>
     
     <!-- Frame buffer memory -->
-    <memory_region name="dma_pool" size="0x2000000"/>
+    <memory_region name="dma_pool" size="0x4000000"/>
     
     <!-- <memory_region name="ctx_ld_db1_base" size="0x10000"/>
     <memory_region name="ctx_ld_db2_base" size="0x10000"/> -->
@@ -24,7 +24,7 @@
 
     <!-- DCSS -->
     <protection_domain name="dcss" pp="true" priority="250">
-        <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="false" setvar_vaddr="dma_base"/>
+        <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="true" setvar_vaddr="dma_base"/>
         <!-- <map mr="ctx_ld_db1_base" vaddr="0x500000" perms="rw" cached="false" setvar_vaddr="ctx_ld_db1"/> 
         <map mr="ctx_ld_db2_base" vaddr="0x900000" perms="rw" cached="false" setvar_vaddr="ctx_ld_db2"/> -->
         <map mr="dcss_mem" vaddr="0x32e00000" perms="rw" cached="false" setvar_vaddr="dcss_base"/>
@@ -47,7 +47,7 @@
 
     <!-- Example Client -->
     <protection_domain name="example_client" pp="true" priority="249">
-        <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="false" setvar_vaddr="dma_base"/>
+        <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="true" setvar_vaddr="dma_base"/>
         <map mr="timer_mem" vaddr="0x306c0000" perms="rw" cached="false" setvar_vaddr="timer_base"/>
         <map mr="shared_heap" vaddr="0x5_a00_000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
         <map mr="shared_heap_end" vaddr="0x5_bf0_000" perms="rw" cached="false" setvar_vaddr="__heap_end"/>

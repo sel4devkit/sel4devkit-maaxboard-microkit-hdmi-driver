@@ -41,8 +41,8 @@ void init(void) {
 	// Allocate memory to hold the vic data
 	v_data = malloc(sizeof(struct hdmi_data));
 
-	api_example1(); 	// Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
-	api_example2();		// Display a square with the same number of pixels at three different resolutions
+	//api_example1(); 	// Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
+	//api_example2();		// Display a square with the same number of pixels at three different resolutions
 	api_example3();		// Display 4 coloiur bars RGB and white split evenly across the screen, moving a number of pixels across the screen
 
 	//free(v_data); (This will need to be freed at some point)
@@ -55,7 +55,11 @@ notified(microkit_channel ch) {
 
 	switch (ch) {
         case 52:								// Notified by the context loader to draw the frame buffer that is not being displayed
-			write_api_example_3_frame_buffer(); // Put in a mechanism so that there is a global function pointer at the correct function.
+			//write_api_example_3_frame_buffer(); // Put in a mechanism so that there is a global function pointer at the correct function.
+			start_timer();
+			write_api_example_3_frame_buffer();
+			printf("Writing frame buffer took %d ms\n", stop_timer());
+
 			break;
 		default:
 			printf("Unexpected channel id: %d in example_client::notified() \n", ch);
@@ -69,7 +73,13 @@ void api_example1() {
 	*v_data = v;
 
 	// prewrite the buffer before it is displayed
+	start_timer();
 	write_api_example_1_frame_buffer();
+	printf("Writing frame buffer took %d ms\n", stop_timer());
+
+	start_timer();
+	ms_delay(1000);
+	printf("Pausing for 1000 ms took %d ms\n", stop_timer());
 
 	// Send the hdmi data to the dcss PD and init the dcss.
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0)); // This funciton is no longer needed as the v_data can just be passed straight in.
@@ -155,7 +165,7 @@ void api_example3() {
 
 void write_api_example_1_frame_buffer() {
 	
-	printf("writing frame buffer...\n");
+	//printf("writing frame buffer...\n");
 	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
 	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 
@@ -259,6 +269,9 @@ void write_api_example_3_frame_buffer() {
 	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
 	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 
+	uint8_t* frame_buffer_start_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
+	printf("frame buffer addr before write = %p\n", frame_buffer_addr);
+
 	if (v_data == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
 		return;
@@ -333,6 +346,13 @@ void write_api_example_3_frame_buffer() {
 	if (width_offset == width) {
 		width_offset = 0;
 	}
+
+		//seL4_ARM_VSpace_Invalidate_Data(3, (long)frame_buffer_start_addr, (long)frame_buffer_addr);
+	int ret = seL4_ARM_VSpace_CleanInvalidate_Data(2, 0, (long)CTX_LD_DMA_SIZE);
+	printf("Return from cache flush = %d\n", ret);
+	printf("frame buffer start addr = %p\n", frame_buffer_start_addr);
+	printf("frame buffer addr after write = %p\n", frame_buffer_addr);
+	ms_delay(5000);
 
 	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.
 	if (ctx_ld_enable == 1) {

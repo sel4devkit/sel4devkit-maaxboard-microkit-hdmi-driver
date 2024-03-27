@@ -49,6 +49,7 @@ void writel(uint32_t val, unsigned long addr, uint32_t offset) {
 	(*(volatile uint32_t *)(_GET_ADDR) = (val));
 }
 
+
 #define CNTCR_EN    0x0b
 #define CNTCR_FCR0  0x1000b
 
@@ -57,6 +58,8 @@ struct cntl_reg *ctrl_reg = (struct cntl_reg *)0x306c0000;
 uint64_t tick_frequency = 0;
 uintptr_t tmr_base;
 
+int start_time_ticks;
+int start_timer_in_use = 0;
 
 uint64_t get_clock_freq(uintptr_t timer_base) {
     return readl(timer_base, 0x020);
@@ -126,4 +129,19 @@ void ms_delay(int delay) {
 	timer_print("Finish count: %ld\n", get_ticks());
     timer_print("Target end was: %ld\n", timer_count_init + delay_ticks);
     timer_print("TIMER END\n");
+}
+
+void start_timer(){
+    start_time_ticks = get_ticks();
+    start_timer_in_use = 1;
+}
+
+int stop_timer(){
+    int time_in_ms = -1;
+    if (start_timer_in_use == 1){
+        int end_time_ticks = get_ticks();
+        time_in_ms = ((end_time_ticks - start_time_ticks)/ (tick_frequency/1000));
+        start_timer_in_use = 0;
+    }
+    return time_in_ms;
 }
