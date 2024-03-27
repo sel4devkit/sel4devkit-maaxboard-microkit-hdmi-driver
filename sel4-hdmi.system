@@ -29,7 +29,8 @@
         <map mr="rc_mem" vaddr="0x30390000" perms="rw" cached="false" setvar_vaddr="rc_base"/>
         <map mr="hdmi_mem" vaddr="0x32c00000" perms="rw" cached="false" setvar_vaddr="hdmi_base"/>
         <map mr="timer_mem" vaddr="0x306c0000" perms="rw" cached="false" setvar_vaddr="timer_base"/>
-
+        <map mr="shared_heap" vaddr="0x5_a00_000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
+        <map mr="shared_heap_end" vaddr="0x5_bf0_000" perms="rw" cached="false" setvar_vaddr="__heap_end"/>
         <setvar symbol="dma_base_paddr" region_paddr="dma_pool" />
         <program_image path="dcss.elf" />
     </protection_domain>

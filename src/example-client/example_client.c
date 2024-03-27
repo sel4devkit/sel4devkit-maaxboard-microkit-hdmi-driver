@@ -16,7 +16,7 @@
 uintptr_t dma_base; // This should be called the DMA pool
 uintptr_t timer_base;
 
-struct hdmi_data *v_data = NULL;
+struct hdmi_data *hdmi_config = NULL;
 
 // this could be wrappe up in a structure of some sort so its clear it belongs to the api_3 example
 int width_offset = 0;
@@ -39,13 +39,13 @@ void init(void) {
 	initialise_and_start_timer(timer_base);
 	
 	// Allocate memory to hold the vic data
-	v_data = malloc(sizeof(struct hdmi_data));
+	hdmi_config = malloc(sizeof(struct hdmi_data));
 
 	//api_example1(); 	// Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
 	//api_example2();		// Display a square with the same number of pixels at three different resolutions
 	api_example3();		// Display 4 coloiur bars RGB and white split evenly across the screen, moving a number of pixels across the screen
 
-	//free(v_data); (This will need to be freed at some point)
+	//free(hdmi_config); (This will need to be freed at some point)
 	printf("Finished Init Client \n");
 }
 
@@ -59,7 +59,6 @@ notified(microkit_channel ch) {
 			start_timer();
 			write_api_example_3_frame_buffer();
 			printf("Writing frame buffer took %d ms\n", stop_timer());
-
 			break;
 		default:
 			printf("Unexpected channel id: %d in example_client::notified() \n", ch);
@@ -70,7 +69,7 @@ void api_example1() {
 	
 	// Initialise the hdmi data with custom values
 	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_ON, DB_OFF};
-	*v_data = v;
+	*hdmi_config = v;
 
 	// prewrite the buffer before it is displayed
 	start_timer();
@@ -82,7 +81,7 @@ void api_example1() {
 	printf("Pausing for 1000 ms took %d ms\n", stop_timer());
 
 	// Send the hdmi data to the dcss PD and init the dcss.
-	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0)); // This funciton is no longer needed as the v_data can just be passed straight in.
+	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0)); // This funciton is no longer needed as the hdmi_config can just be passed straight in.
 	
 	// Send a message to the dcss PD to initialise the DCSS using the vic data
 	microkit_notify(46);
@@ -108,31 +107,31 @@ void api_example2() {
 void vic_table_api_example(int v_mode) {
 
 	// Initialise the data from the predefined vic_table
-	v_data->FRONT_PORCH = vic_table[v_mode][FRONT_PORCH];
-	v_data->BACK_PORCH= vic_table[v_mode][BACK_PORCH];
-	v_data->HSYNC = vic_table[v_mode][HSYNC];
-	v_data->TYPE_EOF = vic_table[v_mode][TYPE_EOF];
-	v_data->SOF = vic_table[v_mode][SOF];
-	v_data->VSYNC= vic_table[v_mode][VSYNC];
-	v_data->H_ACTIVE = vic_table[v_mode][H_ACTIVE];
-	v_data->V_ACTIVE = vic_table[v_mode][V_ACTIVE]; 
-	v_data->HSYNC_POL = vic_table[v_mode][HSYNC_POL];
-	v_data->VSYNC_POL = vic_table[v_mode][VSYNC_POL];
-	v_data->PIXEL_FREQ_KHZ = vic_table[v_mode][PIXEL_FREQ_KHZ];
-	v_data->H_BLANK = vic_table[v_mode][H_BLANK];
-	v_data->H_TOTAL = vic_table[v_mode][H_TOTAL];
-	v_data->VIC_R3_0 = vic_table[v_mode][VIC_R3_0];
-	v_data->VIC_PR = vic_table[v_mode][VIC_PR];
-	v_data->V_TOTAL = vic_table[v_mode][V_TOTAL];
-	v_data->rgb_format = RBGA;
-	v_data->alpha_toggle = ALPHA_OFF;
-	v_data->db_toggle = DB_OFF;
+	hdmi_config->FRONT_PORCH = vic_table[v_mode][FRONT_PORCH];
+	hdmi_config->BACK_PORCH= vic_table[v_mode][BACK_PORCH];
+	hdmi_config->HSYNC = vic_table[v_mode][HSYNC];
+	hdmi_config->TYPE_EOF = vic_table[v_mode][TYPE_EOF];
+	hdmi_config->SOF = vic_table[v_mode][SOF];
+	hdmi_config->VSYNC= vic_table[v_mode][VSYNC];
+	hdmi_config->H_ACTIVE = vic_table[v_mode][H_ACTIVE];
+	hdmi_config->V_ACTIVE = vic_table[v_mode][V_ACTIVE]; 
+	hdmi_config->HSYNC_POL = vic_table[v_mode][HSYNC_POL];
+	hdmi_config->VSYNC_POL = vic_table[v_mode][VSYNC_POL];
+	hdmi_config->PIXEL_FREQ_KHZ = vic_table[v_mode][PIXEL_FREQ_KHZ];
+	hdmi_config->H_BLANK = vic_table[v_mode][H_BLANK];
+	hdmi_config->H_TOTAL = vic_table[v_mode][H_TOTAL];
+	hdmi_config->VIC_R3_0 = vic_table[v_mode][VIC_R3_0];
+	hdmi_config->VIC_PR = vic_table[v_mode][VIC_PR];
+	hdmi_config->V_TOTAL = vic_table[v_mode][V_TOTAL];
+	hdmi_config->rgb_format = RBGA;
+	hdmi_config->alpha_toggle = ALPHA_OFF;
+	hdmi_config->db_toggle = DB_OFF;
 
 	// Write a square of a fixed size to the frame buffer at current resolution 
 	write_api_example_2_frame_buffer();
 
 	// Send the vic mode data to the dcss PD
-	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
+	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
 	
 	// Send a message to the dcss PD to initialise the DCSS using the vic data
 	microkit_notify(46);
@@ -151,13 +150,13 @@ void api_example3() {
 
 	// Initialise the vic mode with custom values
 	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_OFF, DB_ON};
-	*v_data = v;
+	*hdmi_config = v;
 
 	// pre write the buffer before display configuration (This would probably be done in a separate PD?)
 	write_api_example_3_frame_buffer(0);
 
 	// Send the vic mode data to the dcss PD
-	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)v_data, 1, 0, 0));
+	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
 	
 	// Send a message to the dcss PD to initialise the DCSS using the vic data
 	microkit_notify(46);
@@ -169,13 +168,13 @@ void write_api_example_1_frame_buffer() {
 	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
 	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 
-	if (v_data == NULL){
+	if (hdmi_config == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
 		return;
 	}
 
-	int height = v_data->V_ACTIVE;
-	int width = v_data->H_ACTIVE;
+	int height = hdmi_config->V_ACTIVE;
+	int width = hdmi_config->H_ACTIVE;
 
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
@@ -239,12 +238,12 @@ void write_api_example_2_frame_buffer() {
 	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
 	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 
-	if (v_data == NULL){
+	if (hdmi_config == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
 		return;
 	}
 
-	int width = v_data->H_ACTIVE;
+	int width = hdmi_config->H_ACTIVE;
 	
 	/*
 		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
@@ -272,13 +271,13 @@ void write_api_example_3_frame_buffer() {
 	uint8_t* frame_buffer_start_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 	printf("frame buffer addr before write = %p\n", frame_buffer_addr);
 
-	if (v_data == NULL){
+	if (hdmi_config == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
 		return;
 	}
 
-	int height = v_data->V_ACTIVE;
-	int width = v_data->H_ACTIVE;
+	int height = hdmi_config->V_ACTIVE;
+	int width = hdmi_config->H_ACTIVE;
 
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
@@ -347,9 +346,9 @@ void write_api_example_3_frame_buffer() {
 		width_offset = 0;
 	}
 
-		//seL4_ARM_VSpace_Invalidate_Data(3, (long)frame_buffer_start_addr, (long)frame_buffer_addr);
-	int ret = seL4_ARM_VSpace_CleanInvalidate_Data(2, 0, (long)CTX_LD_DMA_SIZE);
-	printf("Return from cache flush = %d\n", ret);
+	//seL4_ARM_VSpace_Invalidate_Data(3, (long)frame_buffer_start_addr, (long)frame_buffer_addr);
+	//int ret = seL4_ARM_VSpace_CleanInvalidate_Data(2, 0, (long)CTX_LD_DMA_SIZE);
+	//printf("Return from cache flush = %d\n", ret);
 	printf("frame buffer start addr = %p\n", frame_buffer_start_addr);
 	printf("frame buffer addr after write = %p\n", frame_buffer_addr);
 	ms_delay(5000);
@@ -370,13 +369,13 @@ void clear_frame_buffer() { // TODO: We may not always want to clear the entire 
 	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
 	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
 
-	if (v_data == NULL){
+	if (hdmi_config == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
 		return;
 	}
 	
-	int height = v_data->V_ACTIVE;
-	int width = v_data->H_ACTIVE;
+	int height = hdmi_config->V_ACTIVE;
+	int width = hdmi_config->H_ACTIVE;
 
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {

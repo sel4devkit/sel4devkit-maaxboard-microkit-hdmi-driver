@@ -32,7 +32,7 @@ uintptr_t dma_base_paddr;
 uintptr_t timer_base;
 uint32_t* current_frame_buffer_offset;
 
-struct hdmi_data *v_data = NULL;
+struct hdmi_data *hdmi_config = NULL;
 
 int context = 0; // An alternative to global counter?
 
@@ -47,8 +47,8 @@ void init(void) {
 	*current_frame_buffer_offset = 0;
 
 	init_gpc();
-	// int* i = malloc(sizeof(int)); // hack not needed
-	// free(i);
+	int* i = malloc(sizeof(int)); // This must be implemented so that the hdmi_data struct can be allocated new memory. (It will need to be freed then also)
+	free(i);
 }
 
 void init_context_loader() {
@@ -118,10 +118,10 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 	printf("protected procedure called\n");
 	switch (ch) {
 		case 0:
-		    v_data = (struct hdmi_data *) microkit_msginfo_get_label(msginfo);
+		    hdmi_config = (struct hdmi_data *) microkit_msginfo_get_label(msginfo);
 			// init_dcss(); // This is a possibility instead of going through the notified function. It may not reach the return statement though
-			// Instead of the case 46 for notified, it could call this and pass in the v_data struct. That way the v_data struct doesn't need to be malloced.
-			return seL4_MessageInfo_new((uint64_t)v_data,1 ,0,0); // why?
+			// Instead of the case 46 for notified, it could call this and pass in the hdmi_config struct. That way the hdmi_config struct doesn't need to be malloced.
+			return seL4_MessageInfo_new((uint64_t)hdmi_config,1 ,0,0); // why?
 			break;
 		default:
 			printf("Unexpected channel id: %d in dcss::protected() \n", ch);
@@ -131,8 +131,8 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 void init_dcss() {
 
 	printf("init dcss called\n");
-	if (v_data != NULL) {
-		printf("v data frequency = %d\n", v_data->PIXEL_FREQ_KHZ);
+	if (hdmi_config != NULL) {
+		printf("v data frequency = %d\n", hdmi_config->PIXEL_FREQ_KHZ);
 	}
 	else {
 		printf("v data not yet set\n"); // This should then not go try init things, handle case properly 
@@ -143,7 +143,7 @@ void init_dcss() {
 	init_hdmi();
     write_dcss_memory_registers();
 
-	if (v_data->db_toggle) {
+	if (hdmi_config->db_toggle) {
 		init_context_loader();
 	}
 }
@@ -179,7 +179,7 @@ void init_hdmi() {
 	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = PXL_RGB;
 
 	if (init_api() == CDN_OK) {
-		uint32_t phy_frequency = phy_cfg_t28hpc(4, v_data->PIXEL_FREQ_KHZ, bits_per_pixel, pixel_encoding_format, 1);
+		uint32_t phy_frequency = phy_cfg_t28hpc(4, hdmi_config->PIXEL_FREQ_KHZ, bits_per_pixel, pixel_encoding_format, 1);
 		hdmi_tx_t28hpc_power_config_seq(4);
 		call_api(phy_frequency, pixel_encoding_format, bits_per_pixel); // TODO: handle the return
 	}
@@ -228,10 +228,10 @@ void call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_for
 	api_status = CDN_API_HDMITX_Set_Mode_blocking(protocol_type, phy_frequency);
 	print_api_status_msg(api_status, "CDN_API_HDMITX_Set_Mode_blocking");
 
-	api_status = cdn_api_set_avi(v_data, pixel_encoding_format, bt_type);
+	api_status = cdn_api_set_avi(hdmi_config, pixel_encoding_format, bt_type);
 	print_api_status_msg(api_status, "cdn_api_set_avi");
 
-	api_status = CDN_API_HDMITX_SetVic_blocking(v_data, bits_per_pixel, pixel_encoding_format);
+	api_status = CDN_API_HDMITX_SetVic_blocking(hdmi_config, bits_per_pixel, pixel_encoding_format);
 	print_api_status_msg(api_status, "CDN_API_HDMITX_SetVic_blocking");
 
 	// TODO: Potentially need timer here
@@ -269,13 +269,13 @@ void write_dpr_memory_registers() {
 
     write_register_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr); 
     write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x00000002); 
-    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_X_CTRL), v_data->H_ACTIVE);
-	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_Y_CTRL), v_data->V_ACTIVE);
-	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr + v_data->H_ACTIVE * v_data->V_ACTIVE);
+    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_X_CTRL), hdmi_config->H_ACTIVE);
+	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_Y_CTRL), hdmi_config->V_ACTIVE);
+	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr + hdmi_config->H_ACTIVE * hdmi_config->V_ACTIVE);
 	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_X_CTRL), 0x00000280);
 	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_Y_CTRL), 0x000000f0);
-	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_CTRL0), ((v_data->H_ACTIVE * 4) << 16));
-	write_register((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), v_data->rgb_format); // 32 bits per pixel (with rgba set to a certain value) This needs to be configured for differrent RGB ordering.
+	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_CTRL0), ((hdmi_config->H_ACTIVE * 4) << 16));
+	write_register((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), hdmi_config->rgb_format); // 32 bits per pixel (with rgba set to a certain value) This needs to be configured for differrent RGB ordering.
 
 	write_register((uint32_t*)(dcss_base + DPR_1_RTRAM_CTRL0), 0x00000038);
 	write_register((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000004);
@@ -289,21 +289,21 @@ void write_sub_sampler_memory_registers() {
 	write_register((uint32_t*)(dcss_base + SS_CLIP_CR), 0x03ff0000);
 
 	write_register((uint32_t*)(dcss_base + SS_DISPLAY),
-		    (((v_data->TYPE_EOF + v_data->SOF +  v_data->VSYNC +
-			v_data->V_ACTIVE -1) << 16) |
-		       (v_data->FRONT_PORCH + v_data->BACK_PORCH + v_data->HSYNC+
-			v_data->H_ACTIVE - 1)));
+		    (((hdmi_config->TYPE_EOF + hdmi_config->SOF +  hdmi_config->VSYNC +
+			hdmi_config->V_ACTIVE -1) << 16) |
+		       (hdmi_config->FRONT_PORCH + hdmi_config->BACK_PORCH + hdmi_config->HSYNC+
+			hdmi_config->H_ACTIVE - 1)));
 	write_register((uint32_t*)(dcss_base + SS_HSYNC),
-		    (((v_data->HSYNC- 1) << 16) | (v_data->HSYNC_POL != 0) << 31 | (v_data->FRONT_PORCH +
-			v_data->BACK_PORCH + v_data->HSYNC+ v_data->H_ACTIVE -1)));
+		    (((hdmi_config->HSYNC- 1) << 16) | (hdmi_config->HSYNC_POL != 0) << 31 | (hdmi_config->FRONT_PORCH +
+			hdmi_config->BACK_PORCH + hdmi_config->HSYNC+ hdmi_config->H_ACTIVE -1)));
 	write_register((uint32_t*)(dcss_base + SS_VSYNC),
-		    (((v_data->TYPE_EOF +  v_data->VSYNC - 1) << 16) | (v_data->VSYNC_POL != 0) << 31 | (v_data->TYPE_EOF - 1)));
+		    (((hdmi_config->TYPE_EOF +  hdmi_config->VSYNC - 1) << 16) | (hdmi_config->VSYNC_POL != 0) << 31 | (hdmi_config->TYPE_EOF - 1)));
 	write_register((uint32_t*)(dcss_base + SS_DE_ULC),
-		    ((1 << 31) | (( v_data->VSYNC +v_data->TYPE_EOF + v_data->SOF) << 16) |
-		    (v_data->HSYNC+ v_data->BACK_PORCH - 1)));
+		    ((1 << 31) | (( hdmi_config->VSYNC +hdmi_config->TYPE_EOF + hdmi_config->SOF) << 16) |
+		    (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
 	write_register((uint32_t*)(dcss_base + SS_DE_LRC),
-		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF + v_data->V_ACTIVE -1) << 16) |
-		    (v_data->HSYNC+ v_data->BACK_PORCH + v_data->H_ACTIVE - 1)));
+		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF + hdmi_config->V_ACTIVE -1) << 16) |
+		    (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
 
 	write_register((uint32_t*)(dcss_base + SS_MODE), 0x0000000);
 	write_register((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x00000001);
@@ -311,7 +311,7 @@ void write_sub_sampler_memory_registers() {
 
 void write_dtg_memory_registers() {
 	
-	if (v_data->alpha_toggle == ALPHA_ON) {
+	if (hdmi_config->alpha_toggle == ALPHA_ON) {
 		write_register((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xFF005484);
 	}
 	else {
@@ -319,24 +319,24 @@ void write_dtg_memory_registers() {
 	}
 	
 	write_register((uint32_t*)(dcss_base + TC_DTG_REG1),
-		    (((v_data->TYPE_EOF + v_data->SOF +  v_data->VSYNC + v_data->V_ACTIVE -
-		       1) << 16) | (v_data->FRONT_PORCH + v_data->BACK_PORCH + v_data->HSYNC+
-			v_data->H_ACTIVE - 1)));	
+		    (((hdmi_config->TYPE_EOF + hdmi_config->SOF +  hdmi_config->VSYNC + hdmi_config->V_ACTIVE -
+		       1) << 16) | (hdmi_config->FRONT_PORCH + hdmi_config->BACK_PORCH + hdmi_config->HSYNC+
+			hdmi_config->H_ACTIVE - 1)));	
 	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG2),
-		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF -
-		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH - 1)));
+		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF -
+		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
 	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG3),
-		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF + v_data->V_ACTIVE -
-		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH + v_data->H_ACTIVE - 1)));
+		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF + hdmi_config->V_ACTIVE -
+		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
 	write_register((uint32_t*)(dcss_base + TC_CH1_REG4),
-		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF -
-		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH - 1)));
+		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF -
+		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
 	write_register((uint32_t*)(dcss_base + TC_CH1_REG5),
-		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF + v_data->V_ACTIVE -
-		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH + v_data->H_ACTIVE - 1)));
+		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF + hdmi_config->V_ACTIVE -
+		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
 	write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);
 
-	if (v_data->alpha_toggle == ALPHA_ON) {
+	if (hdmi_config->alpha_toggle == ALPHA_ON) {
 		write_register((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xFF005584);
 	}
 	else {
@@ -350,13 +350,13 @@ void write_scaler_memory_registers() {
 	write_register((uint32_t*)(dcss_base  + SCALE_SRC_FORMAT), 0x00000002); // Sets to RGB
 	write_register((uint32_t*)(dcss_base  + SCALE_DST_FORMAT), 0x00000002); // Sets to RGB
 	write_register((uint32_t*)(dcss_base  + SCALE_SRC_LUMA_RES),
-		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
+		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
 	write_register((uint32_t*)(dcss_base  + SCALE_SRC_CHROMA_RES),
-		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
+		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
 	write_register((uint32_t*)(dcss_base  + 0x1c020),
-		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
+		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
 	write_register((uint32_t*)(dcss_base  + SCALE_DST_CHROMA_RES),
-		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
+		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
 	write_register((uint32_t*)(dcss_base  + SCALE_V_LUMA_INC), 0x00002000);
 	write_register((uint32_t*)(dcss_base  + SCALE_H_LUMA_INC), 0x00002000);
 	write_register((uint32_t*)(dcss_base  + SCALE_V_CHROMA_INC), 0x00002000);
