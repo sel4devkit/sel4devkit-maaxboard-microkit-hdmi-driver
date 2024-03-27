@@ -47,8 +47,8 @@ void init(void) {
 	*current_frame_buffer_offset = 0;
 
 	init_gpc();
-	int* i = malloc(sizeof(int)); // hack not needed
-	free(i);
+	// int* i = malloc(sizeof(int)); // hack not needed
+	// free(i);
 }
 
 void init_context_loader() {
@@ -75,22 +75,21 @@ void run_context_loader(){
 	start_timer();
 	uint32_t* enable_status = (uint32_t*)(dcss_base + CTXLD_CTRL_STATUS);
 	int context_ld_enabled = 0;
-
-	int arb_sel = (*enable_status >> 1) & (int)1;
-
-	int contex_offset = (context == 0) ? CTX_LD_DB_ONE_ADDR : CTX_LD_DB_TWO_ADDR;							// Set the context offset in memory
-	write_32bit_to_mem((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));	// set the base adress for the double buffered context
-	write_32bit_to_mem((uint32_t*)(dcss_base + DB_COUNT), 1);												// Set how many registers are being processed
+	int arb_sel = (*enable_status >> 1) & (int)1;																// Give priority to the context laoder
+	int contex_offset = (context == 0) ? CTX_LD_DB_ONE_ADDR : CTX_LD_DB_TWO_ADDR;								// Set the context offset in memory
 	
-	*enable_status |= ((int)1 << 0); 																		// set the enable status bit to 1 to kickstart process.
+	write_register((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));	// set the base adress for the double buffered context
+	write_register((uint32_t*)(dcss_base + DB_COUNT), 1);														// Set how many registers are being processed
+	
+	*enable_status |= ((int)1 << 0); 																			// set the enable status bit to 1 to kickstart process.
 	context_ld_enabled = (*enable_status >> 0) & (int)1; 
-	while (context_ld_enabled == 1) {																		// poll contiously until context loader is not being used.
+	while (context_ld_enabled == 1) {																			// poll contiously until context loader is not being used.
 		seL4_Yield();	
 		context_ld_enabled = (*enable_status >> 0) & (int)1;
 	}
 
 	*current_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET :0;
-	context = context == 1 ? 0 : 1; // Switch context for next time
+	context = context == 1 ? 0 : 1; 																			// Switch context for next time
 	printf("Switching context took %d ms\n", stop_timer());
 	microkit_notify(52);
 }
@@ -151,27 +150,27 @@ void init_dcss() {
 
 void init_ccm() {
 
-	write_32bit_to_mem((uint32_t*)(ccm_base + CCM_CCGR93_SET), 0x3);
-	write_32bit_to_mem((uint32_t*)(gpc_base + GPC_PGC_CPU_0_1_MAPPING), 0xffff); 
-	write_32bit_to_mem((uint32_t*)(gpc_base + GPC_PU_PGC_SW_PUP_REQ), 0x1 << 10);
+	write_register((uint32_t*)(ccm_base + CCM_CCGR93_SET), 0x3);
+	write_register((uint32_t*)(gpc_base + GPC_PGC_CPU_0_1_MAPPING), 0xffff); 
+	write_register((uint32_t*)(gpc_base + GPC_PU_PGC_SW_PUP_REQ), 0x1 << 10);
 }
 
 void init_gpc() {
 
-	write_32bit_to_mem((uint32_t*)(ccm_base + CCM_TARGET_ROOT20), 0x12000000); 
-	write_32bit_to_mem((uint32_t*)(ccm_base + CCM_TARGET_ROOT22), 0x11010000);
+	write_register((uint32_t*)(ccm_base + CCM_TARGET_ROOT20), 0x12000000); 
+	write_register((uint32_t*)(ccm_base + CCM_TARGET_ROOT22), 0x11010000);
 }
 
 void reset_dcss(){
 	
-	write_32bit_to_mem((uint32_t*)(dcss_blk_base), 0xffffffff);
-	write_32bit_to_mem((uint32_t*)(dcss_blk_base + CONTROL0), 0x1);
-	write_32bit_to_mem((uint32_t*)(dcss_base +  TC_CONTROL_STATUS), 0); 
-	write_32bit_to_mem((uint32_t*)(dcss_base +  SCALE_CTRL), 0);
-	write_32bit_to_mem((uint32_t*)(dcss_base +  SCALE_OFIFO_CTRL), 0);
-	write_32bit_to_mem((uint32_t*)(dcss_base +  SCALE_SRC_DATA_CTRL), 0);
-	write_32bit_to_mem((uint32_t*)(dcss_base +  DPR_1_SYSTEM_CTRL0), 0);
-	write_32bit_to_mem((uint32_t*)(dcss_base +  SS_SYS_CTRL), 0);
+	write_register((uint32_t*)(dcss_blk_base), 0xffffffff);
+	write_register((uint32_t*)(dcss_blk_base + CONTROL0), 0x1);
+	write_register((uint32_t*)(dcss_base +  TC_CONTROL_STATUS), 0); 
+	write_register((uint32_t*)(dcss_base +  SCALE_CTRL), 0);
+	write_register((uint32_t*)(dcss_base +  SCALE_OFIFO_CTRL), 0);
+	write_register((uint32_t*)(dcss_base +  SCALE_SRC_DATA_CTRL), 0);
+	write_register((uint32_t*)(dcss_base +  DPR_1_SYSTEM_CTRL0), 0);
+	write_register((uint32_t*)(dcss_base +  SS_SYS_CTRL), 0);
 }
 
 void init_hdmi() {
@@ -260,113 +259,113 @@ void write_dcss_memory_registers() {
 
 void write_dtrc_memory_registers() {
     
-    write_32bit_to_mem((uint32_t*)(dcss_base + DTCTRL_CHAN2), 0x00000002);
-    write_32bit_to_mem((uint32_t*)(dcss_base + DTCTRL_CHAN3), 0x00000002);
+    write_register((uint32_t*)(dcss_base + DTCTRL_CHAN2), 0x00000002);
+    write_register((uint32_t*)(dcss_base + DTCTRL_CHAN3), 0x00000002);
 }
 
 void write_dpr_memory_registers() {
 	
 	uintptr_t* dma_addr =  getPhys((void*) (dma_base));
 
-    write_32bit_to_mem_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr); 
-    write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x00000002); 
-    write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_X_CTRL), v_data->H_ACTIVE);
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_Y_CTRL), v_data->V_ACTIVE);
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr + v_data->H_ACTIVE * v_data->V_ACTIVE);
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_X_CTRL), 0x00000280);
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_Y_CTRL), 0x000000f0);
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_FRAME_CTRL0), ((v_data->H_ACTIVE * 4) << 16));
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), v_data->rgb_format); // 32 bits per pixel (with rgba set to a certain value) This needs to be configured for differrent RGB ordering.
+    write_register_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr); 
+    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x00000002); 
+    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_X_CTRL), v_data->H_ACTIVE);
+	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_Y_CTRL), v_data->V_ACTIVE);
+	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0), (uintptr_t)dma_addr + v_data->H_ACTIVE * v_data->V_ACTIVE);
+	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_X_CTRL), 0x00000280);
+	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_2P_PIX_Y_CTRL), 0x000000f0);
+	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_CTRL0), ((v_data->H_ACTIVE * 4) << 16));
+	write_register((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), v_data->rgb_format); // 32 bits per pixel (with rgba set to a certain value) This needs to be configured for differrent RGB ordering.
 
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_RTRAM_CTRL0), 0x00000038);
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000004);
-	write_32bit_to_mem((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000005); // can this bit be set?
+	write_register((uint32_t*)(dcss_base + DPR_1_RTRAM_CTRL0), 0x00000038);
+	write_register((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000004);
+	write_register((uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0), 0x00000005); // can this bit be set?
 }
 
 void write_sub_sampler_memory_registers() {
 
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_COEFF), 0x21612161);
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_CLIP_CB), 0x03ff0000);
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_CLIP_CR), 0x03ff0000);
+	write_register((uint32_t*)(dcss_base + SS_COEFF), 0x21612161);
+	write_register((uint32_t*)(dcss_base + SS_CLIP_CB), 0x03ff0000);
+	write_register((uint32_t*)(dcss_base + SS_CLIP_CR), 0x03ff0000);
 
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_DISPLAY),
+	write_register((uint32_t*)(dcss_base + SS_DISPLAY),
 		    (((v_data->TYPE_EOF + v_data->SOF +  v_data->VSYNC +
 			v_data->V_ACTIVE -1) << 16) |
 		       (v_data->FRONT_PORCH + v_data->BACK_PORCH + v_data->HSYNC+
 			v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_HSYNC),
+	write_register((uint32_t*)(dcss_base + SS_HSYNC),
 		    (((v_data->HSYNC- 1) << 16) | (v_data->HSYNC_POL != 0) << 31 | (v_data->FRONT_PORCH +
 			v_data->BACK_PORCH + v_data->HSYNC+ v_data->H_ACTIVE -1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_VSYNC),
+	write_register((uint32_t*)(dcss_base + SS_VSYNC),
 		    (((v_data->TYPE_EOF +  v_data->VSYNC - 1) << 16) | (v_data->VSYNC_POL != 0) << 31 | (v_data->TYPE_EOF - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_DE_ULC),
+	write_register((uint32_t*)(dcss_base + SS_DE_ULC),
 		    ((1 << 31) | (( v_data->VSYNC +v_data->TYPE_EOF + v_data->SOF) << 16) |
 		    (v_data->HSYNC+ v_data->BACK_PORCH - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_DE_LRC),
+	write_register((uint32_t*)(dcss_base + SS_DE_LRC),
 		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF + v_data->V_ACTIVE -1) << 16) |
 		    (v_data->HSYNC+ v_data->BACK_PORCH + v_data->H_ACTIVE - 1)));
 
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_MODE), 0x0000000);
-	write_32bit_to_mem((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x00000001);
+	write_register((uint32_t*)(dcss_base + SS_MODE), 0x0000000);
+	write_register((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x00000001);
 }
 
 void write_dtg_memory_registers() {
 	
 	if (v_data->alpha_toggle == ALPHA_ON) {
-		write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xFF005484);
+		write_register((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xFF005484);
 	}
 	else {
-		write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005084);
+		write_register((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005084);
 	}
 	
-	write_32bit_to_mem((uint32_t*)(dcss_base + TC_DTG_REG1),
+	write_register((uint32_t*)(dcss_base + TC_DTG_REG1),
 		    (((v_data->TYPE_EOF + v_data->SOF +  v_data->VSYNC + v_data->V_ACTIVE -
 		       1) << 16) | (v_data->FRONT_PORCH + v_data->BACK_PORCH + v_data->HSYNC+
 			v_data->H_ACTIVE - 1)));	
-	write_32bit_to_mem((uint32_t*)(dcss_base + TC_DISPLAY_REG2),
+	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG2),
 		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF -
 		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base + TC_DISPLAY_REG3),
+	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG3),
 		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF + v_data->V_ACTIVE -
 		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH + v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CH1_REG4),
+	write_register((uint32_t*)(dcss_base + TC_CH1_REG4),
 		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF -
 		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CH1_REG5),
+	write_register((uint32_t*)(dcss_base + TC_CH1_REG5),
 		    ((( v_data->VSYNC + v_data->TYPE_EOF + v_data->SOF + v_data->V_ACTIVE -
 		       1) << 16) | (v_data->HSYNC+ v_data->BACK_PORCH + v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);
+	write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);
 
 	if (v_data->alpha_toggle == ALPHA_ON) {
-		write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xFF005584);
+		write_register((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xFF005584);
 	}
 	else {
-		write_32bit_to_mem((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005184); 
+		write_register((uint32_t*)(dcss_base + TC_CONTROL_STATUS), 0xff005184); 
 	}
 }
 
 void write_scaler_memory_registers() {
 
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_DATA_CTRL), 0x00000000); // This must stay!
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_FORMAT), 0x00000002); // Sets to RGB
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_DST_FORMAT), 0x00000002); // Sets to RGB
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_LUMA_RES),
+	write_register((uint32_t*)(dcss_base  + SCALE_SRC_DATA_CTRL), 0x00000000); // This must stay!
+	write_register((uint32_t*)(dcss_base  + SCALE_SRC_FORMAT), 0x00000002); // Sets to RGB
+	write_register((uint32_t*)(dcss_base  + SCALE_DST_FORMAT), 0x00000002); // Sets to RGB
+	write_register((uint32_t*)(dcss_base  + SCALE_SRC_LUMA_RES),
 		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_SRC_CHROMA_RES),
+	write_register((uint32_t*)(dcss_base  + SCALE_SRC_CHROMA_RES),
 		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c020),
+	write_register((uint32_t*)(dcss_base  + 0x1c020),
 		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_DST_CHROMA_RES),
+	write_register((uint32_t*)(dcss_base  + SCALE_DST_CHROMA_RES),
 		    ((v_data->V_ACTIVE - 1) << 16 | (v_data->H_ACTIVE - 1)));
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_V_LUMA_INC), 0x00002000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_H_LUMA_INC), 0x00002000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_V_CHROMA_INC), 0x00002000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + SCALE_H_CHROMA_INC), 0x00002000);
+	write_register((uint32_t*)(dcss_base  + SCALE_V_LUMA_INC), 0x00002000);
+	write_register((uint32_t*)(dcss_base  + SCALE_H_LUMA_INC), 0x00002000);
+	write_register((uint32_t*)(dcss_base  + SCALE_V_CHROMA_INC), 0x00002000);
+	write_register((uint32_t*)(dcss_base  + SCALE_H_CHROMA_INC), 0x00002000);
 
 
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c0c0), 0x00040000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c140), 0x00000000); // This must stay!
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c180), 0x00040000);
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c1c0), 0x00000000); // This must stay!
-	write_32bit_to_mem((uint32_t*)(dcss_base  + 0x1c000), 0x00000011);
+	write_register((uint32_t*)(dcss_base  + 0x1c0c0), 0x00040000);
+	write_register((uint32_t*)(dcss_base  + 0x1c140), 0x00000000); // This must stay!
+	write_register((uint32_t*)(dcss_base  + 0x1c180), 0x00040000);
+	write_register((uint32_t*)(dcss_base  + 0x1c1c0), 0x00000000); // This must stay!
+	write_register((uint32_t*)(dcss_base  + 0x1c000), 0x00000011);
 }
