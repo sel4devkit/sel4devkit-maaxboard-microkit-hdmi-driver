@@ -43,12 +43,14 @@ enum ALPHA_TOGGLE {
 	ALPHA_ON
 };
 
+/*
+	This enum is used to toggle double buffering on or off.
+*/
 enum DOUBLE_BUFFER_TOGGLE {
 
 	DB_OFF,
 	DB_ON
 };
-
 
 /*
 	This struct holds the user defined display configurations that are set in the client PD and used in the DCSS PD to configure the maaxboard.

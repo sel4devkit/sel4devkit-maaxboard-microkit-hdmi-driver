@@ -6,30 +6,21 @@
 
 #include <vic_table.h>
 
+#include "example_client.h"
 #include "timer.h"
 #include "hdmi_data.h"
-
 #include "dma_offsets.h"
 
 #define API_EXAMPLE_2_SIDE_LENGTH 300
 
-uintptr_t dma_base; // This should be called the DMA pool
+uintptr_t dma_base; 
 uintptr_t timer_base;
-
 struct hdmi_data *hdmi_config = NULL;
 
-// this could be wrappe up in a structure of some sort so its clear it belongs to the api_3 example
+// TODO: This could be wrapped up in a structure of some sort so its clear it belongs to the api_3 example
 int width_offset = 0;
 int ctx_ld_enable = 0;
 
-void api_example1();
-void api_example2();
-void api_example3();
-void clear_frame_buffer();
-void vic_table_api_example(int v_mode);
-void write_api_example_1_frame_buffer();
-void write_api_example_3_frame_buffer();
-void write_api_example_2_frame_buffer();
 
 void init(void) {
 	
@@ -45,7 +36,7 @@ void init(void) {
 	//api_example2();		// Display a square with the same number of pixels at three different resolutions
 	api_example3();		// Display 4 coloiur bars RGB and white split evenly across the screen, moving a number of pixels across the screen
 
-	//free(hdmi_config); (This will need to be freed at some point)
+	//free(hdmi_config); // TODO: This will need to be freed at some point)
 	printf("Finished Init Client \n");
 }
 
@@ -54,9 +45,10 @@ void
 notified(microkit_channel ch) {
 
 	switch (ch) {
-        case 52:								// Notified by the context loader to draw the frame buffer that is not being displayed
+        // Notified by the context loader to draw the frame buffer that is not being displayed
+		case 52:								
 			start_timer();
-			write_api_example_3_frame_buffer(); // Put in a mechanism so that there is a global function pointer at the correct function.
+			write_api_example_3_frame_buffer_64(); // TODO: Put in a mechanism so that there is a global function pointer at the correct function.
 			printf("Writing frame buffer took %d ms\n", stop_timer());
 			break;
 		default:
@@ -74,7 +66,7 @@ void api_example1() {
 	write_api_example_1_frame_buffer();
 
 	// Send the hdmi data to the dcss PD to initialise the DCSS
-	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0)); // This funciton is no longer needed as the hdmi_config can just be passed straight in.
+	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
 
 	// how long the example is shown for
 	ms_delay(10000);
@@ -123,7 +115,7 @@ void vic_table_api_example(int v_mode) {
 	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
 
-	// how long the example is shown for
+	// How long the example is shown for
 	ms_delay(10000);
 	
 	// Clear the frame buffer
@@ -137,11 +129,11 @@ void vic_table_api_example(int v_mode) {
 void api_example3() {
 
 	// Initialise the vic mode with custom values
-	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_OFF, DB_ON};
+	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON};
 	*hdmi_config = v;
 
-	// pre write the buffer before display configuration (This would probably be done in a separate PD?)
-	write_api_example_3_frame_buffer(0);
+	// Prewrite the buffer before display configuration
+	write_api_example_3_frame_buffer_64();
 
 	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
@@ -168,6 +160,7 @@ void write_api_example_1_frame_buffer() {
 	int alpha = 0;
 	int j_pos = width_offset;
 
+
 	/*
 		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
 		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
@@ -177,7 +170,7 @@ void write_api_example_1_frame_buffer() {
 		starting with a 0 alhpa increasing every 3 pixels.
 	*/ 
 	for (int i = 0; i < height; i++) { 
-		for (int j = 0; j < width; j++) { // to rotate i to have a counter for the length of the width. But the j will start at an offset and wrap around. Once the counter has been reached then it will be finished
+		for (int j = 0; j < width; j++) {
 			
 			// reset alpha for each colour bar
 			if (j % first_quarter == 0) {
@@ -249,6 +242,18 @@ void write_api_example_2_frame_buffer() {
 	}
 }
 
+
+#define RGBA_RED 0x000000ff		// It would be better to have these as like positions, 0,1,2 then depending on the format whatever is at 0,1,2 is then itialised with these
+#define RGBA_GREEN 0x0000ff00
+#define RGBA_BLUE 0x00ff0000
+#define RGBA_WHITE 0x00ffffff
+
+
+#define RGBA_RED_64 0x000000ff000000ff
+#define RGBA_GREEN_64 0x0000ff000000ff00
+#define RGBA_BLUE_64 0x00ff000000ff0000
+#define RGBA_WHITE_64 0x00ffffff00ffffff
+
 void write_api_example_3_frame_buffer() {
 	
 	if (hdmi_config == NULL){
@@ -257,17 +262,13 @@ void write_api_example_3_frame_buffer() {
 	}
 	
 	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
-	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
-
-	uint8_t* frame_buffer_start_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
-	printf("frame buffer addr before write = %p\n", frame_buffer_addr);
+	uint32_t* frame_buffer_addr = (uint32_t*)(dma_base + *frame_buffer_addr_offset);
 
 	int height = hdmi_config->V_ACTIVE;
 	int width = hdmi_config->H_ACTIVE;
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
 	int third_quarter = width * 0.75;
-	int alpha = 0;
 	int j_pos = width_offset;
 
 	/*
@@ -281,41 +282,20 @@ void write_api_example_3_frame_buffer() {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			
-			// reset alpha for each colour bar
-			if (j_pos % first_quarter == 0) {
-				alpha = 0;
-			}
-			
 			if (j_pos < first_quarter)
 			{
-				*(frame_buffer_addr++) = 0xff; 
-				*(frame_buffer_addr++) = 0x00;
-				*(frame_buffer_addr++) = 0x00;
-				*(frame_buffer_addr++) = alpha;
+				*(frame_buffer_addr++) = RGBA_RED; 
 			}
 			else if (j_pos < second_quarter)
 			{
-				*(frame_buffer_addr++) = 0x00;
-				*(frame_buffer_addr++) = 0xff;
-				*(frame_buffer_addr++) = 0x00;
-				*(frame_buffer_addr++) = alpha;
+				*(frame_buffer_addr++) = RGBA_GREEN; 
 			}
 			else if (j_pos < third_quarter)
 			{
-				*(frame_buffer_addr++) = 0x00;
-				*(frame_buffer_addr++) = 0x00;
-				*(frame_buffer_addr++) = 0xff;
-				*(frame_buffer_addr++) = alpha;
+				*(frame_buffer_addr++) = RGBA_BLUE; 
 			}
 			else {
-				*(frame_buffer_addr++) = 0xff;
-				*(frame_buffer_addr++) = 0xff;
-				*(frame_buffer_addr++) = 0xff;
-				*(frame_buffer_addr++) = alpha;
-			}
-
-			if (j %3 == 0) {
-				alpha++;
+				*(frame_buffer_addr++) = RGBA_WHITE; 
 			}
 			
 			j_pos++;
@@ -326,26 +306,236 @@ void write_api_example_3_frame_buffer() {
 		}
 	}
 
-	width_offset += 2;
+	width_offset += 1;
 	if (width_offset == width) {
 		width_offset = 0;
 	}
 
-	//seL4_ARM_VSpace_Invalidate_Data(3, (long)frame_buffer_start_addr, (long)frame_buffer_addr);
-	//int ret = seL4_ARM_VSpace_CleanInvalidate_Data(2, 0, (long)CTX_LD_DMA_SIZE);
-	//printf("Return from cache flush = %d\n", ret);
-	printf("frame buffer start addr = %p\n", frame_buffer_start_addr);
-	printf("frame buffer addr after write = %p\n", frame_buffer_addr);
-	//ms_delay(5000);
-
 	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.
 	if (ctx_ld_enable == 1) {
-		microkit_notify(52);	// Call the context loader to signify the buffer has finished being written to.
+		
+		// Call the context loader to signify the buffer has finished being written to.
+		microkit_notify(52);	
 	}
 	else {
 		ctx_ld_enable = 1;
 	}
 }
+
+
+void write_api_example_3_frame_buffer_64() {
+	
+	if (hdmi_config == NULL){
+		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+		return;
+	}
+	
+	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+	uint64_t* frame_buffer_addr = (uint64_t*)(dma_base + *frame_buffer_addr_offset);
+
+	int height = hdmi_config->V_ACTIVE;
+	int width = hdmi_config->H_ACTIVE/2;
+	int first_quarter = width * 0.25;
+	int second_quarter = width * 0.5;
+	int third_quarter = width * 0.75;
+	int j_pos = width_offset;
+
+	/*
+		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
+		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
+		Then the order of the values written below will be green, blue, red, alpha. The alpha channel configures the
+		opacity of the colour, at 0xff it will be completely visible and 0x00 it will not be visible.
+		It is turned on or off using hdmi_data.alpha_toggle. With this option turned on, this example will display each colour bar
+		starting with a 0 alhpa increasing every 3 pixels.
+	*/ 
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			
+			if (j_pos < first_quarter)
+			{
+				*(frame_buffer_addr++) = RGBA_RED_64; 
+			}
+			else if (j_pos < second_quarter)
+			{
+				*(frame_buffer_addr++) = RGBA_GREEN_64; 
+			}
+			else if (j_pos < third_quarter)
+			{
+				*(frame_buffer_addr++) = RGBA_BLUE_64; 
+			}
+			else {
+				*(frame_buffer_addr++) = RGBA_WHITE_64; 
+			}
+			
+			j_pos++;
+			if (j_pos == width)
+			{
+				j_pos = 0;
+			}
+		}
+	}
+
+	width_offset += 1;
+	if (width_offset == width) {
+		width_offset = 0;
+	}
+
+	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.
+	if (ctx_ld_enable == 1) {
+		
+		// Call the context loader to signify the buffer has finished being written to.
+		microkit_notify(52);	
+	}
+	else {
+		ctx_ld_enable = 1;
+	}
+}
+
+
+
+
+// void write_api_example_3_frame_buffer_mem_cpy() {
+	
+// 	if (hdmi_config == NULL){
+// 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+// 		return;
+// 	}
+	
+// 	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+// 	uint32_t* frame_buffer_start_addr = (uint32_t*)(dma_base + *frame_buffer_addr_offset);
+
+// 	int height = hdmi_config->V_ACTIVE;
+// 	int width = hdmi_config->H_ACTIVE;
+
+
+// 	// I could draw this all first, then i could memcpy from the other buffer but shifted along by 1.
+// 	// then another cpy to get the last pixel of the row as the first pixel
+// 	// I then would have an entire range 
+
+// 	// for each pixel it is 4 bytes (4* 8 bits = 32 bits)
+// 	// So the copy would be ((width-1)*4)
+// 	// the source addr would be uint32_t frame_buffr++ (so its one along)
+
+// 	// the current frame buffer being displayed
+// 	int current_frame_buffer = (*frame_buffer_addr_offset == FRAME_BUFFER_ONE_OFFSET) ? FRAME_BUFFER_TWO_OFFSET : FRAME_BUFFER_ONE_OFFSET;
+// 	uint32_t* current_frame_buffer_addr = (uint32_t*)(dma_base + current_frame_buffer);
+
+// 	memcpy((void*)current_frame_buffer_addr+1, (void*)(dma_base + current_frame_buffer), (width-1) / 4);
+// 	*frame_buffer_start_addr = *(current_frame_buffer_addr + width - 1);
+	
+// 	uint32_t* frame_buffer_addr = frame_buffer_start_addr;
+
+// 	int width_in_bytes = width/4;
+// 	for (int i = 1; i < height; i++)
+// 	{
+// 		memcpy((void*) (frame_buffer_start_addr+width), (void*)(frame_buffer_start_addr), width_in_bytes);
+// 		frame_buffer_addr = frame_buffer_addr+width;
+// 	}
+	
+
+// 	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.
+// 	if (ctx_ld_enable == 1) {
+		
+// 		// Call the context loader to signify the buffer has finished being written to.
+// 		microkit_notify(52);	
+// 	}
+// 	else {
+// 		ctx_ld_enable = 1;
+// 	}
+// }
+
+
+
+// void write_api_example_3_frame_buffer() {
+	
+// 	if (hdmi_config == NULL){
+// 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+// 		return;
+// 	}
+	
+// 	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+// 	uint8_t* frame_buffer_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
+
+// 	uint8_t* frame_buffer_start_addr = (uint8_t*)(dma_base + *frame_buffer_addr_offset);
+// 	printf("frame buffer addr before write = %p\n", frame_buffer_addr);
+
+// 	int height = hdmi_config->V_ACTIVE;
+// 	int width = hdmi_config->H_ACTIVE;
+// 	int first_quarter = width * 0.25;
+// 	int second_quarter = width * 0.5;
+// 	int third_quarter = width * 0.75;
+// 	int alpha = 0;
+// 	int j_pos = width_offset;
+
+// 	/*
+// 		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
+// 		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
+// 		Then the order of the values written below will be green, blue, red, alpha. The alpha channel configures the
+// 		opacity of the colour, at 0xff it will be completely visible and 0x00 it will not be visible.
+// 		It is turned on or off using hdmi_data.alpha_toggle. With this option turned on, this example will display each colour bar
+// 		starting with a 0 alhpa increasing every 3 pixels.
+// 	*/ 
+// 	for (int i = 0; i < height; i++) {
+// 		for (int j = 0; j < width; j++) {
+			
+// 			if (j_pos < first_quarter)
+// 			{
+// 				*(frame_buffer_addr++) = 0xff; 
+// 				*(frame_buffer_addr++) = 0x00;
+// 				*(frame_buffer_addr++) = 0x00;
+// 				*(frame_buffer_addr++) = alpha;
+// 			}
+// 			else if (j_pos < second_quarter)
+// 			{
+// 				*(frame_buffer_addr++) = 0x00;
+// 				*(frame_buffer_addr++) = 0xff;
+// 				*(frame_buffer_addr++) = 0x00;
+// 				*(frame_buffer_addr++) = alpha;
+// 			}
+// 			else if (j_pos < third_quarter)
+// 			{
+// 				*(frame_buffer_addr++) = 0x00;
+// 				*(frame_buffer_addr++) = 0x00;
+// 				*(frame_buffer_addr++) = 0xff;
+// 				*(frame_buffer_addr++) = alpha;
+// 			}
+// 			else {
+// 				*(frame_buffer_addr++) = 0xff;
+// 				*(frame_buffer_addr++) = 0xff;
+// 				*(frame_buffer_addr++) = 0xff;
+// 				*(frame_buffer_addr++) = alpha;
+// 			}
+			
+// 			j_pos++;
+// 			if (j_pos == width)
+// 			{
+// 				j_pos = 0;
+// 			}
+// 		}
+// 	}
+
+// 	width_offset += 2;
+// 	if (width_offset == width) {
+// 		width_offset = 0;
+// 	}
+
+// 	//seL4_ARM_VSpace_Invalidate_Data(3, (long)frame_buffer_start_addr, (long)frame_buffer_addr);
+// 	//int ret = seL4_ARM_VSpace_CleanInvalidate_Data(2, 0, (long)CTX_LD_DMA_SIZE);
+// 	//printf("Return from cache flush = %d\n", ret);
+// 	printf("frame buffer start addr = %p\n", frame_buffer_start_addr);
+// 	printf("frame buffer addr after write = %p\n", frame_buffer_addr);
+// 	//ms_delay(5000);
+
+// 	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.
+// 	if (ctx_ld_enable == 1) {
+		
+// 		// Call the context loader to signify the buffer has finished being written to.
+// 		microkit_notify(52);	
+// 	}
+// 	else {
+// 		ctx_ld_enable = 1;
+// 	}
+// }
 
 void clear_frame_buffer() { // TODO: We may not always want to clear the entire frame buffer if only part of it is filled.
 	

@@ -26,7 +26,6 @@ uintptr_t dcss_base;
 uintptr_t dcss_blk_base;
 uintptr_t gpc_base;
 uintptr_t ccm_base;
-uintptr_t rc_base; // where was this needed?
 uintptr_t dma_base;
 uintptr_t dma_base_paddr;
 uintptr_t timer_base;
@@ -40,15 +39,17 @@ void init(void) {
 	
 	printf("Init Dcss\n");
 	initialise_and_start_timer(timer_base);
-	sel4_dma_init(dma_base_paddr, dma_base, dma_base + DMA_SIZE); // This is too big and needs to be thought of more carefully.
+	sel4_dma_init(dma_base_paddr, dma_base, dma_base + DMA_SIZE);
 	
 	// Set the current buffer offset for the client to read from
 	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);
 	current_frame_buffer_offset = (uint32_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);	
-	*current_frame_buffer_offset = FRAME_BUFFER_ONE_OFFSET; // The client will set the frame buffer pointer to what ever is at this address. By default this is 0, which is at beginning of the DMA pool.
+	
+	// The client will set the frame buffer pointer to what ever is at this address. By default this is 0, which is at beginning of the DMA pool.
+	*current_frame_buffer_offset = FRAME_BUFFER_TWO_OFFSET; 
 
 	init_gpc();
-	int* i = malloc(sizeof(int)); // This must be implemented so that the hdmi_data struct can be allocated new memory. (It will need to be freed then also)
+	int* i = malloc(sizeof(int)); // TODO: This must be implemented so that the hdmi_data struct can be allocated new memory. (It will need to be freed then also)
 	free(i);
 }
 
@@ -57,15 +58,20 @@ void init_context_loader() {
 	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);
 	uintptr_t* frame_buffer2_addr = getPhys((void*)dma_base + FRAME_BUFFER_TWO_OFFSET);
 
+	/*  
+		The context loader has access to two double buffered registers depening on the current context.
+		These registers are 64 bit and hold the address of the frame buffer in the first 32 bits and
+		the DPR memory register where the frame buffer will be set in the second 32 bits.
+	*/
 	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + CTX_LD_DB_ONE_ADDR); 	
-	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr;							// Set the address of the first frame buffer
-	ctx_ld_db1_addr++; 															// Increase pointer by 32 bits
-	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 				// The memory register that we are changing (the DPR Address)
+	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr;							
+	ctx_ld_db1_addr++; 															
+	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 				
 
 	uint32_t* ctx_ld_db2_addr = (uint32_t*)(dma_base + CTX_LD_DB_TWO_ADDR); 	
-	*ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr;							// Set the address of the second frame buffer
-	ctx_ld_db2_addr++; 															// Increase pointer by 32 bits
-	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 				// The memory register that we are changing (the DPR Address)
+	*ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr;							
+	ctx_ld_db2_addr++; 															
+	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 
 	
 	run_context_loader();
 }
@@ -76,22 +82,33 @@ void run_context_loader(){
 	start_timer();
 	uint32_t* enable_status = (uint32_t*)(dcss_base + CTXLD_CTRL_STATUS);
 	int context_ld_enabled = 0;
-	int arb_sel = (*enable_status >> 1) & (int)1;																// Give priority to the context laoder
-	int contex_offset = (context == 0) ? CTX_LD_DB_ONE_ADDR : CTX_LD_DB_TWO_ADDR;								// Set the context offset in memory
 	
-	write_register((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));	// set the base adress for the double buffered context
-	write_register((uint32_t*)(dcss_base + DB_COUNT), 1);														// Set how many registers are being processed
+	// Give priority to the context laoder
+	int arb_sel = (*enable_status >> 1) & (int)1;																
 	
-	*enable_status |= ((int)1 << 0); 																			// set the enable status bit to 1 to kickstart process.
+	// Set the context offset in memory
+	int contex_offset = (context == 0) ? CTX_LD_DB_ONE_ADDR : CTX_LD_DB_TWO_ADDR;								
+	
+	// Set the base adress for the double buffered context
+	write_register((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));	
+	write_register((uint32_t*)(dcss_base + DB_COUNT), 1);														
+	
+	// Set the enable status bit to 1 to kickstart process.
+	*enable_status |= ((int)1 << 0); 																			
 	context_ld_enabled = (*enable_status >> 0) & (int)1; 
-	while (context_ld_enabled == 1) {																			// poll contiously until context loader is not being used.
+	
+	// Poll contiously until context loader is not being used.
+	while (context_ld_enabled == 1) {																			
 		seL4_Yield();	
 		context_ld_enabled = (*enable_status >> 0) & (int)1;
 	}
 
+	// Set the dma offset for the current framebuffer to be used by the client
 	*current_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET : FRAME_BUFFER_ONE_OFFSET;
-	context = context == 1 ? 0 : 1; 																			// Switch context for next time
+	context = context == 1 ? 0 : 1; 																			
 	printf("Switching context took %d ms\n", stop_timer());
+
+	// Notify the client to draw the frame buffer
 	microkit_notify(52);
 }
 
@@ -118,7 +135,7 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 		case 0:
 		    hdmi_config = (struct hdmi_data *) microkit_msginfo_get_label(msginfo);
 			init_dcss();
-			return seL4_MessageInfo_new((uint64_t)hdmi_config,1 ,0,0); // why?
+			return seL4_MessageInfo_new((uint64_t)hdmi_config,1 ,0,0); // what are the arguments?
 			break;
 		default:
 			printf("Unexpected channel id: %d in dcss::protected() \n", ch);
@@ -132,7 +149,7 @@ void init_dcss() {
 		printf("v data frequency = %d\n", hdmi_config->PIXEL_FREQ_KHZ);
 	}
 	else {
-		printf("v data not yet set\n"); // This should then not go try init things, handle case properly 
+		printf("v data not yet set\n"); // TODO: This should then not go try init things, handle case properly 
 	}
 
 	init_ccm();
