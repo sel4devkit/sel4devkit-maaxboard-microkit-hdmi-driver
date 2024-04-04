@@ -54,6 +54,11 @@
 #define TC_CH1_REG5 0x20014 // 15.3.3.1.7 Channel_1 window Register: BOTTOM Window Coordinates forchannel_1 window (TC_CH1_REG5)
 #define TC_CTX_LD_REG10 0x20028 // 15.3.3.1.12 Context Loader Register: Coordinates in the raster table wherethe context loader is started. (TC_CTX_LD_REG10)
 
+#define TC_LINE1_INT_REG13 0x20050 // 15.3.3.1.21 LINE1 interrupt control: Coordinate where line1 interrupt is assered (TC_LINE1_INT_REG13)
+#define TC_LINE2_INT_REG14 0x20054 // 15.3.3.1.22 LINE2 interrupt control: Coordinate where line2 interrupt is assered (TC_LINE2_INT_REG14)
+
+
+
 // Scaler
 #define SCALE_CTRL 0x1c000 // 15.8.3.1.2 Scale Control Register (SCALE_CTRL)
 #define SCALE_OFIFO_CTRL 0x1c004 // 15.8.3.1.3 Scale Output FIFO Control Register (SCALE_OFIFO_CTRL)
