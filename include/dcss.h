@@ -33,6 +33,19 @@
 #define DPR_1_RTRAM_CTRL0 0x18200 // 15.7.3.1.58 RTRAM Control 0 (RTRAM_CTRL0)
 #define DPR_1_SYSTEM_CTRL0 0x18000 // 15.7.3.1.2 System Control 0 (SYSTEM_CTRL0)
 
+
+#define DPR_2_FRAME_1P_BASE_ADDR_CTRL0 0x190c0  // 15.7.3.1.38 Frame 1-Plane Base Address Control 0 (FRAME_1P_BASE_ADDR_CTRL0)
+#define DPR_2_FRAME_1P_CTRL0 0x19090 // 15.7.3.1.26 Frame 1-Plane Control 0 (FRAME_1P_CTRL0)
+#define DPR_2_FRAME_1P_PIX_X_CTRL 0x190a0 // 15.7.3.1.30 Frame 1-Plane Pix X Control (FRAME_1P_PIX_X_CTRL)
+#define DPR_2_FRAME_1P_PIX_Y_CTRL 0x190b0 // 15.7.3.1.34 Frame 1-Plane Pix Y Control (FRAME_1P_PIX_Y_CTRL)
+#define DPR_2_FRAME_2P_BASE_ADDR_CTRL0 0x19110 // 15.7.3.1.54 Frame 2-Plane Base Address Control 0 (FRAME_2P_BASE_ADDR_CTRL0)
+#define DPR_2_FRAME_2P_PIX_X_CTRL 0x190f0 // 15.7.3.1.46 Frame 2-Plane Pix X Control (FRAME_2P_PIX_X_CTRL)
+#define DPR_2_FRAME_2P_PIX_Y_CTRL 0x19100 // 15.7.3.1.50 Frame 2-Plane Pix Y Control (FRAME_2P_PIX_Y_CTRL)
+#define DPR_2_FRAME_CTRL0 0x19070 // 15.7.3.1.22 Frame Control 0 (FRAME_CTRL0)
+#define DPR_2_MODE_CTRL0 0x19050 // 15.7.3.1.19 Mode Control 0 (MODE_CTRL0)
+#define DPR_2_RTRAM_CTRL0 0x19200 // 15.7.3.1.58 RTRAM Control 0 (RTRAM_CTRL0)
+#define DPR_2_SYSTEM_CTRL0 0x19000 // 15.7.3.1.2 System Control 0 (SYSTEM_CTRL0)
+
 // Color Sub-sampler
 #define SS_COEFF 0x1b070 // 15.11.3.1.30 (SS_COEFF)
 #define SS_CLIP_CB 0x1b080 //15.11.3.1.34 (SS_CLIP_CB)
@@ -52,12 +65,12 @@
 #define TC_DISPLAY_REG3 0x2000c // 15.3.3.1.5 Display Register: BOTTOM Window Coordinates for Activedisplay area (TC_DISPLAY_REG3)
 #define TC_CH1_REG4 0x20010 // 15.3.3.1.6 Channel 1 window Register: TOP Window Coordinates forchannel1 (TC_CH1_REG4)
 #define TC_CH1_REG5 0x20014 // 15.3.3.1.7 Channel_1 window Register: BOTTOM Window Coordinates forchannel_1 window (TC_CH1_REG5)
+#define TC_CH2_REG6 0x20018 // 15.3.3.1.6 Channel 2 window Register: TOP Window Coordinates forchannel1 (TC_CH2_REG6)
+#define TC_CH2_REG7 0x2001c // 15.3.3.1.7 Channel_2 window Register: BOTTOM Window Coordinates forchannel_1 window (TC_CH2_REG7)
 #define TC_CTX_LD_REG10 0x20028 // 15.3.3.1.12 Context Loader Register: Coordinates in the raster table wherethe context loader is started. (TC_CTX_LD_REG10)
 
 #define TC_LINE1_INT_REG13 0x20050 // 15.3.3.1.21 LINE1 interrupt control: Coordinate where line1 interrupt is assered (TC_LINE1_INT_REG13)
 #define TC_LINE2_INT_REG14 0x20054 // 15.3.3.1.22 LINE2 interrupt control: Coordinate where line2 interrupt is assered (TC_LINE2_INT_REG14)
-
-
 
 // Scaler
 #define SCALE_CTRL 0x1c000 // 15.8.3.1.2 Scale Control Register (SCALE_CTRL)
@@ -84,7 +97,6 @@
 #define CTXLD_CTRL_STATUS 0x23000
 #define DB_BASE_ADDR 0x23010
 #define DB_COUNT 0x23014
-
 
 
 void write_dcss_memory_registers();

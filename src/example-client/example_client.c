@@ -22,6 +22,18 @@
 #define RGBA_BLUE_64 0x00ff000000ff0000
 #define RGBA_WHITE_64 0x00ffffff00ffffff
 
+
+#define RGBA_RED_64_5   0x010000ff010000ff
+#define RGBA_GREEN_64_5 0x0000ff000000ff00
+#define RGBA_BLUE_64_5 0xffff0000ffff0000
+#define RGBA_WHITE_64_5 0x00ffffff00ffffff
+
+
+// #define RGBA_RED_64 0x010000ff010000ff
+// #define RGBA_GREEN_64 0xff00ff00ff00ff00
+// #define RGBA_BLUE_64 0xffff0000ffff0000
+// #define RGBA_WHITE_64 0x01ffffff01ffffff
+
 uintptr_t dma_base; 
 uintptr_t timer_base;
 struct hdmi_data *hdmi_config = NULL;
@@ -29,7 +41,6 @@ struct hdmi_data *hdmi_config = NULL;
 // TODO: This could be wrapped up in a structure of some sort so its clear it belongs to the api_3 example
 int width_offset = 0;
 int ctx_ld_enable = 0;
-
 
 void init(void) {
 	
@@ -46,11 +57,10 @@ void init(void) {
 	//api_example3();		// Display 4 coloiur bars RGB and white split evenly across the screen, moving a number of pixels across the screen
 
 	api_example4();	// Displays the whole screen as red for one buffer and blue for the other (For testing) 
-	
+	//api_example5();
 	//free(hdmi_config); // TODO: This will need to be freed at some point)
 	printf("Finished Init Client \n");
 }
-
 
 void
 notified(microkit_channel ch) {
@@ -61,6 +71,7 @@ notified(microkit_channel ch) {
 			start_timer();
 			//write_api_example_3_frame_buffer_64(); // TODO: Put in a mechanism so that there is a global function pointer at the correct function.
 			write_api_example_4_frame_buffer_64();
+			//write_api_example_5_frame_buffer_64();
 			printf("Writing frame buffer took %d ms\n", stop_timer());
 			break;
 		default:
@@ -157,7 +168,7 @@ void api_example4() {
 	// Initialise the vic mode with custom values
 	// struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON};
 	// *hdmi_config = v;
-	int v_mode = 2; // here for debugging to try different display configs
+	int v_mode = 0; // here for debugging to try different display configs
 
 	hdmi_config->FRONT_PORCH = vic_table[v_mode][FRONT_PORCH];
 	hdmi_config->BACK_PORCH= vic_table[v_mode][BACK_PORCH];
@@ -178,9 +189,47 @@ void api_example4() {
 	hdmi_config->rgb_format = RGBA;
 	hdmi_config->alpha_toggle = ALPHA_OFF;
 	hdmi_config->db_toggle = DB_ON;
+	
 
 	// Prewrite the buffer before display configuration
 	write_api_example_4_frame_buffer_64();
+
+	// Send the hdmi data to the dcss PD to initialise the DCSS
+	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
+	
+}
+
+
+void api_example5() {
+
+	// Initialise the vic mode with custom values
+	// struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON};
+	// *hdmi_config = v;
+	int v_mode = 0; // here for debugging to try different display configs
+
+	hdmi_config->FRONT_PORCH = vic_table[v_mode][FRONT_PORCH];
+	hdmi_config->BACK_PORCH= vic_table[v_mode][BACK_PORCH];
+	hdmi_config->HSYNC = vic_table[v_mode][HSYNC];
+	hdmi_config->TYPE_EOF = vic_table[v_mode][TYPE_EOF];
+	hdmi_config->SOF = vic_table[v_mode][SOF];
+	hdmi_config->VSYNC= vic_table[v_mode][VSYNC];
+	hdmi_config->H_ACTIVE = vic_table[v_mode][H_ACTIVE];
+	hdmi_config->V_ACTIVE = vic_table[v_mode][V_ACTIVE]; 
+	hdmi_config->HSYNC_POL = vic_table[v_mode][HSYNC_POL];
+	hdmi_config->VSYNC_POL = vic_table[v_mode][VSYNC_POL];
+	hdmi_config->PIXEL_FREQ_KHZ = vic_table[v_mode][PIXEL_FREQ_KHZ];
+	hdmi_config->H_BLANK = vic_table[v_mode][H_BLANK];
+	hdmi_config->H_TOTAL = vic_table[v_mode][H_TOTAL];
+	hdmi_config->VIC_R3_0 = vic_table[v_mode][VIC_R3_0];
+	hdmi_config->VIC_PR = vic_table[v_mode][VIC_PR];
+	hdmi_config->V_TOTAL = vic_table[v_mode][V_TOTAL];
+	hdmi_config->rgb_format = RGBA;
+	hdmi_config->alpha_toggle = ALPHA_ON;
+	hdmi_config->db_toggle = DB_OFF;
+	
+
+	// Prewrite the buffer before display configuration
+	write_api_example_5_frame_buffer_64();
 
 	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
@@ -442,7 +491,7 @@ void write_api_example_4_frame_buffer_64() {
 	int height = hdmi_config->V_ACTIVE;
 	int width = hdmi_config->H_ACTIVE/2; // /2 as 64bits are being written 
 
-	// The first frame buffer will be written once when the 
+	// for current testing purposes both frame buffers are pre written.
 	if (current_fb == 0) {
 		printf("writing frame buffer 1 as red.\n");
 		for (int i = 0; i < height; i++) {
@@ -450,19 +499,19 @@ void write_api_example_4_frame_buffer_64() {
 				*(frame_buffer_addr++) = RGBA_RED_64; 
 			}
 		}
-	}
 
-	// The second frame buffer will be written once when it is notified from the dcss in the context loader on channel 52
-	else if (current_fb == 1)  {
+		frame_buffer_addr = (uint64_t*)(dma_base + FRAME_BUFFER_TWO_OFFSET);
+
 		printf("writing frame buffer 2 as blue.\n");
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				*(frame_buffer_addr++) = RGBA_BLUE_64; 
 			}
 		}
+		current_fb++;
 	}
+	
 
-	current_fb++; // this now means it will only actually write them once then will skip over all of this each time. 
 	//  It is doing it like this just for the purpose of the example to keep the same format of notifying once the buffers written. 
 
 	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.
@@ -476,7 +525,53 @@ void write_api_example_4_frame_buffer_64() {
 	}
 }
 
+void write_api_example_5_frame_buffer_64() {
+	
+	if (hdmi_config == NULL){
+		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+		return;
+	}
+	
+	uintptr_t* frame_buffer_addr_offset = (uintptr_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);
+	uint64_t* frame_buffer_addr = (uint64_t*)(dma_base + *frame_buffer_addr_offset);
 
+	int height = hdmi_config->V_ACTIVE;
+	int width = hdmi_config->H_ACTIVE/2; // /2 as 64bits are being written 
+
+	// for current testing purposes both frame buffers are pre written.
+	if (current_fb == 0) {
+		printf("writing frame buffer 1 as red.\n");
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width/2; j++) {
+				*(frame_buffer_addr++) = RGBA_RED_64_5; 
+			}
+			frame_buffer_addr += (width-(width/2));
+		}
+
+		frame_buffer_addr = (uint64_t*)(dma_base + FRAME_BUFFER_TWO_OFFSET);
+
+		printf("writing frame buffer 2 as blue.\n");
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
+				*(frame_buffer_addr++) = RGBA_BLUE_64_5; 
+			}
+		}
+		current_fb++;
+	}
+	
+
+	//  It is doing it like this just for the purpose of the example to keep the same format of notifying once the buffers written. 
+
+	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.
+	if (ctx_ld_enable == 1) {
+		
+		// Call the context loader to signify the buffer has finished being written to.
+		microkit_notify(52);	
+	}
+	else {
+		ctx_ld_enable = 1;
+	}
+}
 
 
 
