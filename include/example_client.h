@@ -13,4 +13,8 @@ void write_api_example_1_frame_buffer();
 void write_api_example_3_frame_buffer();
 void write_api_example_2_frame_buffer();
 
+void write_api_example_3_frame_buffer_64();
+void write_api_example_4_frame_buffer_64();
+void write_api_example_5_frame_buffer_64();
+
 #endif

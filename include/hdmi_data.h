@@ -78,6 +78,9 @@ struct hdmi_data {
 	enum RGB_FORMAT rgb_format;
 	enum ALPHA_TOGGLE alpha_toggle;
 	enum DOUBLE_BUFFER_TOGGLE db_toggle;
+	int ms_delay;
 };
+
+#define NO_DELAY -1
 
 #endif

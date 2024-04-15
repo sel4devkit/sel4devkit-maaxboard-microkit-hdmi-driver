@@ -22,7 +22,7 @@
 #define RGBA_BLUE_64 0x00ff000000ff0000
 #define RGBA_WHITE_64 0x00ffffff00ffffff
 
-
+// Experimenting chaning values for the alpha channel
 #define RGBA_RED_64_5   0x010000ff010000ff
 #define RGBA_GREEN_64_5 0x0000ff000000ff00
 #define RGBA_BLUE_64_5 0xffff0000ffff0000
@@ -42,6 +42,9 @@ struct hdmi_data *hdmi_config = NULL;
 int width_offset = 0;
 int ctx_ld_enable = 0;
 
+// Function pointer to current frame buffer function (used for double buffering)
+void (*write_frame_buffer)();
+
 void init(void) {
 	
 	printf("Init Client \n");
@@ -56,9 +59,8 @@ void init(void) {
 	//api_example2();		// Display a square with the same number of pixels at three different resolutions
 	//api_example3();		// Display 4 coloiur bars RGB and white split evenly across the screen, moving a number of pixels across the screen
 
-	api_example4();	// Displays the whole screen as red for one buffer and blue for the other (For testing) 
-	//api_example5();
-	//free(hdmi_config); // TODO: This will need to be freed at some point)
+	api_example4();	// Displays the whole screen as red for one buffer and blue for the other (For testing - easy to see the screen redrawn effect) 
+	//api_example5();	// Testing the alpha channel overlay.s
 	printf("Finished Init Client \n");
 }
 
@@ -69,9 +71,7 @@ notified(microkit_channel ch) {
         // Notified by the context loader to draw the frame buffer that is not being displayed
 		case 52:								
 			start_timer();
-			//write_api_example_3_frame_buffer_64(); // TODO: Put in a mechanism so that there is a global function pointer at the correct function.
-			write_api_example_4_frame_buffer_64();
-			//write_api_example_5_frame_buffer_64();
+			write_frame_buffer();
 			printf("Writing frame buffer took %d ms\n", stop_timer());
 			break;
 		default:
@@ -82,7 +82,7 @@ notified(microkit_channel ch) {
 void api_example1() {
 	
 	// Initialise the hdmi data with custom values
-	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_ON, DB_OFF};
+	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_ON, DB_OFF, NO_DELAY};
 	*hdmi_config = v;
 
 	// prewrite the buffer before it is displayed
@@ -131,6 +131,7 @@ void vic_table_api_example(int v_mode) {
 	hdmi_config->rgb_format = RBGA;
 	hdmi_config->alpha_toggle = ALPHA_OFF;
 	hdmi_config->db_toggle = DB_OFF;
+	hdmi_config->ms_delay = NO_DELAY;
 
 	// Write a square of a fixed size to the frame buffer at current resolution 
 	write_api_example_2_frame_buffer();
@@ -152,11 +153,12 @@ void vic_table_api_example(int v_mode) {
 void api_example3() {
 
 	// Initialise the vic mode with custom values
-	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON};
+	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON, 1000};
 	*hdmi_config = v;
 
 	// Prewrite the buffer before display configuration
 	write_api_example_3_frame_buffer_64();
+	write_frame_buffer = &write_api_example_3_frame_buffer_64;
 
 	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
@@ -165,9 +167,6 @@ void api_example3() {
 
 void api_example4() {
 
-	// Initialise the vic mode with custom values
-	// struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON};
-	// *hdmi_config = v;
 	int v_mode = 0; // here for debugging to try different display configs
 
 	hdmi_config->FRONT_PORCH = vic_table[v_mode][FRONT_PORCH];
@@ -189,22 +188,21 @@ void api_example4() {
 	hdmi_config->rgb_format = RGBA;
 	hdmi_config->alpha_toggle = ALPHA_OFF;
 	hdmi_config->db_toggle = DB_ON;
+	hdmi_config->ms_delay = 1000;
 	
 
 	// Prewrite the buffer before display configuration
 	write_api_example_4_frame_buffer_64();
+	write_frame_buffer = &write_api_example_4_frame_buffer_64;
 
 	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
-	
 }
 
 
 void api_example5() {
 
-	// Initialise the vic mode with custom values
-	// struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON};
-	// *hdmi_config = v;
+
 	int v_mode = 0; // here for debugging to try different display configs
 
 	hdmi_config->FRONT_PORCH = vic_table[v_mode][FRONT_PORCH];
@@ -226,10 +224,12 @@ void api_example5() {
 	hdmi_config->rgb_format = RGBA;
 	hdmi_config->alpha_toggle = ALPHA_ON;
 	hdmi_config->db_toggle = DB_OFF;
+	hdmi_config->ms_delay = NO_DELAY;
 	
 
 	// Prewrite the buffer before display configuration
 	write_api_example_5_frame_buffer_64();
+	write_frame_buffer = &write_api_example_5_frame_buffer_64;
 
 	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hdmi_config, 1, 0, 0));
@@ -511,7 +511,6 @@ void write_api_example_4_frame_buffer_64() {
 		current_fb++;
 	}
 	
-
 	//  It is doing it like this just for the purpose of the example to keep the same format of notifying once the buffers written. 
 
 	// The first time this is called it is pre writing the buffer before any DCSS call, so it should not call the context loader as it will have not yet been initialised.

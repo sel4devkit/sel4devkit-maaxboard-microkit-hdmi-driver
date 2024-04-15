@@ -77,13 +77,11 @@ void init_context_loader() {
 	ctx_ld_db1_addr++; 															
 	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 
 	
-	// This extra memory register has been added as the value is based on the current frame buffer
+	// This extra memory register has been added as the value is based on the current frame buffer (it seems to have no effect in context switching)
 	ctx_ld_db1_addr++; 
 	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr + (hdmi_config->H_ACTIVE * hdmi_config->V_ACTIVE);
 	ctx_ld_db1_addr++; 
 	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0; 
-
-
 
 
 	uint32_t* ctx_ld_db2_addr = (uint32_t*)(dma_base + CTX_LD_DB_TWO_ADDR); 	
@@ -91,7 +89,7 @@ void init_context_loader() {
 	ctx_ld_db2_addr++; 															
 	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 
 
-	// This extra memory register has been added as the value is based on the current frame buffer
+	// This extra memory register has been added as the value is based on the current frame buffer (it seems to have no effect in context switching)
 	ctx_ld_db2_addr++; 
 	*ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr + (hdmi_config->H_ACTIVE * hdmi_config->V_ACTIVE);
 	ctx_ld_db2_addr++; 
@@ -112,6 +110,7 @@ void init_context_loader() {
 	run_context_loader();
 }
 
+
 void run_context_loader(){
 	
 	// Steps 3,4,5 and 12 of 15.4.2.2 Display state loading sequence
@@ -123,7 +122,7 @@ void run_context_loader(){
 	uint32_t* scaler_sys_ctrl = (uint32_t*)(dcss_base + SCALE_CTRL);
 	int context_ld_enabled = 0;
 	
-	// *dpr_sys_ctrl |= ((int)1 << 0);	// does bad things
+	// *dpr_sys_ctrl |= ((int)1 << 0);	// does bad things (pre loads the buffer)
 	// *dpr_sys_ctrl |= ((int)1 << 2);
 	// *dpr_sys_ctrl |= ((int)1 << 3); // shadow load en
 	// *dpr_sys_ctrl |= ((int)1 << 4);
@@ -132,18 +131,8 @@ void run_context_loader(){
 	*scaler_sys_ctrl |= ((int)1 << 0);
 	// *scaler_sys_ctrl |= ((int)1 << 4);
 
-
 	// Give priority to the context loader TODO: Probably only needs to be done once per initialisation
 	*enable_status |= ((int)1 << 1);
-
-
-	// // setting the interuprs for db and sb (interuupts are not what i need i dont think)													
-	// *enable_status |= ((int)1 << 3); 
-	// *enable_status |= ((int)1 << 4); 
-	// *enable_status |= ((int)1 << 5); 
-	// *enable_status |= ((int)1 << 6); 
-	// *enable_status |= ((int)1 << 7); 
-
 
 	// Set the context offset in memory for the current frame buffer to display
 	int contex_offset = (context == 0) ? CTX_LD_DB_ONE_ADDR : CTX_LD_DB_TWO_ADDR;		
@@ -178,13 +167,17 @@ void run_context_loader(){
 	// Set the dma offset for the current framebuffer to be used by the client
 	*current_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET : FRAME_BUFFER_ONE_OFFSET;
 	context = context == 1 ? 0 : 1; 																			
-	printf("Switching context tooooooooooooook %d ms\n", stop_timer());
+	printf("Switching context took %d ms\n", stop_timer());
 
-	ms_delay(1000); // For debugging 
+	//ms_delay(1000); // For debugging 
+	if (hdmi_config->ms_delay != NO_DELAY) {
+		ms_delay(hdmi_config->ms_delay);
+	}
 
 	// Notify the client to draw the frame buffer
 	microkit_notify(52);
 }
+
 
 void
 notified(microkit_channel ch) {
@@ -216,6 +209,120 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 	}
 }
 
+/* 	
+	Testing using interupts rather than the context loader
+	Using the interrupts doesn't seem to have an affect on the point at which it is drawn.
+*/
+void change_buffer() {
+
+	ms_delay(3000); // let the screen turn on and the init_dcss() to take affect.
+
+	//write_register_debug((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0x1E000000); // 480
+	//write_register_debug((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0xAA000000); //680
+	//write_register_debug((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0x89800000); // 1100
+	//write_register_debug((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0);
+	
+	uintptr_t* fb_1 =  getPhys((void*) (dma_base));
+	uintptr_t* fb_2 =  getPhys((void*) (dma_base + FRAME_BUFFER_TWO_OFFSET));
+
+	uint32_t* line1_intr = (uint32_t*)(dcss_base + TC_LINE1_INT_REG13);
+	uint32_t* int_status = (uint32_t*)(dcss_base + TC_INTERRUPT_STATUS);
+	uint32_t* int_control = (uint32_t*)(dcss_base + TC_INTERRUPT_CONTROL_REG17);
+	uint32_t* int_mask = (uint32_t*)(dcss_base + TC_INTERRUPT_MASK);
+	
+	write_register((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0x11300000); // 1100
+	write_register((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0); // 1100
+
+	*line1_intr |= ((int)1 << 25);
+	*line1_intr |= ((int)1 << 26);
+	*line1_intr |= ((int)1 << 27);
+	*line1_intr |= ((int)1 << 28);
+
+
+	ms_delay(1000);
+
+	for (size_t i = 0; i < 10000; i++){
+		
+		//write_register_debug((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0x1E000000); // if i reset it, its different each time
+		// write_register_debug((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0x89800000); // 1100 this appears higher than 0
+		//write_register_debug((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0x11300000); // 1100
+		*int_control |= ((int)1 << 1); // clear line 1 so that it does not show as asserted
+		
+		// Writing the binary value in the register
+		*line1_intr |= ((int)1 << 16); // no matter how i set these bits, it still changes at the same interval.
+		*line1_intr |= ((int)1 << 17);
+		*line1_intr |= ((int)1 << 18);
+		*line1_intr |= ((int)1 << 19);
+		*line1_intr |= ((int)1 << 20);
+		*line1_intr |= ((int)1 << 21);
+		*line1_intr |= ((int)1 << 22);
+		*line1_intr |= ((int)1 << 23);
+		*line1_intr |= ((int)1 << 24);
+		*line1_intr |= ((int)1 << 25);
+		*line1_intr |= ((int)1 << 26);
+		*line1_intr |= ((int)1 << 27);
+		*line1_intr |= ((int)1 << 28);
+		
+		
+		*int_mask |= ((int)1 << 1); // enable interrupt for line 1 ()
+		int line1_status = (*int_status >> 1) & (int)1; // check status 
+
+		while (line1_status == 0) {	
+			line1_status = (*int_status >> 1) & (int)1;
+			seL4_Yield();
+			//printf("still here\n");	// having a print statement makes it an unpredictable amount of time.
+		}
+		
+		ms_delay(12); // depending on this delay it will draw it at different points.
+		if (i % 2 == 0) {
+			write_register_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)fb_2);
+		}
+		else {
+			write_register_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)fb_1);
+		}
+		ms_delay(1500);
+		//printf("int status after = %d\n", line1_status);
+	}
+}
+
+/* 	
+	Testing changing buffer manually at differnt time intervals
+*/
+void change_buffer_manually() {
+
+	// This test shows that its changing it without any regard to the DTG
+	// I can see it change randomly in the middle of the screen
+	// In the current example it changes from the top everytime
+	// I am quite certain that it is doing this during the active display time, rather than vertical blanking time.
+	
+	ms_delay(5000);
+	int delays[10] = {5,18,19,20,100,333,666,1000,1111,1234};
+
+	uintptr_t* fb_1 =  getPhys((void*) (dma_base));
+	uintptr_t* fb_2 =  getPhys((void*) (dma_base + FRAME_BUFFER_TWO_OFFSET));
+
+	for (size_t i = 0; i < 10; i++)
+	{
+		if (i % 2 == 0) {
+			write_register_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)fb_2);
+		}
+		else {
+			write_register_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)fb_1);
+		}
+		ms_delay(delays[i]);
+	}
+	
+
+	// here to test api example 5:
+	ms_delay(3000);
+	uint32_t* dpr_sys_ctrl = (uint32_t*)(dcss_base + DPR_2_FRAME_1P_BASE_ADDR_CTRL0);
+
+	*dpr_sys_ctrl |= ((int)1 << 0);	// does bad things
+	*dpr_sys_ctrl |= ((int)1 << 2);
+	*dpr_sys_ctrl |= ((int)1 << 3); // shadow load en
+	*dpr_sys_ctrl |= ((int)1 << 4);
+}
+
 void init_dcss() {
 
 	printf("init dcss called\n");
@@ -235,14 +342,10 @@ void init_dcss() {
 		init_context_loader();
 	}
 
-	// // here to test api example 5:
-	// ms_delay(3000);
-	// uint32_t* dpr_sys_ctrl = (uint32_t*)(dcss_base + DPR_2_FRAME_1P_BASE_ADDR_CTRL0);
+	// Alternative tests to using the context loader
 
-	// *dpr_sys_ctrl |= ((int)1 << 0);	// does bad things
-	// *dpr_sys_ctrl |= ((int)1 << 2);
-	// *dpr_sys_ctrl |= ((int)1 << 3); // shadow load en
-	// *dpr_sys_ctrl |= ((int)1 << 4);
+	//change_buffer();
+	//change_buffer_manually();
 }
 
 void init_ccm() {
@@ -367,7 +470,7 @@ void write_dpr_memory_registers() {
 	uintptr_t* fb_2 =  getPhys((void*) (dma_base + FRAME_BUFFER_TWO_OFFSET));
 
     write_register_debug((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)fb_1); // The address of the frame buffer
-    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x00000002); 
+    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x00000006); 
     write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_X_CTRL), hdmi_config->H_ACTIVE);
 	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_Y_CTRL), hdmi_config->V_ACTIVE);
 	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0), (uintptr_t)fb_1 + hdmi_config->H_ACTIVE * hdmi_config->V_ACTIVE);
@@ -387,6 +490,7 @@ void write_dpr_memory_registers() {
 	// *dpr_sys_ctrl |= ((int)1 << 3); // shadow load en
 	// *dpr_sys_ctrl |= ((int)1 << 4);
 
+	// These extra memory regsiters are written in case the 2nd channel needs to be used. (for using an additional alpha)
 
  	write_register_debug((uint32_t*)(dcss_base + DPR_2_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)fb_2); // The address of the frame buffer
 	write_register((uint32_t*)(dcss_base + DPR_2_FRAME_1P_CTRL0), 0x00000002); 
@@ -408,7 +512,6 @@ void write_sub_sampler_memory_registers() {
 	write_register((uint32_t*)(dcss_base + SS_COEFF), 0x21612161);
 	write_register((uint32_t*)(dcss_base + SS_CLIP_CB), 0x03ff0000);
 	write_register((uint32_t*)(dcss_base + SS_CLIP_CR), 0x03ff0000);
-
 
 	// TODO: Tidy these up
 	write_register((uint32_t*)(dcss_base + SS_DISPLAY),
@@ -435,7 +538,7 @@ void write_sub_sampler_memory_registers() {
 void write_dtg_memory_registers() {
 	
 
-	// These are directly from the linux source code, its actually the same as uboot
+	// These are directly from the linux source code, its actually the same as uboot so these don't need to be written like this
 
 	int dtg_lrc_y = hdmi_config->TYPE_EOF  + hdmi_config->SOF  + hdmi_config->VSYNC + hdmi_config->V_ACTIVE - 1;
 	int dis_ulc_y = hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF- 1;
@@ -491,7 +594,6 @@ void write_dtg_memory_registers() {
 	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG3), ((dis_lrc_y << 16) | dis_lrc_x));
 
 
-	// These are written differently in linux - if they're not written it will not work.
 	write_register((uint32_t*)(dcss_base + TC_CH1_REG4),
 		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF -
 		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
@@ -501,7 +603,7 @@ void write_dtg_memory_registers() {
 		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
 
 
-
+	// USed for channel 2 (alpha)
 	write_register((uint32_t*)(dcss_base + TC_CH2_REG6),
 		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF -
 		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
@@ -518,10 +620,16 @@ void write_dtg_memory_registers() {
 
 	//ms_delay(100000);
 
-	//write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);	// original 
-	write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), sb_ctxld_trig | db_ctxld_trig); // this doesn't change it (taken from linux)
+
+	write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);	// original 
+//	write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), sb_ctxld_trig | db_ctxld_trig); // this doesn't change it (taken from linux)
 	//write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0xB001E); // no good leaves a bit of a gap
 	
+
+
+	// uint32_t* dtg_ctx_ld = (uint32_t*)(dcss_base + TC_CTX_LD_REG10);
+	// *dtg_ctx_ld |= ((int)0 << 0);
+	// *dtg_ctx_ld |= ((int)0 << 16);
 
 	//write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), db_ctxld_trig);	// original 
 
@@ -543,13 +651,12 @@ void write_dtg_memory_registers() {
 	// //ms_delay(100000);
 	
 
-	// These two may actually be things set in the context loader registers. (I'm not sure why though, i would have thought its only needed ot be set once.)
-
 	// VBLANK
-	write_register((uint32_t*)(dcss_base + TC_LINE2_INT_REG14), 0x0000000);
+	// write_register((uint32_t*)(dcss_base + TC_LINE2_INT_REG14), 0x0000000);
 
-	// CTXLD
-	write_register((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), ((90 * dis_lrc_y) / 100) << 16);
+	// // CTXLD
+	//write_register((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), ((90 * dis_lrc_y) / 100) << 16);
+	//write_register((uint32_t*)(dcss_base + TC_LINE1_INT_REG13), 0);
 }
 
 void write_scaler_memory_registers() {
@@ -576,10 +683,7 @@ void write_scaler_memory_registers() {
 	write_register((uint32_t*)(dcss_base  + 0x1c1c0), 0x00000000); // This must stay!
 	write_register((uint32_t*)(dcss_base  + 0x1c000), 0x00000011);
 
-
-
-
-
+	// the below appear to have no effect in the current configuration and will likely be removed
 
 	write_register((uint32_t*)(dcss_base + 0x1c028), 0x00000000);
 	write_register((uint32_t*)(dcss_base + 0x1c02c), 0x00000000);
@@ -791,5 +895,4 @@ void write_scaler_memory_registers() {
 	write_register((uint32_t*)(dcss_base + 0x1c2bc), 0x00000000);
 	write_register((uint32_t*)(dcss_base + 0x1c2bc), 0x00000000);
 	write_register((uint32_t*)(dcss_base + 0x1c000), 0x00000011);
-
 }

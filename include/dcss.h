@@ -72,6 +72,10 @@
 #define TC_LINE1_INT_REG13 0x20050 // 15.3.3.1.21 LINE1 interrupt control: Coordinate where line1 interrupt is assered (TC_LINE1_INT_REG13)
 #define TC_LINE2_INT_REG14 0x20054 // 15.3.3.1.22 LINE2 interrupt control: Coordinate where line2 interrupt is assered (TC_LINE2_INT_REG14)
 
+#define TC_INTERRUPT_STATUS 0x2005c // 15.3.3.1.24 Timing controller interrupt status (TC_INTERRUPT_STATUS)
+#define TC_INTERRUPT_CONTROL_REG17 0x20060 // 15.3.3.1.25 Timing controller interrupt control (TC_INTERRUPT_CONTROL_REG17)
+#define TC_INTERRUPT_MASK 0x20068 // 15.3.3.1.27 Timing controller interrupt masks (TC_INTERRUPT_MASK)
+
 // Scaler
 #define SCALE_CTRL 0x1c000 // 15.8.3.1.2 Scale Control Register (SCALE_CTRL)
 #define SCALE_OFIFO_CTRL 0x1c004 // 15.8.3.1.3 Scale Output FIFO Control Register (SCALE_OFIFO_CTRL)
@@ -115,5 +119,9 @@ void init_hdmi();
 CDN_API_STATUS init_api();
 void call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel);
 void print_api_status_msg(CDN_API_STATUS status, char* function_name);
+
+// for testing
+void change_buffer();
+void change_buffer_manually();
 
 #endif
