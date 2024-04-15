@@ -7,7 +7,7 @@ export BUILD_DIR="./build"
 export SOURCE_LOCATION=$(pwd)
 
 
-# Set up for current development switching between two environments 
+# Set up for current development switching between two environments. Use without arguments if using bje docker configuration
 if [ -z "$1" ]; then
 
     export MICROKIT_SDK="/util/microkit/sel4_foundation/release/microkit-sdk-1.2.6"

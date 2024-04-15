@@ -57,9 +57,9 @@ void init(void) {
 
 	//api_example1(); 	// Display 4 colour bars RGB and white split evenly across the screen with a custom configuration.
 	//api_example2();		// Display a square with the same number of pixels at three different resolutions
-	//api_example3();		// Display 4 coloiur bars RGB and white split evenly across the screen, moving a number of pixels across the screen
+	api_example3();		// Display 4 coloiur bars RGB and white split evenly across the screen, moving a number of pixels across the screen
 
-	api_example4();	// Displays the whole screen as red for one buffer and blue for the other (For testing - easy to see the screen redrawn effect) 
+//	api_example4();	// Displays the whole screen as red for one buffer and blue for the other (For testing - easy to see the screen redrawn effect) 
 	//api_example5();	// Testing the alpha channel overlay.s
 	printf("Finished Init Client \n");
 }
@@ -153,7 +153,7 @@ void vic_table_api_example(int v_mode) {
 void api_example3() {
 
 	// Initialise the vic mode with custom values
-	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON, 1000};
+	struct hdmi_data v = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON, NO_DELAY};
 	*hdmi_config = v;
 
 	// Prewrite the buffer before display configuration
