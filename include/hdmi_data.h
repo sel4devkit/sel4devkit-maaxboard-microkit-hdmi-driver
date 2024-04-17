@@ -81,6 +81,14 @@ struct hdmi_data {
 	int ms_delay;
 };
 
+
+
+struct display_config {
+
+	struct hdmi_data hd;
+	void (*write_frame_buffer)();
+};
+
 #define NO_DELAY -1
 
 #endif
