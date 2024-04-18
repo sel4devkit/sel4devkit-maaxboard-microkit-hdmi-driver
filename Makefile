@@ -33,16 +33,16 @@ AS := $(TOOLCHAIN)-as
 WARNINGS := -Wall -Wno-comment -Wno-return-type -Wno-unused-function -Wno-unused-value -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label -Wno-pointer-sign
 
 # List of the object files needed for each protection domain
-DCSS_OBJS 		:=  dcss.o timer.o dma.o picolibc_link.o vic_table.o API_general.o test_base_sw.o util.o API_AFE_t28hpc_hdmitx.o API_AFE.o vic_table.o API_HDMITX.o API_AVI.o API_Infoframe.o
-CLIENT_OBJS		:=  example_client.o timer.o picolibc_link.o vic_table.o api_example_1.o frame_buffer.o
+DCSS_OBJS 		:=  dcss.o timer.o dma.o picolibc_link.o vic_table.o API_general.o test_base_sw.o util.o write_register.o API_AFE_t28hpc_hdmitx.o API_AFE.o vic_table.o API_HDMITX.o API_AVI.o API_Infoframe.o hdmi_tx.o double_buffer.o dpr.o dtg.o scaler.o sub_sampler.o
+CLIENT_OBJS		:=  example_client.o timer.o picolibc_link.o vic_table.o api_example_1.o api_example_3.o frame_buffer.o 
 
 # define c flags and includes for the dcss protection domain 
-INC := $(BOARD_DIR)/include include include/hdmi
+INC := $(BOARD_DIR)/include include include/hdmi include/dcss include/util
 INC_PARAMS=$(foreach d, $(INC), -I$d)
 CFLAGS := -mcpu=$(CPU) -mstrict-align  -nostdlib -nolibc -ffreestanding -g3 -O3 $(WARNINGS) $(INC_PARAMS) -I$(BOARD_DIR)/include --specs=picolibc/picolibc.specs -DSEL4 #-DSEL4_USB_DEBUG
 
 # Define separate configuration for the client to avoid code bloat from unused includes
-CLIENT_INC := $(BOARD_DIR)/include include include/hdmi include/examples
+CLIENT_INC := $(BOARD_DIR)/include include include/hdmi include/examples include/util include/example_client
 CLIENT_INC_PARAMS=$(foreach d, $(CLIENT_INC), -I$d)
 CLIENT_CFLAGS := -mcpu=$(CPU) -mstrict-align  -nostdlib -nolibc -ffreestanding -g3 -O3 $(WARNINGS) $(CLIENT_INC_PARAMS) -I$(BOARD_DIR)/include --specs=picolibc/picolibc.specs -DSEL4 #-DSEL4_USB_DEBUG
 
@@ -58,21 +58,26 @@ IMAGES := dcss.elf example-client.elf
 # all target depends on the protection domain images to be built and the build_image target which builds the final image 
 all: $(addprefix $(BUILD_DIR)/, $(IMAGES)) build_image
 
-# Compile the files in the src directory
-$(BUILD_DIR)/%.o: src/%.c Makefile
-	$(CC) -c $(CFLAGS) $< -o $@
 
 # Compile the files in the hdmi directory
 $(BUILD_DIR)/%.o: src/hdmi/%.c Makefile
 	$(CC) -c $(CFLAGS) $< -o $@
 
 # Compile the example client file 
-$(BUILD_DIR)/%.o: src/example-client/%.c Makefile
+$(BUILD_DIR)/%.o: src/example_client/%.c Makefile
 	$(CC) -c $(CLIENT_CFLAGS) $< -o $@
 
-# Compile the example client file 
+# Compile the dcss files
+$(BUILD_DIR)/%.o: src/dcss/%.c Makefile
+	$(CC) -c $(CFLAGS) $< -o $@
+
+# Compile the example files
 $(BUILD_DIR)/%.o: src/examples/%.c Makefile
 	$(CC) -c $(CLIENT_CFLAGS) $< -o $@
+
+# Compile the dcss files
+$(BUILD_DIR)/%.o: src/util/%.c Makefile
+	$(CC) -c $(CFLAGS) $< -o $@
 
 # Compile the object file for picolibc printf to work
 $(BUILD_DIR)/%.o: picolibc/%.c Makefile
