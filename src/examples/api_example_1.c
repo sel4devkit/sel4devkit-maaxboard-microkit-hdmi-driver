@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "api_example_1.h"
+#include "api_examples.h"
 #include "hdmi_data.h"
 #include "frame_buffer.h"
 
@@ -10,7 +10,7 @@
 
 #include "vic_table.h"
 
-struct display_config init_example1() {
+struct display_config init_example_1() {
 	
 	// Initialise the hdmi data with custom values
 	struct hdmi_data hd;//{1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_OFF, DB_OFF, NO_DELAY};
@@ -38,8 +38,6 @@ struct display_config init_example1() {
 	hd.db_toggle = DB_OFF;
 	hd.ms_delay = NO_DELAY;
 
-
-
 	// Return struct containing the hdmi data and the function to write the frame buffer
 	struct display_config dc = {hd, &write_api_example_1_frame_buffer};
 	return dc;
@@ -58,8 +56,6 @@ void write_api_example_1_frame_buffer(struct hdmi_data* hd) { // pass in hdmi co
 	uint8_t* frame_buffer_addr = get_frame_buffer_uint8();
 	
 
-//	(*frame_buffer_addr--);
-
 	int height = hd->V_ACTIVE;
 	int width = hd->H_ACTIVE;
 	int first_quarter = width * 0.25;
@@ -76,7 +72,7 @@ void write_api_example_1_frame_buffer(struct hdmi_data* hd) { // pass in hdmi co
 		It is turned on or off using hdmi_data.alpha_toggle. With this option turned on, this example will display each colour bar
 		starting with a 0 alhpa increasing every 3 pixels.
 	*/ 
-//	for (int i = 0; i < height; i++) { 
+	for (int i = 0; i < height; i++) { 
 		for (int j = 0; j < width; j++) {
 			
 			// reset alpha for each colour bar
@@ -116,7 +112,7 @@ void write_api_example_1_frame_buffer(struct hdmi_data* hd) { // pass in hdmi co
 				alpha++;
 			}
 		}
-	//}
+	}
 }
 
 

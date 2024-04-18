@@ -47,10 +47,6 @@ uint32_t cdn_apb_read(uint32_t addr, uint32_t *value);
 uint32_t cdn_sapb_read(uint32_t addr, uint32_t *value);
 uint32_t cdn_apb_write(uint32_t addr, uint32_t value);
 uint32_t cdn_sapb_write(uint32_t addr, uint32_t value);
-void write_register(uint32_t* addr, uint32_t value);
-void write_register_debug(uint32_t* addr, uint32_t value); // here for debugging, needs removing
-void write_uint_to_mem(unsigned int* addr, unsigned int value);
-
 // uint32_t hdp_rx_apb_read(uint32_t addr, uint32_t *value);
 // uint32_t hdp_rx_sapb_read(uint32_t addr, uint32_t *value);
 // uint32_t hdp_rx_apb_write(uint32_t addr, uint32_t value);
