@@ -27,31 +27,28 @@ uintptr_t ccm_base;
 uintptr_t dma_base;
 uintptr_t dma_base_paddr;
 uintptr_t timer_base;
-uint32_t* current_frame_buffer_offset;
+uint32_t* active_frame_buffer_offset;
+uint32_t* cache_frame_buffer_offset;
 
 struct hdmi_data *hdmi_config = NULL;
+
+// Included to stop error
+char *__heap_start;
+char *__heap_end;
 
 void init(void) {
 	
 	printf("Init Dcss\n");
 	initialise_and_start_timer(timer_base);
 	sel4_dma_init(dma_base_paddr, dma_base, dma_base + DMA_SIZE);
-	
-	/* Set the current buffer offset for the client to write to.
-	 	This is here so that the client doesn't need to have a mechanism to decide which frame buffer to write to.
-		Instead, the address of the the current frame buffer that is available to be written to to will be stored here.
-		This will be set in the context loader and read from the client.
-	*/
-	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);
-	current_frame_buffer_offset = (uint32_t*)(dma_base + CURRENT_FRAME_BUFFER_ADDR_OFFSET);	
-	
-	// The client will set the frame buffer pointer to what ever is at this address. By default this is 0, which is at beginning of the DMA pool.
-	*current_frame_buffer_offset = FRAME_BUFFER_ONE_OFFSET; 
+
+	active_frame_buffer_offset = (uint32_t*)(dma_base + ACTIVE_FRAME_BUFFER_ADDR_OFFSET);	
+	*active_frame_buffer_offset = FRAME_BUFFER_ONE_OFFSET; 
+
+	cache_frame_buffer_offset = (uint32_t*)(dma_base + CACHE_FRAME_BUFFER_ADDR_OFFSET);	
+	*cache_frame_buffer_offset = FRAME_BUFFER_TWO_OFFSET; 
 
 	init_gpc();
-	int* i = malloc(sizeof(int)); // TODO: This must be implemented so that the hdmi_data struct can be allocated new memory. (It will need to be freed then also)
-	free(i);
-
 }
 
 void
@@ -59,7 +56,7 @@ notified(microkit_channel ch) {
 	
 	switch (ch) {
 		case 52:
-			run_context_loader(dma_base, dcss_base, hdmi_config, current_frame_buffer_offset);
+			run_context_loader(dma_base, dcss_base, hdmi_config, active_frame_buffer_offset, cache_frame_buffer_offset);
 			break;
 		case 55:
 			reset_dcss();
@@ -100,14 +97,10 @@ void init_dcss() {
 	init_hdmi(hdmi_config);
     write_dcss_memory_registers();
 
-	if (hdmi_config->db_toggle) {
-		init_context_loader(dma_base, dcss_base, hdmi_config, current_frame_buffer_offset);
+	if (hdmi_config->db_enable == CTX_LD) {
+		printf("init context loader\n");
+		init_context_loader(dma_base, dcss_base, hdmi_config, active_frame_buffer_offset, cache_frame_buffer_offset);
 	}
-
-	// Alternative tests to using the context loader
-
-	//change_buffer();
-	//change_buffer_manually();
 }
 
 void init_ccm() {
@@ -145,10 +138,16 @@ void write_dtrc_memory_registers() {
 void write_dcss_memory_registers() {
 
 	write_dtrc_memory_registers(dcss_base, hdmi_config);
-	write_dpr_memory_registers(dcss_base, hdmi_config);
+	write_dpr_memory_registers(dcss_base, dma_base, hdmi_config);
 	write_scaler_memory_registers(dcss_base, hdmi_config);
 	write_sub_sampler_memory_registers(dcss_base, hdmi_config);
-	write_dtg_memory_registers(dcss_base, hdmi_config);
+
+	if (hdmi_config->db_enable == DB_OFF) {
+		write_dtg_memory_registers(dcss_base, hdmi_config);
+	}
+	else if (hdmi_config->db_enable == CTX_LD) {
+		write_dtg_memory_registers_ctx_ld(dcss_base, hdmi_config);
+	}
 }
 
 

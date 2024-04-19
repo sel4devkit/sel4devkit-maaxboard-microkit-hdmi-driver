@@ -3,9 +3,7 @@
 
 #include "hdmi_data.h"
 
-struct display_config init_example_1();
 struct display_config init_example_3();
 void write_api_example_3_frame_buffer(struct hdmi_data* hd); 
-void write_api_example_1_frame_buffer(struct hdmi_data* hd); 
 
 #endif

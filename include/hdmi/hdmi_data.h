@@ -37,7 +37,7 @@ enum RGB_FORMAT {
 	to change other settings then bit masking to toggle the different bits would be a better approach. 
 
 */
-enum ALPHA_TOGGLE {
+enum ALPHA_ENABLE {
 
 	ALPHA_OFF,
 	ALPHA_ON
@@ -46,10 +46,10 @@ enum ALPHA_TOGGLE {
 /*
 	This enum is used to toggle double buffering on or off.
 */
-enum DOUBLE_BUFFER_TOGGLE {
+enum DOUBLE_BUFFER_ENABLE {
 
 	DB_OFF,
-	DB_ON
+	CTX_LD
 };
 
 /*
@@ -76,8 +76,8 @@ struct hdmi_data {
 	int VIC_PR;
 	int VIC;
 	enum RGB_FORMAT rgb_format;
-	enum ALPHA_TOGGLE alpha_toggle;
-	enum DOUBLE_BUFFER_TOGGLE db_toggle;
+	enum ALPHA_ENABLE alpha_enable;
+	enum DOUBLE_BUFFER_ENABLE db_enable;
 	int ms_delay;
 };
 

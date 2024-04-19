@@ -21,13 +21,9 @@
 #define DB_COUNT 0x23014
 
 
-// Continue to move the dss components, scaler dpr etc into own headers and include them to get the defines in.
-// Then work out this getPhys thing so i can use it
-
-
 int context = 0; // This keeps track of the current context. TODO: An alternative to global counter?
 
-void init_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_data *hdmi_config, uint32_t* current_frame_buffer_offset) {
+void init_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_data *hdmi_config, uint32_t* active_frame_buffer_offset, uint32_t* cache_frame_buffer_offset) {
 
 	// Steps 1 and 2 of 15.4.2.2 Display state loading sequence are done here as the double buffered registers do not need to change what they contain.
 	// So it should only be written once.
@@ -41,7 +37,7 @@ void init_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_da
 		the DPR memory register where the frame buffer will be set in the second 32 bits. 
 		See 15.4.2.3 System Memory Display state format
 	*/
-	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + CTX_LD_DB_ONE_ADDR); 	
+	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + CTX_LD_CTX_LDE_ADDR); 	
 	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr;							
 	ctx_ld_db1_addr++; 															
 	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 
@@ -76,11 +72,11 @@ void init_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_da
 	// ctx_ld_db2_addr++; 
 	// *ctx_ld_db2_addr = dcss_base + DPR_2_FRAME_2P_BASE_ADDR_CTRL0; 
 	
-	run_context_loader(dma_base, dcss_base, hdmi_config, current_frame_buffer_offset);
+	run_context_loader(dma_base, dcss_base, hdmi_config, active_frame_buffer_offset, cache_frame_buffer_offset);
 }
 
 
-void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_data *hdmi_config, uint32_t* current_frame_buffer_offset){
+void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_data *hdmi_config, uint32_t* active_frame_buffer_offset, uint32_t* cache_frame_buffer_offset){
 	
 	// Steps 3,4,5 and 12 of 15.4.2.2 Display state loading sequence
 
@@ -108,7 +104,7 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	*enable_status |= ((int)1 << 1);
 
 	// Set the context offset in memory for the current frame buffer to display
-	int contex_offset = (context == 0) ? CTX_LD_DB_ONE_ADDR : CTX_LD_DB_TWO_ADDR;		
+	int contex_offset = (context == 0) ? CTX_LD_CTX_LDE_ADDR : CTX_LD_DB_TWO_ADDR;		
 
 
 	// STEP 3 waiting until its idle (it will almost definitely just be idle already, but this is here just to follow the spec)
@@ -151,7 +147,8 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	}
 
 	// Set the dma offset for the current framebuffer to be used by the client
-	*current_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET : FRAME_BUFFER_ONE_OFFSET;
+	*active_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET : FRAME_BUFFER_ONE_OFFSET;
+	*cache_frame_buffer_offset = (context == 0) ?  FRAME_BUFFER_ONE_OFFSET : FRAME_BUFFER_TWO_OFFSET;
 	context = context == 1 ? 0 : 1; 																			
 	printf("Switching context took %d ms\n", stop_timer());
 

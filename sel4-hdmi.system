@@ -14,7 +14,6 @@
     <memory_region name="dcss_blk_mem" size="0x1000" phys_addr="0x32e2f000"/> 
     <memory_region name="gpc_mem" size="0x10000" phys_addr="0x303a0000"/>
     <memory_region name="ccm_mem" size="0x10000" phys_addr="0x30380000"/>
-    <memory_region name="rc_mem" size="0x10000" phys_addr="0x30390000"/>
     <memory_region name="hdmi_mem" size="0x100000 " phys_addr="0x32c00000"/>
     <memory_region name="timer_mem" size="0x20_000" phys_addr="0x306c0000"/>
 
@@ -35,30 +34,30 @@
 
 
     <!-- Example Client -->
-    <protection_domain name="example_client" pp="true" priority="249">
+    <protection_domain name="client" pp="true" priority="249">
         <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="false" setvar_vaddr="dma_base"/>
         <map mr="timer_mem" vaddr="0x306c0000" perms="rw" cached="false" setvar_vaddr="timer_base"/>
         <map mr="shared_heap" vaddr="0x5a00000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
         <map mr="shared_heap_end" vaddr="0x5bf0000" perms="rw" cached="false" setvar_vaddr="__heap_end"/>
-        <program_image path="example-client.elf" />
+        <program_image path="client.elf" />
     </protection_domain>
 
     <!-- Reset the dcss from the example client -->
     <channel>
         <end pd="dcss" id="55"/>
-        <end pd="example_client" id="55"/>
+        <end pd="client" id="55"/>
     </channel>
 
     <!-- Run the context loader in the dcss sent from the example client.
          Write the frame buffer in the example client sent from the dcss. -->
     <channel>
         <end pd="dcss" id="52"/>
-        <end pd="example_client" id="52"/>
+        <end pd="client" id="52"/>
     </channel>
 
     <!-- Initialise the dcss hdmi_data structure to initialise the dcss, from the example client using a protected procedure.-->
     <channel>
-        <end pd="example_client" id="0"/> 
+        <end pd="client" id="0"/> 
         <end pd="dcss" id="0"/>
     </channel>
 

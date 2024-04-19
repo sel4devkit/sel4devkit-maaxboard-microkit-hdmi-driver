@@ -30,8 +30,7 @@
 #define DPR_2_RTRAM_CTRL0 0x19200 // 15.7.3.1.58 RTRAM Control 0 (RTRAM_CTRL0)
 #define DPR_2_SYSTEM_CTRL0 0x19000 // 15.7.3.1.2 System Control 0 (SYSTEM_CTRL0)
 
-
-void write_dpr_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
+void write_dpr_memory_registers(uintptr_t dcss_base, uintptr_t dma_base, struct hdmi_data *hdmi_config);
 
 
 #endif

@@ -2,8 +2,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "api_examples.h"
-#include "hdmi_data.h"
+#include "api_example_3.h"
+
 #include "frame_buffer.h"
 
 #include "dma_offsets.h"
@@ -21,7 +21,7 @@ int ctx_ld_enable = 0;
 struct display_config init_example_3() {
 
 	// Initialise the vic mode with custom values
-	struct hdmi_data hd = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, DB_ON, NO_DELAY};
+	struct hdmi_data hd = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, CTX_LD, 0};
 
     // Return struct containing the hdmi data and the function to write the frame buffer
 	struct display_config dc = {hd, &write_api_example_3_frame_buffer};
@@ -30,12 +30,14 @@ struct display_config init_example_3() {
 
 void write_api_example_3_frame_buffer(struct hdmi_data* hd) {
 	
+	printf("writing example 3 frame buffer\n");
+	
 	if (hd == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
 		return;
 	}
 	
-	uint64_t* frame_buffer_addr = get_frame_buffer_uint64();
+	uint64_t* frame_buffer_addr = get_active_frame_buffer_uint64();
 
 	int height = hd->V_ACTIVE;
 	int width = hd->H_ACTIVE/2;
@@ -49,7 +51,7 @@ void write_api_example_3_frame_buffer(struct hdmi_data* hd) {
 		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
 		Then the order of the values written below will be green, blue, red, alpha. The alpha channel configures the
 		opacity of the colour, at 0xff it will be completely visible and 0x00 it will not be visible.
-		It is turned on or off using hdmi_data.alpha_toggle. With this option turned on, this example will display each colour bar
+		It is turned on or off using hdmi_data.alpha_enable. With this option turned on, this example will display each colour bar
 		starting with a 0 alhpa increasing every 3 pixels.
 	*/ 
 	for (int i = 0; i < height; i++) {

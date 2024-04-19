@@ -23,5 +23,6 @@
 #define TC_INTERRUPT_MASK 0x20068 // 15.3.3.1.27 Timing controller interrupt masks (TC_INTERRUPT_MASK)
 
 void write_dtg_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
+void write_dtg_memory_registers_ctx_ld(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
 
 #endif
