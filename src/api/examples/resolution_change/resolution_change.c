@@ -2,8 +2,9 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "api_example_2.h"
+#include "resolution_change.h"
 #include "frame_buffer.h"
+#include "api.h"
 
 #include "dma_offsets.h"
 #include "vic_table.h"
@@ -13,7 +14,19 @@
 
 int vic_mode = 0;
 
-struct display_config init_example_2() {
+void init(void) {
+	
+	init_api();
+
+	for (int i = 0; i < 3; i++) {
+		vic_mode = i;
+		static_image(init_example);
+		reset_static_image(10000);
+	}
+}
+
+
+struct display_config init_example() {
 
     // TODO: make safer, v mode could exceed array size.
 
@@ -40,15 +53,11 @@ struct display_config init_example_2() {
 	hd.ms_delay = NO_DELAY;
 
 	// Return struct containing the hdmi data and the function to write the frame buffer
-	struct display_config dc = {hd, &write_api_example_2_frame_buffer};
+	struct display_config dc = {hd, &write_frame_buffer};
 	return dc;
 }
 
-void set_example_2_vic_mode(int vm) {
-    vic_mode = vm;
-}
-
-void write_api_example_2_frame_buffer(struct hdmi_data* hd) { // pass in hdmi config
+void write_frame_buffer(struct hdmi_data* hd) { // pass in hdmi config
 	
 	printf("Writing function api 2\n");
 	

@@ -2,9 +2,9 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "api_example_3.h"
-
+#include "rotating_bars.h"
 #include "frame_buffer.h"
+#include "api.h"
 
 #include "dma_offsets.h"
 
@@ -18,17 +18,23 @@ int ctx_ld_enable = 0;
 #define RGBA_BLUE_64 0x00ff000000ff0000
 #define RGBA_WHITE_64 0x00ffffff00ffffff
 
-struct display_config init_example_3() {
+void init(void) {
+	init_api();
+	moving_image(init_example);
+}
+
+
+struct display_config init_example() {
 
 	// Initialise the vic mode with custom values
 	struct hdmi_data hd = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, CTX_LD, 0};
 
     // Return struct containing the hdmi data and the function to write the frame buffer
-	struct display_config dc = {hd, &write_api_example_3_frame_buffer};
+	struct display_config dc = {hd, &write_frame_buffer};
 	return dc;
 }
 
-void write_api_example_3_frame_buffer(struct hdmi_data* hd) {
+void write_frame_buffer(struct hdmi_data* hd) {
 	
 	printf("writing example 3 frame buffer\n");
 	

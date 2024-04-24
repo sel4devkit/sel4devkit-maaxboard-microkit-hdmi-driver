@@ -10,37 +10,20 @@
 #include "timer.h"
 #include "hdmi_data.h"
 #include "dma_offsets.h"
-
 #include "frame_buffer.h"
 
-#include "api_example_1.h"
-#include "api_example_2.h"
-#include "api_example_3.h"
-#include "api_example_4.h"
-#include "empty_client.h"
-
-uintptr_t timer_base;
 struct hdmi_data *hd = NULL;
+uintptr_t timer_base;
 
 // Function pointer to current frame buffer function (used for double buffering)
-void (*write_frame_buffer)(struct hdmi_data*);
+void (*write_fb)(struct hdmi_data*);
 
-void init(void) {
-	
-	// Initialise timer
-	initialise_and_start_timer(timer_base);
-	
+void init_api() {
 	// Allocate memory to hold the hdmi data
 	hd = malloc(sizeof(struct hdmi_data)); // TODO: free at some point
 
-	// moving_image(init_example_4); // here for testing 
-
-	run_examples(); // This will run indefinitely - might be an idea to put an iteration counter in
-	
-	/* Write your frame buffer in write_empty_client_static_frame_buffer() or write_empty_client_moving_frame_buffer() */
-	
-	//static_image(init_empty_client_moving_frame_buffer);
-	//moving_image(init_empty_client_moving_frame_buffer);
+	// Initialise timer
+	initialise_and_start_timer(timer_base);
 }
 
 void
@@ -50,7 +33,7 @@ notified(microkit_channel ch) {
 		case 52:								
 			start_timer();
 			printf("Notified to write buffer\n");
-			write_frame_buffer(hd);
+			write_fb(hd);
 			printf("Writing frame buffer took %d ms\n", stop_timer());
 			microkit_notify(52);
 			break;
@@ -59,14 +42,14 @@ notified(microkit_channel ch) {
 	}
 }
 
-
 void static_image(struct display_config (*init_func)()) {
 
+	// Get the display configurations 
 	struct display_config dc = init_func();
 	*hd = dc.hd;
 	
 	// Prewrite the buffer
-	dc.write_frame_buffer(hd);
+	dc.write_fb(hd);
 
 	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hd, 1, 0, 0));
@@ -86,31 +69,17 @@ void reset_static_image(int ms) {
 
 void moving_image(struct display_config (*init_func)()){
 
+	// Get the display configurations 
 	struct display_config dc = init_func();
 	*hd = dc.hd;
 	
 	// Prewrite the buffer
-	dc.write_frame_buffer(hd);
+	dc.write_fb(hd);
 
 	// set frame buffer function 
-	write_frame_buffer = dc.write_frame_buffer;
+	write_fb = dc.write_fb;
 
-	// Send the hdmi data to the dcss PD to initialise the DCSS, as this example is double buffered it will call back to the examples implementation of write_frame_buffer()
+	// Send the hdmi data to the dcss PD to initialise the DCSS, as this example is double buffered it will call back to the examples implementation of write_fb()
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hd, 1, 0, 0));
 }
-
-void run_examples() {
-
-	static_image(init_example_1);
-	reset_static_image(5000);
-	
-	// show the same sized image at three different resolutions
-	for (int i = 0; i < 3; i++) {
-		set_example_2_vic_mode(i);
-		static_image(init_example_2);
-		reset_static_image(5000);
-	}
-	moving_image(init_example_3);
-}
-
 

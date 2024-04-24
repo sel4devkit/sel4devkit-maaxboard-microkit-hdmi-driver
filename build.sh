@@ -6,9 +6,29 @@ export MICROKIT_CONFIG="debug"
 export BUILD_DIR="./build"
 export SOURCE_LOCATION=$(pwd)
 
+example_list=("db_test" "empty_client" "resolution_change" "rotating_bars" "static_image") 
 
-# Set up for current development switching between two environments. Use without arguments if using bje docker configuration
 if [ -z "$1" ]; then
+    echo "Please use one of the following examples as the first argument to this script. E.g ./build.sh empty_client"
+    echo "${example_list[*]}"
+    exit 1
+fi
+
+SEARCH_STRING=$1
+
+if [[ " ${example_list[*]} " != *"$SEARCH_STRING"* ]];
+then
+    echo "Example doesn't exist Please use one of the following examples as the first argument to this script. E.g ./build.sh empty_client"
+    echo "${example_list[*]}"
+    exit 1
+fi
+
+export CURRENT_EXAMPLE=$1
+
+# Set up for current development switching between two environments. Use no second argument if using bje docker configuration
+# See https://github.com/sel4-cap/microkit-maaxboard-dockerfiles
+
+if [ -z "$2" ]; then
 
     export MICROKIT_SDK="/util/microkit/sel4_foundation/release/microkit-sdk-1.2.6"
     export PATH="/util/sel4_foundation_arm_toolchain_baseline/gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf/bin:$PATH"
@@ -18,7 +38,7 @@ if [ -z "$1" ]; then
     export MICROKIT_TOOL=" $MICROKIT_SDK/bin/microkit"
 
 
-elif [ $1 = "c" ] ; then
+elif [ $2 = "c" ] ; then
 
     export MICROKIT_DIR="$HOME/dev/microkit/mk-manifest/microkit" #! change this to microkit directory
     export MICROKIT_SDK="$MICROKIT_DIR/release/microkit-sdk-1.2.6"
@@ -51,7 +71,7 @@ make -C $SOURCE_LOCATION
 
 # Set tftp location depending on build environment
 if [ -z "$1" ]; then
-    TFTP_LOCATION="/srv/tftp/loader-tom.img"
+    TFTP_LOCATION="/srv/tftp/loader-tom.img"    # TODO:FIX for bje docker configuration
 else 
     TFTP_LOCATION="/var/lib/tftpboot/loader-tom.img"
 fi

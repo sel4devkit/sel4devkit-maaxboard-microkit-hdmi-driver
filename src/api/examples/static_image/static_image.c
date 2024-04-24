@@ -2,13 +2,23 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "api_example_1.h"
+#include "static_image.h"
 #include "frame_buffer.h"
+#include "api.h"
 
 #include "dma_offsets.h"
 #include "vic_table.h"
 
-struct display_config init_example_1() {
+#include "api.h"
+
+void init(void) {
+	
+	init_api();
+	static_image(init_example);
+	reset_static_image(50000);
+}
+
+struct display_config init_example() {
 	
 	// Initialise the hdmi data with custom values
 	struct hdmi_data hd;//{1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_OFF, DB_OFF, NO_DELAY};
@@ -37,12 +47,12 @@ struct display_config init_example_1() {
 	hd.ms_delay = NO_DELAY;
 
 	// Return struct containing the hdmi data and the function to write the frame buffer
-	struct display_config dc = {hd, &write_api_example_1_frame_buffer};
+	struct display_config dc = {hd, &write_frame_buffer};
 	return dc;
 }
 
 
-void write_api_example_1_frame_buffer(struct hdmi_data* hd) { // pass in hdmi config
+void write_frame_buffer(struct hdmi_data* hd) { // pass in hdmi config
 	
 	printf("Writing function api 1\n");
 	

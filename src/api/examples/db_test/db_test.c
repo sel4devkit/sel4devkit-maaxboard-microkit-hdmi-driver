@@ -3,9 +3,11 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "api_example_4.h"
+#include "db_test.h"
 
 #include "frame_buffer.h"
+#include "api.h"
+
 #include "dma_offsets.h"
 #include "vic_table.h"
 
@@ -16,7 +18,13 @@
 
 int current_fb = 0; // to stop it from redrawing the buffers
 
-struct display_config init_example_4()  {	// example set up - 
+
+void init(void) {
+	init_api();
+	moving_image(init_example);
+}
+
+struct display_config init_example()  {	// example set up - 
 
 	int v_mode = 0; // here for debugging to try different display configs
 
@@ -44,11 +52,11 @@ struct display_config init_example_4()  {	// example set up -
 	hd.ms_delay = 1000;
     
     // Return struct containing the hdmi data and the function to write the frame buffer
-	struct display_config dc = {hd, &write_api_example_4_frame_buffer};
+	struct display_config dc = {hd, &write_frame_buffer};
 	return dc;
 }
 
-void write_api_example_4_frame_buffer(struct hdmi_data* hd) {
+void write_frame_buffer(struct hdmi_data* hd) {
 	
 	if (hd == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");
