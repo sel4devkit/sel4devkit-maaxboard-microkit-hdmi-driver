@@ -23,7 +23,14 @@ then
     exit 1
 fi
 
-export CURRENT_EXAMPLE=$1
+
+if [ $1 = "empty_client" ] ; then
+
+    export CURRENT_EXAMPLE="$1"
+else
+    export CURRENT_EXAMPLE="examples/$1"
+fi 
+
 
 # Set up for current development switching between two environments. Use no second argument if using bje docker configuration
 # See https://github.com/sel4-cap/microkit-maaxboard-dockerfiles

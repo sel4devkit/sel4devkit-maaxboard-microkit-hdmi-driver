@@ -38,7 +38,7 @@ notified(microkit_channel ch) {
 			microkit_notify(52);
 			break;
 		default:
-			printf("Unexpected channel id: %d in api::notified() \n", ch);
+			printf("Unexpected channel id: %d in api::notified()\n", ch);
 	}
 }
 

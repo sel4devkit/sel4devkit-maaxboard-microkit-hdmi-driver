@@ -16,7 +16,7 @@ $(error MICROKIT_CONFIG must be specified)
 endif
 
 
-include src/api/examples/$(CURRENT_EXAMPLE)/Makefile # include the makefile for the example passed in 
+include src/$(CURRENT_EXAMPLE)/Makefile # include the makefile for the example passed in 
 
 # TOOLCHAIN := aarch64-none-elf
 TOOLCHAIN := aarch64-linux-gnu
@@ -65,7 +65,7 @@ $(BUILD_DIR)/%.o: src/api/%.c Makefile
 	$(CC) -c $(CLIENT_CFLAGS) $< -o $@
 
 # Compile the example files
-$(BUILD_DIR)/%.o: src/api/examples/$(CURRENT_EXAMPLE)/%.c Makefile # here it will compile all the files listed in 
+$(BUILD_DIR)/%.o: src/$(CURRENT_EXAMPLE)/%.c Makefile # here it will compile all the files listed in 
 	$(CC) -c $(CLIENT_CFLAGS) $< -o $@
 
 ######################################################
