@@ -1,3 +1,4 @@
+# Add any additional files or configurations for the example
 
 CLIENT_OBJS = empty_client.o
 CLIENT_INC := include/api/empty_client
