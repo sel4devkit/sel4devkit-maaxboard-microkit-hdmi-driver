@@ -64,7 +64,7 @@ all: $(addprefix $(BUILD_DIR)/, $(IMAGES)) build_image
 $(BUILD_DIR)/%.o: src/api/%.c Makefile
 	$(CC) -c $(CLIENT_CFLAGS) $< -o $@
 
-# Compile the example files
+# Compile the specific example file. This will contain the implementation of the client init() function
 $(BUILD_DIR)/%.o: src/$(CURRENT_EXAMPLE)/%.c Makefile # here it will compile all the files listed in 
 	$(CC) -c $(CLIENT_CFLAGS) $< -o $@
 

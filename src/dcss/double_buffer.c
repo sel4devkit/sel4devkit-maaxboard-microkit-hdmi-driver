@@ -80,8 +80,8 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	
 	// Steps 3,4,5 and 12 of 15.4.2.2 Display state loading sequence
 
-	printf("Running context loader in context: %d\n", context);
-	start_timer();
+	//printf("Running context loader in context: %d\n", context);
+	//start_timer();
 	uint32_t* enable_status = (uint32_t*)(dcss_base + CTXLD_CTRL_STATUS);
 	uint32_t* dpr_sys_ctrl = (uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0);
 	uint32_t* scaler_sys_ctrl = (uint32_t*)(dcss_base + SCALE_CTRL);
@@ -150,7 +150,7 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	*active_frame_buffer_offset = (context == 0) ? FRAME_BUFFER_TWO_OFFSET : FRAME_BUFFER_ONE_OFFSET;
 	*cache_frame_buffer_offset = (context == 0) ?  FRAME_BUFFER_ONE_OFFSET : FRAME_BUFFER_TWO_OFFSET;
 	context = context == 1 ? 0 : 1; 																			
-	printf("Switching context took %d ms\n", stop_timer());
+	//printf("Switching context took %d ms\n", stop_timer());
 
 	//ms_delay(1000); // For debugging 
 	if (hdmi_config->ms_delay != NO_DELAY) {

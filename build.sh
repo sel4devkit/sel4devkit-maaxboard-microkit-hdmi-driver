@@ -6,7 +6,7 @@ export MICROKIT_CONFIG="debug"
 export BUILD_DIR="./build"
 export SOURCE_LOCATION=$(pwd)
 
-example_list=("db_test" "empty_client" "resolution_change" "rotating_bars" "static_image") 
+example_list=("db_test" "empty_client" "moving_square" "resolution_change" "rotating_bars" "static_image") 
 
 if [ -z "$1" ]; then
     echo "Please use one of the following examples as the first argument to this script. E.g ./build.sh empty_client"
@@ -25,7 +25,6 @@ fi
 
 
 if [ $1 = "empty_client" ] ; then
-
     export CURRENT_EXAMPLE="$1"
 else
     export CURRENT_EXAMPLE="examples/$1"

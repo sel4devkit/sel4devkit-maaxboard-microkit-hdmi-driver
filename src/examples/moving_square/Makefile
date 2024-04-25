@@ -1,0 +1,8 @@
+
+CLIENT_OBJS = moving_square.o
+CLIENT_INC := include/examples
+CLIENT_CFLAGS :=
+CLIENT_LDFLAGS :=
+CLIENT_LIBS :=
+CLIENT_WARNINGS := 
+
