@@ -24,6 +24,9 @@
 #else
 #include <common.h>
 #endif
+
+#include "uboot_conversions.h"
+
 /**
  * \addtogroup UTILS
  * \{
@@ -142,7 +145,7 @@ void internal_itobe(int val, volatile unsigned char *dest, int bytes);
  * \param bytes - size of read value
  * \return result
  */
-uint32_t internal_betoi(volatile uint8_t const *src, uint8_t bytes);
+u32 internal_betoi(volatile u8 const *src, u8 bytes);
 
 /**
  * \brief create message from size and value pairs; also sets

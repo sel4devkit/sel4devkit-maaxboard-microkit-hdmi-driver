@@ -18,7 +18,7 @@
     <memory_region name="timer_mem" size="0x20_000" phys_addr="0x306c0000"/>
 
     <!-- DCSS -->
-    <protection_domain name="dcss" pp="true" priority="250">
+    <protection_domain name="dcss" pp="true" priority="249">
         <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="false" setvar_vaddr="dma_base"/>
         <map mr="dcss_mem" vaddr="0x32e00000" perms="rw" cached="false" setvar_vaddr="dcss_base"/>
         <map mr="dcss_blk_mem" vaddr="0x32e2f000" perms="rw" cached="false" setvar_vaddr="dcss_blk_base"/>
@@ -34,12 +34,20 @@
 
 
     <!-- Example Client -->
-    <protection_domain name="client" pp="true" priority="249">
+    <protection_domain name="client" pp="true" priority="248">
         <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="false" setvar_vaddr="dma_base"/>
         <map mr="timer_mem" vaddr="0x306c0000" perms="rw" cached="false" setvar_vaddr="timer_base"/>
         <map mr="shared_heap" vaddr="0x5a00000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
         <map mr="shared_heap_end" vaddr="0x5bf0000" perms="rw" cached="false" setvar_vaddr="__heap_end"/>
         <program_image path="client.elf" />
+    </protection_domain>
+
+
+    <protection_domain name="irq" pp="true" priority="250">
+        <map mr="shared_heap" vaddr="0x5a00000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
+        <map mr="shared_heap_end" vaddr="0x5bf0000" perms="rw" cached="false" setvar_vaddr="__heap_end"/>
+        <irq irq="40" id="8"/> <!--usb irq offset by 32-->
+        <program_image path="irq.elf" />
     </protection_domain>
 
     <!-- Reset the dcss from the example client -->

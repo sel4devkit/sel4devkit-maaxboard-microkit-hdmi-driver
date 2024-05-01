@@ -49,7 +49,8 @@ enum ALPHA_ENABLE {
 enum DOUBLE_BUFFER_ENABLE {
 
 	DB_OFF,
-	CTX_LD
+	CTX_LD,
+	CTX_LD_FLIP
 };
 
 /*

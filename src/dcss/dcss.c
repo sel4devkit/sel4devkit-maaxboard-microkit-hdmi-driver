@@ -54,6 +54,9 @@ void init(void) {
 void
 notified(microkit_channel ch) {
 	
+
+	//printf("dcss interrupt\n");
+
 	switch (ch) {
 		case 52:
 			run_context_loader(dma_base, dcss_base, hdmi_config, active_frame_buffer_offset, cache_frame_buffer_offset);
@@ -61,6 +64,9 @@ notified(microkit_channel ch) {
 		case 55:
 			reset_dcss();
 			break;
+		case 40:
+		 	printf("dcss interrupt");
+			microkit_irq_ack(ch);
 		default:
 			printf("Unexpected channel id: %d in dcss::notified() \n", ch);
 	}
@@ -81,7 +87,6 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 	}
 }
 
-
 void init_dcss() {
 
 	printf("init dcss called\n");
@@ -100,6 +105,9 @@ void init_dcss() {
 	if (hdmi_config->db_enable == CTX_LD) {
 		printf("init context loader\n");
 		init_context_loader(dma_base, dcss_base, hdmi_config, active_frame_buffer_offset, cache_frame_buffer_offset);
+	}
+	else if (hdmi_config->db_enable == CTX_LD_FLIP) {
+		init_context_loader_flip(dma_base, dcss_base, hdmi_config);
 	}
 }
 
@@ -145,14 +153,11 @@ void write_dcss_memory_registers() {
 	if (hdmi_config->db_enable == DB_OFF) {
 		write_dtg_memory_registers(dcss_base, hdmi_config);
 	}
-	else if (hdmi_config->db_enable == CTX_LD) {
+	else if (hdmi_config->db_enable == CTX_LD ||
+			 hdmi_config->db_enable == CTX_LD_FLIP) {
 		write_dtg_memory_registers_ctx_ld(dcss_base, hdmi_config);
 	}
+
+	ms_delay(3000);
+	check_irq(dcss_base);
 }
-
-
-
-
-
-
-

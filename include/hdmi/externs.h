@@ -23,6 +23,9 @@
 #else
 #include <common.h>
 #endif
+
+#include "uboot_conversions.h"
+
 /**
  * \addtogroup UTILS
  * \{
@@ -43,12 +46,12 @@
  */
 /*extern int cdn_bus_write(unsigned int addr, unsigned int value);*/
 
-uint32_t cdn_apb_read(uint32_t addr, uint32_t *value);
-uint32_t cdn_sapb_read(uint32_t addr, uint32_t *value);
-uint32_t cdn_apb_write(uint32_t addr, uint32_t value);
-uint32_t cdn_sapb_write(uint32_t addr, uint32_t value);
-// uint32_t hdp_rx_apb_read(uint32_t addr, uint32_t *value);
-// uint32_t hdp_rx_sapb_read(uint32_t addr, uint32_t *value);
-// uint32_t hdp_rx_apb_write(uint32_t addr, uint32_t value);
-// uint32_t hdp_rx_sapb_write(uint32_t addr, uint32_t value);
+u32 cdn_apb_read(u32 addr, u32 *value);
+u32 cdn_sapb_read(u32 addr, u32 *value);
+u32 cdn_apb_write(u32 addr, u32 value);
+u32 cdn_sapb_write(u32 addr, u32 value);
+// u32 hdp_rx_apb_read(u32 addr, u32 *value);
+// u32 hdp_rx_sapb_read(u32 addr, u32 *value);
+// u32 hdp_rx_apb_write(u32 addr, u32 value);
+// u32 hdp_rx_sapb_write(u32 addr, u32 value);
 #endif

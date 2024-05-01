@@ -20,6 +20,9 @@
 #define DB_BASE_ADDR 0x23010
 #define DB_COUNT 0x23014
 
+#define SB_BASE_ADDR 0x23018
+#define SB_COUNT 0x2301C
+
 
 int context = 0; // This keeps track of the current context. TODO: An alternative to global counter?
 
@@ -42,11 +45,11 @@ void init_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_da
 	ctx_ld_db1_addr++; 															
 	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 
 	
-	// This extra memory register has been added as the value is based on the current frame buffer (it seems to have no effect in context switching)
-	ctx_ld_db1_addr++; 
-	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr + (hdmi_config->H_ACTIVE * hdmi_config->V_ACTIVE);
-	ctx_ld_db1_addr++; 
-	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0; 
+	// // This extra memory register has been added as the value is based on the current frame buffer (it seems to have no effect in context switching)
+	// ctx_ld_db1_addr++; 
+	// *ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr + (hdmi_config->H_ACTIVE * hdmi_config->V_ACTIVE);
+	// ctx_ld_db1_addr++; 
+	// *ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0; 
 
 
 	uint32_t* ctx_ld_db2_addr = (uint32_t*)(dma_base + CTX_LD_DB_TWO_ADDR); 	
@@ -54,11 +57,11 @@ void init_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_da
 	ctx_ld_db2_addr++; 															
 	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 
 
-	// This extra memory register has been added as the value is based on the current frame buffer (it seems to have no effect in context switching)
-	ctx_ld_db2_addr++; 
-	*ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr + (hdmi_config->H_ACTIVE * hdmi_config->V_ACTIVE);
-	ctx_ld_db2_addr++; 
-	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0; 
+	// // This extra memory register has been added as the value is based on the current frame buffer (it seems to have no effect in context switching)
+	// ctx_ld_db2_addr++; 
+	// *ctx_ld_db2_addr = (uintptr_t)frame_buffer2_addr + (hdmi_config->H_ACTIVE * hdmi_config->V_ACTIVE);
+	// ctx_ld_db2_addr++; 
+	// *ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_2P_BASE_ADDR_CTRL0; 
 
 
 	// uint32_t* ctx_ld_db2_addr = (uint32_t*)(dma_base + CTX_LD_DB_TWO_ADDR); 	
@@ -121,6 +124,9 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	write_register((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
 	write_register((uint32_t*)(dcss_base + DB_COUNT), 2);
 
+	// write_register((uint32_t*)(dcss_base + SB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
+	// write_register((uint32_t*)(dcss_base + SB_COUNT), 2);		
+
 
 	////////////////////////////////////////////////////////////////////////
 	// *int_control |= ((int)1 << 1); // clear line 1 so that it does not show as asserted
@@ -160,6 +166,75 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	// Notify the client to draw the frame buffer
 	microkit_notify(52);
 }
+
+
+void init_context_loader_flip(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_data *hdmi_config) {
+	
+	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + CTX_LD_CTX_LDE_ADDR); 	
+	*ctx_ld_db1_addr = 0x14000000;					
+	ctx_ld_db1_addr++; 															
+	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_CTRL0; 
+
+	uint32_t* ctx_ld_db2_addr = (uint32_t*)(dma_base + CTX_LD_DB_TWO_ADDR); 	
+	*ctx_ld_db2_addr = 0x14000001;							
+	ctx_ld_db2_addr++; 															
+	*ctx_ld_db2_addr = dcss_base + DPR_1_FRAME_CTRL0;
+
+	run_context_loader_flip(dma_base, dcss_base, hdmi_config);
+}
+
+void run_context_loader_flip(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_data *hdmi_config) {
+
+	// Steps 3,4,5 and 12 of 15.4.2.2 Display state loading sequence
+	uint32_t* enable_status = (uint32_t*)(dcss_base + CTXLD_CTRL_STATUS);
+	int context_ld_enabled = 0;
+
+
+	// Give priority to the context loader TODO: Probably only needs to be done once per initialisation
+	//*enable_status |= ((int)1 << 1);
+
+	// Set the context offset in memory for the current frame buffer to display
+	int contex_offset = (context == 0) ? CTX_LD_CTX_LDE_ADDR : CTX_LD_DB_TWO_ADDR;
+
+	// STEP 3 waiting until its idle (it will almost definitely just be idle already, but this is here just to follow the spec)
+	context_ld_enabled = (*enable_status >> 0) & (int)1; 
+	
+	while (context_ld_enabled == 1) {																			
+		context_ld_enabled = (*enable_status >> 0) & (int)1;
+		//printf("test break\n");
+		seL4_Yield();	
+	}	
+
+	// STEP 4 write the double buffered registers (values set previously in init_context_loader)
+	// Set the base adress for the double buffered context
+	// write_register((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
+	// write_register((uint32_t*)(dcss_base + DB_COUNT), 2);		
+
+	write_register((uint32_t*)(dcss_base + SB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
+	write_register((uint32_t*)(dcss_base + SB_COUNT), 2);			
+	
+	// STEP 5 Set the context loader status to enable
+	// Set the enable status bit to 1 to kickstart process.
+	*enable_status |= ((int)1 << 0); 								// FIX: Switching the context is what causes the tear.														
+	context_ld_enabled = (*enable_status >> 0) & (int)1; 
+	
+	// Poll contiously until context loader is not being used.
+	while (context_ld_enabled == 1) {																			
+		context_ld_enabled = (*enable_status >> 0) & (int)1;
+		//printf("test break\n");
+		seL4_Yield();	
+	}
+
+	context = context == 1 ? 0 : 1; 																			
+
+	if (hdmi_config->ms_delay != NO_DELAY) {
+		ms_delay(hdmi_config->ms_delay);
+	}
+
+	// Recusrively call forever....
+	run_context_loader_flip(dma_base, dcss_base, hdmi_config);
+}
+
 
 /* 	
 	Testing using interupts rather than the context loader

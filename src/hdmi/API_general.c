@@ -14,32 +14,22 @@
  ******************************************************************************
  */
 
-
-
-/****************************
- * MODIFICATIONS
- * 
- * 1. Converted each u8, u16 and u32 to uint8_t, uint16_t and uint32_t. Need to double check the saftey of this change. 
- * 2. Removed hdp_rx_loadfirmware() to resolve undefined reference error.
-*/
-
-
-
-//#define DEBUG
 #include "API_General.h"
 #include "util.h"
-//#ifndef __UBOOT__
+#ifndef __UBOOT__
 #include <string.h>
-//#endif
+#endif
 #include "address.h"
 #include "apb_cfg.h"
 #include "opcodes.h"
 #include "general_handler.h"
 #include "externs.h"
-//#include <linux/delay.h>
-//#ifndef __UBOOT__
+// #include <linux/delay.h>
+#ifndef __UBOOT__
 #include <stdio.h>
-//#endif
+#endif
+
+#include "uboot_conversions.h"
 
 extern state_struct state;
 
@@ -127,8 +117,8 @@ CDN_API_STATUS cdn_api_general_test_echo_blocking(unsigned int val,
 	internal_block_function(cdn_api_general_test_echo(val, bus_type));
 }
 
-CDN_API_STATUS cdn_api_general_test_echo_ext(uint8_t const *msg, uint8_t *resp,
-					     uint16_t num_bytes,
+CDN_API_STATUS cdn_api_general_test_echo_ext(u8 const *msg, u8 *resp,
+					     u16 num_bytes,
 					     CDN_BUS_TYPE bus_type)
 {
 	CDN_API_STATUS ret;
@@ -176,9 +166,9 @@ CDN_API_STATUS cdn_api_general_test_echo_ext(uint8_t const *msg, uint8_t *resp,
 	return CDN_OK;
 }
 
-CDN_API_STATUS cdn_api_general_test_echo_ext_blocking(uint8_t const *msg,
-						      uint8_t *resp,
-						      uint16_t num_bytes,
+CDN_API_STATUS cdn_api_general_test_echo_ext_blocking(u8 const *msg,
+						      u8 *resp,
+						      u16 num_bytes,
 						      CDN_BUS_TYPE bus_type)
 {
 	internal_block_function(cdn_api_general_test_echo_ext
@@ -205,7 +195,7 @@ CDN_API_STATUS cdn_api_general_getcurversion(unsigned short *ver,
 
 CDN_API_STATUS cdn_api_get_event(uint32_t *events)
 {
-	uint32_t evt[4] = { 0 };
+	u32 evt[4] = { 0 };
 
 	if (!events) {
 		printf("events pointer is NULL!\n");
@@ -230,7 +220,7 @@ CDN_API_STATUS cdn_api_get_event(uint32_t *events)
 
 CDN_API_STATUS cdn_api_get_debug_reg_val(uint16_t *val)
 {
-	uint32_t dbg[2] = { 0 };
+	u32 dbg[2] = { 0 };
 
 	if (!val) {
 		printf("val pointer is NULL!\n");
@@ -243,7 +233,7 @@ CDN_API_STATUS cdn_api_get_debug_reg_val(uint16_t *val)
 		return CDN_ERR;
 	}
 
-	*val = (uint16_t)((dbg[0] & 0xFF) | ((dbg[1] & 0xFF) << 8));
+	*val = (u16)((dbg[0] & 0xFF) | ((dbg[1] & 0xFF) << 8));
 
 	return CDN_OK;
 }
@@ -251,25 +241,21 @@ CDN_API_STATUS cdn_api_get_debug_reg_val(uint16_t *val)
 CDN_API_STATUS cdn_api_checkalive(void)
 {
 	unsigned int alive, newalive;
-	uint8_t retries_left = 10;
+	u8 retries_left = 10;
 
-
-	// put debugging here to check the alive and new alive value and when it changes
 	if (cdn_apb_read(KEEP_ALIVE << 2, &alive))
 		return CDN_ERR;
 
 	while (retries_left--) {
-		// udelay(1); replace with other timer function
+		udelay(1);
 
-		
 		if (cdn_apb_read(KEEP_ALIVE << 2, &newalive))
 			return CDN_ERR;
 
-		printf("Alive = %x, new alive = %x\n", alive, newalive);
 		if (alive == newalive)
 			continue;
 
-		return CDN_OK; // it gets here	
+		return CDN_OK;
 	}
 
 	printf("%s: keep-alive counter did not increment for 10us...\n", __func__);
@@ -306,14 +292,14 @@ CDN_API_STATUS cdn_api_maincontrol_blocking(unsigned char mode,
 	internal_block_function(cdn_api_maincontrol(mode, resp));
 }
 
-CDN_API_STATUS cdn_api_apbconf(uint8_t dpcd_bus_sel, uint8_t dpcd_bus_lock,
-			       uint8_t hdcp_bus_sel, uint8_t hdcp_bus_lock,
-			       uint8_t capb_bus_sel, uint8_t capb_bus_lock,
-			       uint8_t *dpcd_resp, uint8_t *hdcp_resp,
-			       uint8_t *capb_resp)
+CDN_API_STATUS cdn_api_apbconf(u8 dpcd_bus_sel, u8 dpcd_bus_lock,
+			       u8 hdcp_bus_sel, u8 hdcp_bus_lock,
+			       u8 capb_bus_sel, u8 capb_bus_lock,
+			       u8 *dpcd_resp, u8 *hdcp_resp,
+			       u8 *capb_resp)
 {
-	uint8_t resp;
-	uint8_t set = 0;
+	u8 resp;
+	u8 set = 0;
 
 	if (!state.running) {
 		if (!internal_apb_available())
@@ -364,15 +350,15 @@ CDN_API_STATUS cdn_api_apbconf(uint8_t dpcd_bus_sel, uint8_t dpcd_bus_lock,
 	return CDN_OK;
 }
 
-CDN_API_STATUS cdn_api_apbconf_blocking(uint8_t dpcd_bus_sel,
-					uint8_t dpcd_bus_lock,
-					uint8_t hdcp_bus_sel,
-					uint8_t hdcp_bus_lock,
-					uint8_t capb_bus_sel,
-					uint8_t capb_bus_lock,
-					uint8_t *dpcd_resp,
-					uint8_t *hdcp_resp,
-					uint8_t *capb_resp)
+CDN_API_STATUS cdn_api_apbconf_blocking(u8 dpcd_bus_sel,
+					u8 dpcd_bus_lock,
+					u8 hdcp_bus_sel,
+					u8 hdcp_bus_lock,
+					u8 capb_bus_sel,
+					u8 capb_bus_lock,
+					u8 *dpcd_resp,
+					u8 *hdcp_resp,
+					u8 *capb_resp)
 {
 	internal_block_function(cdn_api_apbconf(dpcd_bus_sel, dpcd_bus_lock,
 						hdcp_bus_sel, hdcp_bus_lock,

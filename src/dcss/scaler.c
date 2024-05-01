@@ -9,6 +9,7 @@
 
 void write_scaler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config) {
 
+	
 	write_register((uint32_t*)(dcss_base  + SCALE_SRC_DATA_CTRL), 0x00000000); // This must stay!
 	write_register((uint32_t*)(dcss_base  + SCALE_SRC_FORMAT), 0x00000002); // Sets to RGB
 	write_register((uint32_t*)(dcss_base  + SCALE_DST_FORMAT), 0x00000002); // Sets to RGB
@@ -30,6 +31,15 @@ void write_scaler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_c
 	write_register((uint32_t*)(dcss_base  + 0x1c180), 0x00040000);
 	write_register((uint32_t*)(dcss_base  + 0x1c1c0), 0x00000000); // This must stay!
 	write_register((uint32_t*)(dcss_base  + 0x1c000), 0x00000011);
+
+
+	
+	uint32_t* scale_ctrl = (uint32_t*)(dcss_base + SCALE_CTRL);
+	*scale_ctrl |= ((int)1 << 0);	// run enable
+	*scale_ctrl |= ((int)1 << 4); // sh
+
+
+
 
 	// the below appear to have no effect in the current configuration and will likely be removed
 

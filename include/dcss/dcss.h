@@ -1,7 +1,7 @@
 #ifndef __DCSS_H__
 #define __DCSS_H__
 
-#include <display_timing.h>
+//#include <display_timing.h>
 #include <vic_table.h>
 #include <API_General.h>
 

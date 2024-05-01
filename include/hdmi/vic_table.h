@@ -137,8 +137,4 @@ typedef enum {
 
 extern const unsigned int vic_table[VIC_MODE_COUNT][27];
 
-
-
-
-
 #endif

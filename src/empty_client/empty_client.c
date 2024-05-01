@@ -73,7 +73,7 @@ struct display_config init_moving_example(){
 	struct display_config dc = {hd, &write_moving_frame_buffer};
 	return dc;
 
-}
+}s
 void write_moving_frame_buffer(struct hdmi_data* hd){
 
     if (hd == NULL){

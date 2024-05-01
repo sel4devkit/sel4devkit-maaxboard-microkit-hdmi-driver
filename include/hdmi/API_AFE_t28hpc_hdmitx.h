@@ -57,8 +57,10 @@
 #include "API_AFE.h"
 #include "externs.h"
 
+#include "uboot_conversions.h"
+
 int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp, // MODIFIED
-		VIC_PXL_ENCODING_FORMAT format, int pixel_clk_from_phy);
+		VIC_PXL_ENCODING_FORMAT format, bool pixel_clk_from_phy);
 int hdmi_tx_t28hpc_power_config_seq(int num_lanes);
 
 #endif

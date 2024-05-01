@@ -23,6 +23,8 @@
 #include <common.h>
 #endif
 
+#include "uboot_conversions.h"
+
 #define GENERAL_TEST_ECHO_MAX_PAYLOAD 100
 #define GENERAL_TEST_ECHO_MIN_PAYLOAD 1
 
@@ -138,16 +140,16 @@ CDN_API_STATUS cdn_api_general_test_echo_blocking(unsigned int val,
  * will return #CDN_ERROR if reply message doesn't match request or if
  *  arguments are invalid.
  */
-CDN_API_STATUS cdn_api_general_test_echo_ext(uint8_t const *msg, uint8_t *resp,
-					     uint16_t num_bytes,
+CDN_API_STATUS cdn_api_general_test_echo_ext(u8 const *msg, u8 *resp,
+					     u16 num_bytes,
 					     CDN_BUS_TYPE bus_type);
 
 /**
  * \brief blocking version of #CDN_API_General_Test_Echo_Ext
  */
-CDN_API_STATUS cdn_api_general_test_echo_ext_blocking(uint8_t const *msg,
-						      uint8_t *resp,
-						      uint16_t num_bytes,
+CDN_API_STATUS cdn_api_general_test_echo_ext_blocking(u8 const *msg,
+						      u8 *resp,
+						      u16 num_bytes,
 						      CDN_BUS_TYPE bus_type);
 
 /**
@@ -224,24 +226,24 @@ CDN_API_STATUS cdn_api_maincontrol_blocking(unsigned char mode,
  *
  * \return status
  */
-CDN_API_STATUS cdn_api_apbconf(uint8_t dpcd_bus_sel, uint8_t dpcd_bus_lock,
-			       uint8_t hdcp_bus_sel, uint8_t hdcp_bus_lock,
-			       uint8_t capb_bus_sel, uint8_t capb_bus_lock,
-			       uint8_t *dpcd_resp, uint8_t *hdcp_resp,
-			       uint8_t *capb_resp);
+CDN_API_STATUS cdn_api_apbconf(u8 dpcd_bus_sel, u8 dpcd_bus_lock,
+			       u8 hdcp_bus_sel, u8 hdcp_bus_lock,
+			       u8 capb_bus_sel, u8 capb_bus_lock,
+			       u8 *dpcd_resp, u8 *hdcp_resp,
+			       u8 *capb_resp);
 
 /**
  * blocking version of #CDN_API_MainControl
  */
-CDN_API_STATUS cdn_api_apbconf_blocking(uint8_t dpcd_bus_sel,
-					uint8_t dpcd_bus_lock,
-					uint8_t hdcp_bus_sel,
-					uint8_t hdcp_bus_lock,
-					uint8_t capb_bus_sel,
-					uint8_t capb_bus_lock,
-					uint8_t *dpcd_resp,
-					uint8_t *hdcp_resp,
-					uint8_t *capb_resp);
+CDN_API_STATUS cdn_api_apbconf_blocking(u8 dpcd_bus_sel,
+					u8 dpcd_bus_lock,
+					u8 hdcp_bus_sel,
+					u8 hdcp_bus_lock,
+					u8 capb_bus_sel,
+					u8 capb_bus_lock,
+					u8 *dpcd_resp,
+					u8 *hdcp_resp,
+					u8 *capb_resp);
 
 /**
  * \brief set the  xtensa clk, write this api before turn on the cpu
@@ -266,8 +268,8 @@ CDN_API_STATUS cdn_api_general_write_field_blocking(unsigned int addr,
 						    unsigned char startbit,
 						    unsigned char bitsno,
 						    unsigned int val);
-CDN_API_STATUS cdn_api_general_phy_test_access(uint8_t *resp);
-CDN_API_STATUS cdn_api_general_phy_test_access_blocking(uint8_t *resp);
+CDN_API_STATUS cdn_api_general_phy_test_access(u8 *resp);
+CDN_API_STATUS cdn_api_general_phy_test_access_blocking(u8 *resp);
 CDN_API_STATUS hdp_rx_loadfirmware(unsigned char *imem,
 				   int imemsize,
 				   unsigned char *dmem,

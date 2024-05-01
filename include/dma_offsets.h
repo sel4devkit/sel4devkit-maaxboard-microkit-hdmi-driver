@@ -11,5 +11,4 @@
 #define CACHE_FRAME_BUFFER_ADDR_OFFSET (FRAME_BUFFER_SIZE * 2) + 300000   // Used to store the current offset to be applied to virtual memory to access the current frame buffer
 #define DMA_SIZE FRAME_BUFFER_SIZE * 3                                      // Total size of the dma 
 
-
 #endif

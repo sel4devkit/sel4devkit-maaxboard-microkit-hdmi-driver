@@ -11,10 +11,15 @@
 #include "dma_offsets.h"
 #include "vic_table.h"
 
-#define RGBA_RED_64 0x000000ff000000ff
-#define RGBA_GREEN_64 0x0000ff000000ff00
-#define RGBA_BLUE_64 0x00ff000000ff0000
-#define RGBA_WHITE_64 0x00ffffff00ffffff
+// #define RGBA_RED_64 0x000000ff000000ff
+// #define RGBA_GREEN_64 0x0000ff000000ff00
+// #define RGBA_BLUE_64 0x00ff000000ff0000
+// #define RGBA_WHITE_64 0x00ffffff00ffffff
+
+#define RGBA_RED_64 0xff0000ffff0000ff
+#define RGBA_GREEN_64 0xff00ff00ff00ff00
+#define RGBA_BLUE_64 0xffff0000ffff0000
+#define RGBA_WHITE_64 0xffffffffffffffff
 
 int current_fb = 0; // to stop it from redrawing the buffers
 
@@ -26,7 +31,7 @@ void init(void) {
 
 struct display_config init_example()  {	// example set up - 
 
-	int v_mode = 0; // here for debugging to try different display configs
+	int v_mode = 1; // here for debugging to try different display configs
 
    	struct hdmi_data hd;
 

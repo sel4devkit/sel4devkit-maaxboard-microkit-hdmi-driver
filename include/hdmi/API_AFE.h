@@ -47,6 +47,7 @@
 #ifndef API_AFE_H_
 #define API_AFE_H_
 #include "util.h"
+#include "uboot_conversions.h"
 
 typedef enum {
 	AFE_LINK_RATE_1_6 = 0x6,  /* 1.62 Gb/s */
@@ -79,9 +80,9 @@ typedef enum {
 } clk_ratio_t;
 
 typedef struct {
-	uint32_t value;
-	uint8_t lsb;
-	uint8_t msb;
+	u32 value;
+	u8 lsb;
+	u8 msb;
 } reg_field_t;
 
 unsigned char AFE_check_rate_supported(ENUM_AFE_LINK_RATE rate);
@@ -92,7 +93,7 @@ void AFE_power(int num_lanes, ENUM_AFE_LINK_RATE link_rate);
 
 /*extern int cdn_phapb_read(unsigned int addr, unsigned int *value);*/
 /*extern int cdn_phapb_write(unsigned int addr, unsigned int value);*/
-void set_field_value(reg_field_t *reg_field, uint32_t value);
+void set_field_value(reg_field_t *reg_field, u32 value);
 int set_reg_value(reg_field_t reg_field);
 
 #endif

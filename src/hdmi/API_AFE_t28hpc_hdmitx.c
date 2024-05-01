@@ -47,7 +47,7 @@
 #include "API_AFE_t28hpc_hdmitx.h"
 #include "API_AFE.h"
 #include "externs.h"
-#include <stdio.h>
+
 
 #ifndef DEBUG
 static inline void write16(uint32_t addr, uint16_t val)
@@ -64,27 +64,27 @@ static inline uint16_t read16(uint32_t addr)
 static inline void __write16(uint32_t addr, uint16_t val, int  line)
 {
 	afe_write(addr, val);
-	printf("write16():%4d Writting value 0x%04X at address 0x%05X (0x%04X)\n",
+	debug("write16():%4d Writting value 0x%04X at address 0x%05X (0x%04X)\n",
 	      line, val, (0x20000 * 4) + (addr << 2), addr);
 }
 #define  read16(addr) __read16(addr, __LINE__)
 static inline uint16_t __read16(uint32_t addr, int  line)
 {
-	printf("read16():%5d Reading from address 0x%05X (0x%04X)\n",
+	debug("read16():%5d Reading from address 0x%05X (0x%04X)\n",
 	      line, (0x20000 * 4) + (addr << 2), addr);
 	return afe_read(addr);
 }
 
 #endif
 
-static char inside(uint32_t value, uint32_t left_sharp_corner,
-	uint32_t right_sharp_corner)
+static char inside(u32 value, u32 left_sharp_corner,
+	u32 right_sharp_corner)
 {
 	if (value < left_sharp_corner)
-		return 0;
+		return false;
 	if (value > right_sharp_corner)
-		return 0;
-	return 1;
+		return false;
+	return true;
 }
 
 void aux_cfg_t28hpc(void)
@@ -109,13 +109,13 @@ void aux_cfg_t28hpc(void)
 }
 
 int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
-	VIC_PXL_ENCODING_FORMAT format, int pixel_clk_from_phy)
+	VIC_PXL_ENCODING_FORMAT format, bool pixel_clk_from_phy)
 {
 	const int phy_reset_workaround = 1;
 	unsigned int vco_freq;
 	unsigned char k;
 	uint32_t reg_val;
-	uint32_t pixel_freq_khz = pixel_clock_frequency; // MODIFIED
+	uint32_t pixel_freq_khz = pixel_clock_frequency;
 	uint32_t character_clock_ratio_num = 1;
 	uint32_t character_clock_ratio_den = 1;
 	uint32_t character_freq_khz;
@@ -149,7 +149,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 	cmnda_pll0_fb_div_high.value = 0x00A;
 	ftemp = pixel_freq_khz;
 
-	printf("pixel clock %u kHz\n", ftemp); // MODIFIED
+	debug("pixel clock %u kHz\n", ftemp);
 
 	/* Set field position */
 	cmnda_pll0_hs_sym_div_sel.msb = 9;
@@ -258,7 +258,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 			character_clock_ratio_den = 1;
 			break;
 		default:
-			printf("Invalid ColorDepth\n");
+			debug("Invalid ColorDepth\n");
 		}
 		break;
 
@@ -291,7 +291,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 		character_clock_ratio_num / character_clock_ratio_den;
 	ftemp = pixel_freq_khz;
 	ftemp2 = character_freq_khz;
-	printf("Pixel clock frequency: %u kHz, character clock frequency: %u, color depth is %0d-bit.\n",
+	debug("Pixel clock frequency: %u kHz, character clock frequency: %u, color depth is %0d-bit.\n",
 	       ftemp, ftemp2, bpp);
 	if (pixel_clk_from_phy == 0) {
 		/* -----------------------------------------------------------
@@ -377,7 +377,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 						400);
 			} else {
 				ftemp = pixel_freq_khz;
-				printf("Pixel clock frequency (%u) is outside of the supported range\n",
+				debug("Pixel clock frequency (%u) is outside of the supported range\n",
 				       ftemp);
 			}
 			break;
@@ -450,7 +450,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 						400);
 			} else {
 				ftemp = pixel_freq_khz;
-				printf("Pixel clock frequency (%u) is outside of the supported range\n",
+				debug("Pixel clock frequency (%u) is outside of the supported range\n",
 				       ftemp);
 			}
 			break;
@@ -522,7 +522,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 						360);
 			} else {
 				ftemp = pixel_freq_khz;
-				printf("Pixel clock frequency (%u) is outside of the supported range\n",
+				debug("Pixel clock frequency (%u) is outside of the supported range\n",
 				       ftemp);
 			}
 			break;
@@ -581,14 +581,14 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 						400);
 			} else {
 				ftemp = pixel_freq_khz;
-				printf("Pixel clock frequency (%u) is outside of the supported range\n",
+				debug("Pixel clock frequency (%u) is outside of the supported range\n",
 				       ftemp);
 			}
 			break;
 		case CLK_RATIO_1_2:
 			if (!(inside(pixel_freq_khz, 594000, 594000))) {
 				ftemp = pixel_freq_khz;
-				printf("Pixel clock frequency (%u) is outside of the supported range\n",
+				debug("Pixel clock frequency (%u) is outside of the supported range\n",
 				       ftemp);
 			} else {
 				set_field_value(&cmnda_pll0_hs_sym_div_sel,
@@ -608,7 +608,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 		case CLK_RATIO_5_8:
 			if (!(inside(pixel_freq_khz, 594000, 594000))) {
 				ftemp = pixel_freq_khz;
-				printf("Pixel clock frequency (%u) is outside of the supported range\n",
+				debug("Pixel clock frequency (%u) is outside of the supported range\n",
 				       ftemp);
 			} else {
 				set_field_value(&cmnda_pll0_hs_sym_div_sel,
@@ -628,7 +628,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 		case CLK_RATIO_3_4:
 			if (!(inside(pixel_freq_khz, 594000, 594000))) {
 				ftemp = pixel_freq_khz;
-				printf("Pixel clock frequency (%u) is outside of the supported range\n",
+				debug("Pixel clock frequency (%u) is outside of the supported range\n",
 				       ftemp);
 			} else {
 				set_field_value(&cmnda_pll0_hs_sym_div_sel,
@@ -650,7 +650,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 			pixel_freq_khz * pll_feedback_divider_total.value /
 			cmnda_pll0_ip_div.value;
 		ftemp = vco_freq;
-		printf("VCO frequency is %u kHz\n", ftemp);
+		debug("VCO frequency is %u kHz\n", ftemp);
 
 		if (inside(vco_freq, 1700000, 2000000)) {
 			set_field_value(&voltage_to_current_coarse, 0x04);
@@ -681,7 +681,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 				set_field_value(&charge_pump_gain, 0xA2);
 				break;
 			default:
-				printf("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
+				debug("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
 				       pll_feedback_divider_total.value, ftemp);
 			}
 		} else if (inside(vco_freq, 2000000, 2400000)) {
@@ -713,7 +713,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 				set_field_value(&charge_pump_gain, 0x84);
 				break;
 			default:
-				printf("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
+				debug("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
 				       pll_feedback_divider_total.value, ftemp);
 			}
 		} else if (inside(vco_freq, 2400000, 2800000)) {
@@ -745,7 +745,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 				set_field_value(&charge_pump_gain, 0x81);
 				break;
 			default:
-				printf("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
+				debug("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
 				       pll_feedback_divider_total.value, ftemp);
 			}
 		} else if (inside(vco_freq, 2800000, 3400000)) {
@@ -777,7 +777,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 				set_field_value(&charge_pump_gain, 0x46);
 				break;
 			default:
-				printf("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
+				debug("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
 				       pll_feedback_divider_total.value, ftemp);
 			}
 		} else if (inside(vco_freq, 3400000, 3900000)) {
@@ -797,7 +797,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 				set_field_value(&charge_pump_gain, 0x85);
 				break;
 			default:
-				printf("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
+				debug("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
 				       pll_feedback_divider_total.value, ftemp);
 			}
 		} else if (inside(vco_freq, 3900000, 4500000)) {
@@ -817,7 +817,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 				set_field_value(&charge_pump_gain, 0x82);
 				break;
 			default:
-				printf("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
+				debug("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
 				       pll_feedback_divider_total.value, ftemp);
 			}
 		} else if (inside(vco_freq, 4500000, 5200000)) {
@@ -834,7 +834,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 				set_field_value(&charge_pump_gain, 0x4A);
 				break;
 			default:
-				printf("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
+				debug("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
 				       pll_feedback_divider_total.value, ftemp);
 			}
 		} else if (inside(vco_freq, 5200000, 6000000)) {
@@ -851,11 +851,11 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 				set_field_value(&charge_pump_gain, 0x45);
 				break;
 			default:
-				printf("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
+				debug("pll_feedback_divider_total (%0d) is outside of the supported range for vco_freq equal %u\n",
 				       pll_feedback_divider_total.value, ftemp);
 			}
 		} else
-			printf("VCO frequency %u kHz is outside of the supported range\n",
+			debug("VCO frequency %u kHz is outside of the supported range\n",
 			       ftemp);
 
 		/* register CMN_DIAG_PLL0_INCLK_CTRL */
@@ -1429,7 +1429,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 				break;
 			default:
 				ftemp = pixel_freq_khz;
-				printf("This pixel clock frequency (%u kHz) is not supported with this (%0d-bit) color depth.\n",
+				debug("This pixel clock frequency (%u kHz) is not supported with this (%0d-bit) color depth.\n",
 				       ftemp, bpp);
 			}
 		} else if (inside(pixel_freq_khz, 594000, 594000)) {
@@ -1511,12 +1511,12 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 						0x00);
 				break;
 			default:
-				printf("This pixel clock frequency (%d KHz) is not supported with this (%0d-bit) color depth.\n",
+				debug("This pixel clock frequency (%d KHz) is not supported with this (%0d-bit) color depth.\n",
 				       pixel_freq_khz, bpp);
 			}
 		} else {
 			ftemp = pixel_freq_khz;
-			printf("This pixel clock frequency (%u kHz) is not supported.\n",
+			debug("This pixel clock frequency (%u kHz) is not supported.\n",
 			       ftemp);
 		}
 
@@ -1524,7 +1524,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 			refclk_freq_khz * pll_feedback_divider_total.value /
 			cmnda_pll0_ip_div.value;
 		ftemp = vco_freq;
-		printf("VCO frequency is %u kHz\n", ftemp);
+		debug("VCO frequency is %u kHz\n", ftemp);
 
 		if (inside(vco_freq, 1980000, 1980000)) {
 			set_field_value(&voltage_to_current_coarse, 0x04);
@@ -1669,7 +1669,7 @@ int phy_cfg_t28hpc(int num_lanes, int pixel_clock_frequency, int bpp,
 			set_field_value(&vco_cal_code, 292);
 		} else {
 			ftemp = vco_freq;
-			printf("Current vco_freq (%u kHz) is not supported.\n",
+			debug("Current vco_freq (%u kHz) is not supported.\n",
 			       ftemp);
 		}
 

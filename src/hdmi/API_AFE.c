@@ -51,6 +51,8 @@
 #include <stdio.h>
 #endif
 
+#include "uboot_conversions.h"
+
 void afe_write(unsigned int offset, unsigned short val)
 {
 #ifdef EXTERNAL_AFE
@@ -91,11 +93,11 @@ unsigned short afe_read(unsigned int offset)
 	return resp.val;
 }
 
-void set_field_value(reg_field_t *reg_field, uint32_t value)
+void set_field_value(reg_field_t *reg_field, u32 value)
 {
-	uint8_t length;
-	uint32_t max_value;
-	uint32_t trunc_val;
+	u8 length;
+	u32 max_value;
+	u32 trunc_val;
 	length = (reg_field->msb - reg_field->lsb + 1);
 
 	max_value = (1 << length) - 1;

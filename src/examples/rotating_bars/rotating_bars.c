@@ -13,10 +13,16 @@
 int width_offset = 0;
 int ctx_ld_enable = 0;
 
-#define RGBA_RED_64 0x000000ff000000ff
-#define RGBA_GREEN_64 0x0000ff000000ff00
-#define RGBA_BLUE_64 0x00ff000000ff0000
-#define RGBA_WHITE_64 0x00ffffff00ffffff
+// #define RGBA_RED_64 0x000000ff000000ff
+// #define RGBA_GREEN_64 0x0000ff000000ff00
+// #define RGBA_BLUE_64 0x00ff000000ff0000
+// #define RGBA_WHITE_64 0x00ffffff00ffffff
+
+
+#define RGBA_RED_64 0xff0000ffff0000ff
+#define RGBA_GREEN_64 0xff00ff00ff00ff00
+#define RGBA_BLUE_64 0xffff0000ffff0000
+#define RGBA_WHITE_64 0xffffffffffffffff
 
 void init(void) {
 	init_api();
@@ -27,7 +33,7 @@ void init(void) {
 struct display_config init_example() {
 
 	// Initialise the vic mode with custom values
-	struct hdmi_data hd = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, CTX_LD, 0};
+	struct hdmi_data hd = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, CTX_LD, 100}; // Vic mode 1
 
     // Return struct containing the hdmi data and the function to write the frame buffer
 	struct display_config dc = {hd, &write_frame_buffer};
@@ -36,7 +42,7 @@ struct display_config init_example() {
 
 void write_frame_buffer(struct hdmi_data* hd) {
 	
-	printf("writing example 3 frame buffer\n");
+	//printf("writing example 3 frame buffer\n");
 	
 	if (hd == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");

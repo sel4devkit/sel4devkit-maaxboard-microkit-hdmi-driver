@@ -58,8 +58,6 @@
 #include "source_vif.h"
 #include "general_handler.h"
 
-#define HSYNC2VSYNC_POL_CTRL 4 // this shouldn't need to be defined here why doesn't it pull it in from source_vif.h?
-
 CDN_API_STATUS CDN_API_HDMITX_DDC_READ(HDMITX_TRANS_DATA *data_in,
 				       HDMITX_TRANS_DATA *data_out)
 {

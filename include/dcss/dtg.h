@@ -22,7 +22,9 @@
 #define TC_INTERRUPT_CONTROL_REG17 0x20060 // 15.3.3.1.25 Timing controller interrupt control (TC_INTERRUPT_CONTROL_REG17)
 #define TC_INTERRUPT_MASK 0x20068 // 15.3.3.1.27 Timing controller interrupt masks (TC_INTERRUPT_MASK)
 
+
 void write_dtg_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
 void write_dtg_memory_registers_ctx_ld(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
+void check_irq();
 
 #endif
