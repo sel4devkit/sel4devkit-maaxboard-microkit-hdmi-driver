@@ -146,7 +146,12 @@ void write_dtrc_memory_registers() {
 void write_dcss_memory_registers() {
 
 	write_dtrc_memory_registers(dcss_base, hdmi_config);
-	write_dpr_memory_registers(dcss_base, dma_base, hdmi_config);
+	if (hdmi_config->db_enable == TWO_CHANNEL) {
+		write_dpr_memory_registers_two_channel(dcss_base, dma_base, hdmi_config);
+	}
+	else {
+		write_dpr_memory_registers(dcss_base, dma_base, hdmi_config);
+	}
 	write_scaler_memory_registers(dcss_base, hdmi_config);
 	write_sub_sampler_memory_registers(dcss_base, hdmi_config);
 
@@ -156,6 +161,9 @@ void write_dcss_memory_registers() {
 	else if (hdmi_config->db_enable == CTX_LD ||
 			 hdmi_config->db_enable == CTX_LD_FLIP) {
 		write_dtg_memory_registers_ctx_ld(dcss_base, hdmi_config);
+	}
+	else if (hdmi_config->db_enable == TWO_CHANNEL) {
+		write_dtg_memory_registers_two_channel(dcss_base, hdmi_config);
 	}
 
 	ms_delay(3000);

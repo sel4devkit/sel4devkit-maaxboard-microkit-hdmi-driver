@@ -142,6 +142,10 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	
 	// STEP 5 Set the context loader status to enable
 	// Set the enable status bit to 1 to kickstart process.
+
+	printf("Switching context took %d ms\n", stop_timer_micro());
+	start_timer_micro();
+
 	*enable_status |= ((int)1 << 0); 								// FIX: Switching the context is what causes the tear.														
 	context_ld_enabled = (*enable_status >> 0) & (int)1; 
 	

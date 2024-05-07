@@ -25,6 +25,7 @@
 
 void write_dtg_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
 void write_dtg_memory_registers_ctx_ld(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
+void write_dtg_memory_registers_two_channel(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
 void check_irq();
 
 #endif

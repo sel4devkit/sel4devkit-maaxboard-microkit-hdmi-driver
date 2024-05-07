@@ -12,7 +12,7 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 
 #define debug printf
-#define udelay ms_delay
+#define udelay u_delay
 
 
 #endif

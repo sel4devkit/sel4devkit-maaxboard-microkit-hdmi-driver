@@ -30,7 +30,21 @@
 #define DPR_2_RTRAM_CTRL0 0x19200 // 15.7.3.1.58 RTRAM Control 0 (RTRAM_CTRL0)
 #define DPR_2_SYSTEM_CTRL0 0x19000 // 15.7.3.1.2 System Control 0 (SYSTEM_CTRL0)
 
+
+#define DPR_3_FRAME_1P_BASE_ADDR_CTRL0 0x1A0c0  // 15.7.3.1.38 Frame 1-Plane Base Address Control 0 (FRAME_1P_BASE_ADDR_CTRL0)
+#define DPR_3_FRAME_1P_CTRL0 0x1A090 // 15.7.3.1.26 Frame 1-Plane Control 0 (FRAME_1P_CTRL0)
+#define DPR_3_FRAME_1P_PIX_X_CTRL 0x1A0a0 // 15.7.3.1.30 Frame 1-Plane Pix X Control (FRAME_1P_PIX_X_CTRL)
+#define DPR_3_FRAME_1P_PIX_Y_CTRL 0x1A0b0 // 15.7.3.1.34 Frame 1-Plane Pix Y Control (FRAME_1P_PIX_Y_CTRL)
+#define DPR_3_FRAME_2P_BASE_ADDR_CTRL0 0x1A110 // 15.7.3.1.54 Frame 2-Plane Base Address Control 0 (FRAME_2P_BASE_ADDR_CTRL0)
+#define DPR_3_FRAME_2P_PIX_X_CTRL 0x1A0f0 // 15.7.3.1.46 Frame 2-Plane Pix X Control (FRAME_2P_PIX_X_CTRL)
+#define DPR_3_FRAME_2P_PIX_Y_CTRL 0x1A100 // 15.7.3.1.50 Frame 2-Plane Pix Y Control (FRAME_2P_PIX_Y_CTRL)
+#define DPR_3_FRAME_CTRL0 0x1A070 // 15.7.3.1.22 Frame Control 0 (FRAME_CTRL0)
+#define DPR_3_MODE_CTRL0 0x1A050 // 15.7.3.1.19 Mode Control 0 (MODE_CTRL0)
+#define DPR_3_RTRAM_CTRL0 0x1A200 // 15.7.3.1.58 RTRAM Control 0 (RTRAM_CTRL0)
+#define DPR_3_SYSTEM_CTRL0 0x1A000 // 15.7.3.1.2 System Control 0 (SYSTEM_CTRL0)
+
 void write_dpr_memory_registers(uintptr_t dcss_base, uintptr_t dma_base, struct hdmi_data *hdmi_config);
+void write_dpr_memory_registers_two_channel(uintptr_t dcss_base, uintptr_t dma_base, struct hdmi_data *hdmi_config);
 
 
 #endif

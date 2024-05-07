@@ -145,3 +145,35 @@ int stop_timer(){
     }
     return time_in_ms;
 }
+
+
+// the microsecond functions i don't think are correct, perhaps by 
+
+void u_delay(int delay) {
+    timer_print("TIMER START\n");
+    unsigned long timer_count_init = get_ticks();
+	timer_print("Start count: %ld\n", timer_count_init);
+    unsigned long delay_ticks = delay*(tick_frequency/100000);
+    timer_print("Delay ticks: %ld\n", delay_ticks);
+	while (get_ticks() < timer_count_init + delay_ticks) {
+        seL4_Yield();
+	}
+	timer_print("Finish count: %ld\n", get_ticks());
+    timer_print("Target end was: %ld\n", timer_count_init + delay_ticks);
+    timer_print("TIMER END\n");
+}
+
+void start_timer_micro(){
+    start_time_ticks = get_ticks();
+    start_timer_in_use = 1;
+}
+
+int stop_timer_micro(){
+    int time_in_ms = -1;
+    if (start_timer_in_use == 1){
+        int end_time_ticks = get_ticks();
+        time_in_ms = ((end_time_ticks - start_time_ticks)/ (tick_frequency/100000));
+        start_timer_in_use = 0;
+    }
+    return time_in_ms;
+}
