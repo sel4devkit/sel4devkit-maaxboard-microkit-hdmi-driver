@@ -85,7 +85,7 @@ struct display_config init_example()  {	// example set up -
 	hd.V_TOTAL = vic_table[v_mode][V_TOTAL];
 	hd.rgb_format = RGBA;
 	hd.alpha_enable = ALPHA_OFF;
-	hd.db_enable = CTX_LD;
+	hd.mode = CTX_LD_DB;
 	hd.ms_delay = NO_DELAY;
 
 	previous_buffer_position[0].x = x_pos;

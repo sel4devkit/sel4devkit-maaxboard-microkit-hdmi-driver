@@ -43,7 +43,7 @@ struct display_config init_example() {
 	hd.V_TOTAL = vic_table[v_mode][V_TOTAL];
 	hd.rgb_format = RBGA;
 	hd.alpha_enable = ALPHA_OFF;
-	hd.db_enable = CTX_LD_FLIP;
+	hd.mode = CTX_LD_FLIP;
 	hd.ms_delay = 500;
 
 	// Return struct containing the hdmi data and the function to write the frame buffer

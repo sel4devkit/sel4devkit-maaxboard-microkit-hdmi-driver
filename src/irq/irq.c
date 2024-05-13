@@ -8,7 +8,7 @@ char *__heap_start;
 char *__heap_end;
 
 void init(void) {
-	
+	printf("init irq\n");
 }
 
 void

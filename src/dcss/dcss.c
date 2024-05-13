@@ -10,7 +10,7 @@
 #include "dma_offsets.h"
 #include "hdmi_tx.h"
 
-#include "double_buffer.h"
+#include "context_loader.h"
 #include "dpr.h"
 #include "dtg.h"
 #include "scaler.h"
@@ -102,12 +102,35 @@ void init_dcss() {
 	init_hdmi(hdmi_config);
     write_dcss_memory_registers();
 
-	if (hdmi_config->db_enable == CTX_LD) {
+	if (hdmi_config->mode == CTX_LD_DB ||
+		hdmi_config->mode == CTX_LD_SB) {
 		printf("init context loader\n");
 		init_context_loader(dma_base, dcss_base, hdmi_config, active_frame_buffer_offset, cache_frame_buffer_offset);
 	}
-	else if (hdmi_config->db_enable == CTX_LD_FLIP) {
+	else if (hdmi_config->mode == CTX_LD_FLIP) {
 		init_context_loader_flip(dma_base, dcss_base, hdmi_config);
+	}
+	else if (hdmi_config->mode == IRQ) {
+		ms_delay(3000);
+		check_irq(dcss_base);
+	}
+	else if (hdmi_config->mode == TWO_CHANNEL) {
+		int delays[15] = {816611, 933842, 444153, 567574, 689615, 555766, 666777, 777008, 888091, 999011, 111101, 222202, 333303, 444004, 555005};
+
+		for (int i = 0; i < 15; i ++) {
+			u_delay(delays[i]);
+			dtg_turn_off_channel1(dcss_base);
+		}
+	}
+	else if (hdmi_config->mode == MANUAL_CHANGE) {
+
+		int delays[15] = {816611, 933842, 444153, 567574, 689615, 555766, 666777, 777008, 888091, 999011, 111101, 222202, 333303, 444004, 555005};
+		int buffer = 0;
+		for (int i = 0; i < 15; i ++) {
+			buffer = (i % 2 == 0) ? 1 : 0;
+			u_delay(delays[i]);
+			change_dpr_address(dcss_base, dma_base, hdmi_config, buffer);
+		}
 	}
 }
 
@@ -146,7 +169,7 @@ void write_dtrc_memory_registers() {
 void write_dcss_memory_registers() {
 
 	write_dtrc_memory_registers(dcss_base, hdmi_config);
-	if (hdmi_config->db_enable == TWO_CHANNEL) {
+	if (hdmi_config->mode == TWO_CHANNEL) {
 		write_dpr_memory_registers_two_channel(dcss_base, dma_base, hdmi_config);
 	}
 	else {
@@ -155,17 +178,19 @@ void write_dcss_memory_registers() {
 	write_scaler_memory_registers(dcss_base, hdmi_config);
 	write_sub_sampler_memory_registers(dcss_base, hdmi_config);
 
-	if (hdmi_config->db_enable == DB_OFF) {
+	if (hdmi_config->mode == DB_OFF || 
+		hdmi_config->mode == MANUAL_CHANGE) {
 		write_dtg_memory_registers(dcss_base, hdmi_config);
 	}
-	else if (hdmi_config->db_enable == CTX_LD ||
-			 hdmi_config->db_enable == CTX_LD_FLIP) {
+	else if (hdmi_config->mode == CTX_LD_SB ||
+			 hdmi_config->mode == CTX_LD_DB ||
+			 hdmi_config->mode == CTX_LD_FLIP) {
 		write_dtg_memory_registers_ctx_ld(dcss_base, hdmi_config);
 	}
-	else if (hdmi_config->db_enable == TWO_CHANNEL) {
+	else if (hdmi_config->mode == IRQ) {
+		write_dtg_memory_registers_ctx_ld_irq_test(dcss_base, hdmi_config);
+	}
+	else if (hdmi_config->mode == TWO_CHANNEL) {
 		write_dtg_memory_registers_two_channel(dcss_base, hdmi_config);
 	}
-
-	ms_delay(3000);
-	check_irq(dcss_base);
 }

@@ -1,6 +1,6 @@
 
 #include "dma_offsets.h"
-#include "double_buffer.h"
+#include "context_loader.h"
 #include "dma.h"
 #include "timer.h"
 #include "hdmi_data.h"
@@ -86,23 +86,8 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	//printf("Running context loader in context: %d\n", context);
 	//start_timer();
 	uint32_t* enable_status = (uint32_t*)(dcss_base + CTXLD_CTRL_STATUS);
-	uint32_t* dpr_sys_ctrl = (uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0);
-	uint32_t* scaler_sys_ctrl = (uint32_t*)(dcss_base + SCALE_CTRL);
 	int context_ld_enabled = 0;
-
-	uint32_t* int_status = (uint32_t*)(dcss_base + TC_INTERRUPT_STATUS);
-	uint32_t* int_control = (uint32_t*)(dcss_base + TC_INTERRUPT_CONTROL_REG17);
-	uint32_t* int_mask = (uint32_t*)(dcss_base + TC_INTERRUPT_MASK);
 	
-	// *dpr_sys_ctrl |= ((int)1 << 0);	// does bad things (pre loads the buffer)
-	// *dpr_sys_ctrl |= ((int)1 << 2);
-	// *dpr_sys_ctrl |= ((int)1 << 3); // shadow load en
-	// *dpr_sys_ctrl |= ((int)1 << 4);
-
-
-	*scaler_sys_ctrl |= ((int)1 << 0);
-	// *scaler_sys_ctrl |= ((int)1 << 4);
-
 	// Give priority to the context loader TODO: Probably only needs to be done once per initialisation
 	*enable_status |= ((int)1 << 1);
 
@@ -121,24 +106,15 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 
 	// STEP 4 write the double buffered registers (values set previously in init_context_loader)
 	// Set the base adress for the double buffered context
-	write_register((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
-	write_register((uint32_t*)(dcss_base + DB_COUNT), 2);
 
-	// write_register((uint32_t*)(dcss_base + SB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
-	// write_register((uint32_t*)(dcss_base + SB_COUNT), 2);		
-
-
-	////////////////////////////////////////////////////////////////////////
-	// *int_control |= ((int)1 << 1); // clear line 1 so that it does not show as asserted
-	// *int_mask |= ((int)1 << 1); // enable interrupt for line 1 ()
-	// int line1_status = (*int_status >> 1) & (int)1; // check status 
-
-	// while (line1_status == 0) {	
-	// 	line1_status = (*int_status >> 1) & (int)1;
-	// 	seL4_Yield();
-	// 	//printf("still here\n");	// having a print statement makes it an unpredictable amount of time.
-	// }
-	////////////////////////////////////////////////////////////////////////					
+	if (hdmi_config->mode == CTX_LD_DB) {
+		write_register((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
+		write_register((uint32_t*)(dcss_base + DB_COUNT), 2);
+	}
+	else if (hdmi_config->mode == CTX_LD_SB) {
+		write_register((uint32_t*)(dcss_base + SB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
+		write_register((uint32_t*)(dcss_base + SB_COUNT), 2);	
+	}			
 	
 	// STEP 5 Set the context loader status to enable
 	// Set the enable status bit to 1 to kickstart process.
@@ -211,11 +187,11 @@ void run_context_loader_flip(uintptr_t dma_base, uintptr_t dcss_base, struct hdm
 
 	// STEP 4 write the double buffered registers (values set previously in init_context_loader)
 	// Set the base adress for the double buffered context
-	// write_register((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
-	// write_register((uint32_t*)(dcss_base + DB_COUNT), 2);		
+	write_register((uint32_t*)(dcss_base + DB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
+	write_register((uint32_t*)(dcss_base + DB_COUNT), 2);		
 
-	write_register((uint32_t*)(dcss_base + SB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
-	write_register((uint32_t*)(dcss_base + SB_COUNT), 2);			
+	// write_register((uint32_t*)(dcss_base + SB_BASE_ADDR), (uintptr_t)getPhys((void*)dma_base + contex_offset));
+	// write_register((uint32_t*)(dcss_base + SB_COUNT), 2);			
 	
 	// STEP 5 Set the context loader status to enable
 	// Set the enable status bit to 1 to kickstart process.

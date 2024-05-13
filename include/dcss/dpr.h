@@ -46,5 +46,6 @@
 void write_dpr_memory_registers(uintptr_t dcss_base, uintptr_t dma_base, struct hdmi_data *hdmi_config);
 void write_dpr_memory_registers_two_channel(uintptr_t dcss_base, uintptr_t dma_base, struct hdmi_data *hdmi_config);
 
+void change_dpr_address(uintptr_t dcss_base, uintptr_t dma_base, struct hdmi_data *hdmi_config, int buffer);
 
 #endif

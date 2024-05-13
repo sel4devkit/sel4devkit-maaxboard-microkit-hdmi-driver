@@ -44,14 +44,17 @@ enum ALPHA_ENABLE {
 };
 
 /*
-	This enum is used to toggle double buffering on or off.
+	These values are different types of 
 */
-enum DOUBLE_BUFFER_ENABLE {
+enum MODE {
 
 	DB_OFF,
-	CTX_LD,
+	CTX_LD_SB,
+	CTX_LD_DB,
 	CTX_LD_FLIP,
-	TWO_CHANNEL
+	TWO_CHANNEL,
+	IRQ,
+	MANUAL_CHANGE
 };
 
 /*
@@ -79,7 +82,7 @@ struct hdmi_data {
 	int VIC;
 	enum RGB_FORMAT rgb_format;
 	enum ALPHA_ENABLE alpha_enable;
-	enum DOUBLE_BUFFER_ENABLE db_enable;
+	enum MODE mode;
 	int ms_delay;
 };
 

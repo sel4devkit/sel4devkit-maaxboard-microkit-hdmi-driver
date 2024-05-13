@@ -31,7 +31,7 @@ DCSS_WARNINGS := -Wall -Wno-comment -Wno-return-type -Wno-unused-function -Wno-u
 CLIENT_WARNINGS += -Wall -Wno-comment -Wno-return-type -Wno-unused-function -Wno-unused-value -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label -Wno-pointer-sign
 
 # List of the object files needed for each protection domain
-DCSS_OBJS 		:=  dcss.o timer.o dma.o picolibc_link.o vic_table.o API_general.o test_base_sw.o util.o write_register.o API_AFE_t28hpc_hdmitx.o API_AFE.o vic_table.o API_HDMITX.o API_AVI.o API_Infoframe.o hdmi_tx.o uboot_conversions.o double_buffer.o dpr.o dtg.o scaler.o sub_sampler.o
+DCSS_OBJS 		:=  dcss.o timer.o dma.o picolibc_link.o vic_table.o API_general.o test_base_sw.o util.o write_register.o API_AFE_t28hpc_hdmitx.o API_AFE.o vic_table.o API_HDMITX.o API_AVI.o API_Infoframe.o hdmi_tx.o uboot_conversions.o context_loader.o dpr.o dtg.o scaler.o sub_sampler.o
 CLIENT_OBJS		+=  api.o timer.o picolibc_link.o vic_table.o frame_buffer.o
 IRQ_OBJS := irq.o picolibc_link.o
 

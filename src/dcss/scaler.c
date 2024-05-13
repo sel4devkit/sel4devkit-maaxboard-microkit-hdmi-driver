@@ -41,6 +41,39 @@ void write_scaler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_c
 
 
 
+
+
+	write_register((uint32_t*)(dcss_base  + SCALE_SRC_DATA_CTRL + 0x400), 0x00000000); // This must stay!
+	write_register((uint32_t*)(dcss_base  + SCALE_SRC_FORMAT + 0x400 ), 0x00000002); // Sets to RGB
+	write_register((uint32_t*)(dcss_base  + SCALE_DST_FORMAT + 0x400), 0x00000002); // Sets to RGB
+	write_register((uint32_t*)(dcss_base  + SCALE_SRC_LUMA_RES + 0x400),
+		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
+	write_register((uint32_t*)(dcss_base  + SCALE_SRC_CHROMA_RES + 0x400),
+		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
+	write_register((uint32_t*)(dcss_base  + 0x1c020 + 0x400),
+		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
+	write_register((uint32_t*)(dcss_base  + SCALE_DST_CHROMA_RES + 0x400),
+		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
+	write_register((uint32_t*)(dcss_base  + SCALE_V_LUMA_INC + 0x400), 0x00002000);
+	write_register((uint32_t*)(dcss_base  + SCALE_H_LUMA_INC + 0x400), 0x00002000);
+	write_register((uint32_t*)(dcss_base  + SCALE_V_CHROMA_INC + 0x400), 0x00002000);
+	write_register((uint32_t*)(dcss_base  + SCALE_H_CHROMA_INC + 0x400), 0x00002000);
+
+	write_register((uint32_t*)(dcss_base  + 0x1c0c0 + 0x400), 0x00040000);
+	write_register((uint32_t*)(dcss_base  + 0x1c140 + 0x400), 0x00000000); // This must stay!
+	write_register((uint32_t*)(dcss_base  + 0x1c180 + 0x400), 0x00040000);
+	write_register((uint32_t*)(dcss_base  + 0x1c1c0 + 0x400), 0x00000000); // This must stay!
+	write_register((uint32_t*)(dcss_base  + 0x1c000 + 0x400), 0x00000011);
+
+
+	
+	uint32_t* scale_ctrl_2 = (uint32_t*)(dcss_base + SCALE_CTRL  + 0x400);
+	*scale_ctrl_2 |= ((int)1 << 0);	// run enable
+	*scale_ctrl_2 |= ((int)1 << 4); // sh
+
+
+
+
 	// the below appear to have no effect in the current configuration and will likely be removed
 
 	// write_register((uint32_t*)(dcss_base + 0x1c028), 0x00000000);

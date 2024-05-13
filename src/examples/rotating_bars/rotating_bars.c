@@ -33,7 +33,7 @@ void init(void) {
 struct display_config init_example() {
 
 	// Initialise the vic mode with custom values
-	struct hdmi_data hd = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, CTX_LD, 100}; // Vic mode 1
+	struct hdmi_data hd = {1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, RGBA, ALPHA_OFF, IRQ, NO_DELAY}; // Vic mode 1
 
     // Return struct containing the hdmi data and the function to write the frame buffer
 	struct display_config dc = {hd, &write_frame_buffer};
