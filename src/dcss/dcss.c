@@ -53,9 +53,6 @@ void init(void) {
 
 void
 notified(microkit_channel ch) {
-	
-
-	//printf("dcss interrupt\n");
 
 	switch (ch) {
 		case 52:
@@ -102,35 +99,9 @@ void init_dcss() {
 	init_hdmi(hdmi_config);
     write_dcss_memory_registers();
 
-	if (hdmi_config->mode == CTX_LD_DB ||
-		hdmi_config->mode == CTX_LD_SB) {
+	if (hdmi_config->mode == MOVING_IMAGE) {
 		printf("init context loader\n");
 		init_context_loader(dma_base, dcss_base, hdmi_config, active_frame_buffer_offset, cache_frame_buffer_offset);
-	}
-	else if (hdmi_config->mode == CTX_LD_FLIP) {
-		init_context_loader_flip(dma_base, dcss_base, hdmi_config);
-	}
-	else if (hdmi_config->mode == IRQ) {
-		ms_delay(3000);
-		check_irq(dcss_base);
-	}
-	else if (hdmi_config->mode == TWO_CHANNEL) {
-		int delays[15] = {816611, 933842, 444153, 567574, 689615, 555766, 666777, 777008, 888091, 999011, 111101, 222202, 333303, 444004, 555005};
-
-		for (int i = 0; i < 15; i ++) {
-			u_delay(delays[i]);
-			dtg_turn_off_channel1(dcss_base);
-		}
-	}
-	else if (hdmi_config->mode == MANUAL_CHANGE) {
-
-		int delays[15] = {816611, 933842, 444153, 567574, 689615, 555766, 666777, 777008, 888091, 999011, 111101, 222202, 333303, 444004, 555005};
-		int buffer = 0;
-		for (int i = 0; i < 15; i ++) {
-			buffer = (i % 2 == 0) ? 1 : 0;
-			u_delay(delays[i]);
-			change_dpr_address(dcss_base, dma_base, hdmi_config, buffer);
-		}
 	}
 }
 
@@ -156,7 +127,6 @@ void reset_dcss(){
 	write_register((uint32_t*)(dcss_base +  SCALE_OFIFO_CTRL), 0);
 	write_register((uint32_t*)(dcss_base +  SCALE_SRC_DATA_CTRL), 0);
 	write_register((uint32_t*)(dcss_base +  DPR_1_SYSTEM_CTRL0), 0);
-	write_register((uint32_t*)(dcss_base +  DPR_2_SYSTEM_CTRL0), 0);
 	write_register((uint32_t*)(dcss_base +  SS_SYS_CTRL), 0);
 }
 
@@ -169,28 +139,14 @@ void write_dtrc_memory_registers() {
 void write_dcss_memory_registers() {
 
 	write_dtrc_memory_registers(dcss_base, hdmi_config);
-	if (hdmi_config->mode == TWO_CHANNEL) {
-		write_dpr_memory_registers_two_channel(dcss_base, dma_base, hdmi_config);
-	}
-	else {
-		write_dpr_memory_registers(dcss_base, dma_base, hdmi_config);
-	}
+	write_dpr_memory_registers(dcss_base, dma_base, hdmi_config);
 	write_scaler_memory_registers(dcss_base, hdmi_config);
 	write_sub_sampler_memory_registers(dcss_base, hdmi_config);
 
-	if (hdmi_config->mode == DB_OFF || 
-		hdmi_config->mode == MANUAL_CHANGE) {
+	if (hdmi_config->mode == STATIC_IMAGE) {
 		write_dtg_memory_registers(dcss_base, hdmi_config);
 	}
-	else if (hdmi_config->mode == CTX_LD_SB ||
-			 hdmi_config->mode == CTX_LD_DB ||
-			 hdmi_config->mode == CTX_LD_FLIP) {
+	else if (hdmi_config->mode == MOVING_IMAGE) {
 		write_dtg_memory_registers_ctx_ld(dcss_base, hdmi_config);
-	}
-	else if (hdmi_config->mode == IRQ) {
-		write_dtg_memory_registers_ctx_ld_irq_test(dcss_base, hdmi_config);
-	}
-	else if (hdmi_config->mode == TWO_CHANNEL) {
-		write_dtg_memory_registers_two_channel(dcss_base, hdmi_config);
 	}
 }

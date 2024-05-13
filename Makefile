@@ -33,7 +33,6 @@ CLIENT_WARNINGS += -Wall -Wno-comment -Wno-return-type -Wno-unused-function -Wno
 # List of the object files needed for each protection domain
 DCSS_OBJS 		:=  dcss.o timer.o dma.o picolibc_link.o vic_table.o API_general.o test_base_sw.o util.o write_register.o API_AFE_t28hpc_hdmitx.o API_AFE.o vic_table.o API_HDMITX.o API_AVI.o API_Infoframe.o hdmi_tx.o uboot_conversions.o context_loader.o dpr.o dtg.o scaler.o sub_sampler.o
 CLIENT_OBJS		+=  api.o timer.o picolibc_link.o vic_table.o frame_buffer.o
-IRQ_OBJS := irq.o picolibc_link.o
 
 # define c flags and includes for the dcss protection domain 
 DCSS_INC := $(BOARD_DIR)/include include include/hdmi include/dcss include/util
@@ -54,7 +53,7 @@ DCSS_LIBS := -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 
 CLIENT_LIBS += -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc -Lpicolibc -lc  -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc 
 
 # The images for each protetction domain
-IMAGES := dcss.elf client.elf irq.elf
+IMAGES := dcss.elf client.elf
 
 # all target depends on the protection domain images to be built and the build_image target which builds the final image 
 all: $(addprefix $(BUILD_DIR)/, $(IMAGES)) build_image
@@ -90,14 +89,6 @@ $(BUILD_DIR)/%.o: picolibc/%.c Makefile
 $(BUILD_DIR)/%.o: src/util/%.c Makefile
 	$(CC) -c $(DCSS_CFLAGS) $< -o $@
 
-
-######################################################
-
-# compile the irq c file
-
-$(BUILD_DIR)/%.o: src/irq/%.c Makefile
-	$(CC) -c $(DCSS_CFLAGS) $< -o $@
-
 ######################################################
 
 # Create elf files for DCSS protection domain
@@ -107,10 +98,6 @@ $(BUILD_DIR)/dcss.elf: $(addprefix $(BUILD_DIR)/, $(DCSS_OBJS))
 # Create elf files for Client protection domain
 $(BUILD_DIR)/client.elf: $(addprefix $(BUILD_DIR)/, $(CLIENT_OBJS))
 	$(LD) $(CLIENT_LDFLAGS) $^ $(CLIENT_LIBS) -o $@
-
-# Create elf file for irq protection domain
-$(BUILD_DIR)/irq.elf: $(addprefix $(BUILD_DIR)/, $(IRQ_OBJS))
-	$(LD) $(LDFLAGS) $^ $(DCSS_LIBS) -o $@
 
 ######################################################
 

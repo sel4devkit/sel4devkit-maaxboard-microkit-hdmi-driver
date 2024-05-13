@@ -6,7 +6,6 @@
 #include <stdio.h>
 
 void write_register(uint32_t* addr, uint32_t value);
-void write_register_debug(uint32_t* addr, uint32_t value); 
 void write_uint_to_mem(unsigned int* addr, unsigned int value); // used in test_base_sw.c
 
 #endif

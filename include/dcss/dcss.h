@@ -1,7 +1,6 @@
 #ifndef __DCSS_H__
 #define __DCSS_H__
 
-//#include <display_timing.h>
 #include <vic_table.h>
 #include <API_General.h>
 
@@ -20,15 +19,8 @@
 #define DTCTRL_CHAN2 0x160c8 // 15.6.6.1.28 DTRC Control (DTCTRL)
 #define DTCTRL_CHAN3 0x170c8 // 15.6.6.1.28 DTRC Control (DTCTRL)
 
-
-
 void write_dcss_memory_registers();
 void write_dtrc_memory_registers();
-
-
-
-
-
 void init_dcss();
 void reset_dcss();
 void init_gpc();

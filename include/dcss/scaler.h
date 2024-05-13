@@ -21,11 +21,6 @@
 #define SCALE_V_CHROMA_INC 0x1c05c // 15.8.3.1.17 Scale Vertical Chroma Increment Register (SCALE_V_CHROMA_INC)
 #define SCALE_H_CHROMA_INC 0x1c064 // 15.8.3.1.19 Scale Horizontal Chroma Increment Register (SCALE_H_CHROMA_INC)
 
-// #define SCALE_CTRL 0x1c0c0 // Need to locate in the spec
-// #define SCALE_CTRL 0x1c140 
-// #define SCALE_CTRL 0x1c180 
-// #define SCALE_CTRL 0x1c1c0 
-
 void write_scaler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
 
 #endif

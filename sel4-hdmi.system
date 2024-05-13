@@ -42,14 +42,6 @@
         <program_image path="client.elf" />
     </protection_domain>
 
-
-    <protection_domain name="irq" pp="true" priority="250">
-        <map mr="shared_heap" vaddr="0x5a00000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
-        <map mr="shared_heap_end" vaddr="0x5bf0000" perms="rw" cached="false" setvar_vaddr="__heap_end"/>
-        <irq irq="40" id="8"/> <!--usb irq offset by 32-->
-        <program_image path="irq.elf" />
-    </protection_domain>
-
     <!-- Reset the dcss from the example client -->
     <channel>
         <end pd="dcss" id="55"/>

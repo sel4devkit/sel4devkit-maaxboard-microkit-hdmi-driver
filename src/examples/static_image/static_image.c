@@ -21,7 +21,7 @@ void init(void) {
 struct display_config init_example() {
 	
 	// Initialise the hdmi data with custom values
-	struct hdmi_data hd;//{1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_OFF, DB_OFF, NO_DELAY};
+	struct hdmi_data hd;//{1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_OFF, STATIC_IMAGE, NO_DELAY};
 
 	int v_mode = 1;
 
@@ -42,8 +42,8 @@ struct display_config init_example() {
 	hd.VIC_PR = vic_table[v_mode][VIC_PR];
 	hd.V_TOTAL = vic_table[v_mode][V_TOTAL];
 	hd.rgb_format = RBGA;
-	hd.alpha_enable = ALPHA_OFF;
-	hd.mode = DB_OFF;
+	hd.alpha_enable = ALPHA_ON;
+	hd.mode = STATIC_IMAGE;
 	hd.ms_delay = NO_DELAY;
 
 	// Return struct containing the hdmi data and the function to write the frame buffer

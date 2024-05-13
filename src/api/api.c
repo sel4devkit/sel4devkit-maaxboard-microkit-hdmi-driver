@@ -31,10 +31,7 @@ notified(microkit_channel ch) {
 	switch (ch) {
         // Notified by the context loader to draw the frame buffer that is not being displayed
 		case 52:								
-			//start_timer();
-			//printf("Notified to write buffer\n");
 			write_fb(hd);
-		//	printf("Writing frame buffer took %d ms\n", stop_timer());
 			microkit_notify(52);
 			break;
 		default:
