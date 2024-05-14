@@ -55,42 +55,50 @@ This API makes use of two Protection Domains (PD's).
 * **dcss** - This PD is responsible for the set up of the driver and the configuration of the Display Controller Subsystem (DCSS) and the HDMI TX controller.
 * **client** - This PD is responsible for the api and writing to the frame buffer. 
 
+### Initialising the client PD
+
 Each PD in microkit must implement ```init()``` and ```notified()``` functions. In this project, the example implements the ```init()``` function, which means that only one example can be built at a time.
 
-The init function is responsible for making the call to initialise the api and selecting if the current image will display a static or moving image. See ```static_image()``` and ```moving_image()``` defined in src/api/api.c.
+The init function is responsible for making the call to initialise the api and to select if the current image will display a static or moving image. See ```static_image()``` and ```moving_image()``` defined in src/api/api.c.
 
-Each of these functions take in a function pointer as an argument. This function pointer points to a function with no arguments and returns a display config struct. In the examples this function is implemented as init_example
+These two functions take in a function pointer as an argument. This function pointer points to a function with no arguments and returns a display config struct. In the examples this function is implemented as ```init_example()```. 
 
 ```
 struct display_config init_example() {
-
 }
+```
+The ```display_config``` struct is needs to be initialised so that the configuration settings can be sent to the dcss PD and so that the function to write to the frame buffer is defined. 
 
 ```
+struct display_config {
+	struct hdmi_data hd;
+	void (*write_fb)();
+};
+```
+### Configuration 
 
+The ```hdmi_data``` struct is used to store the configuration settings. The first members hold Video Information Code (VIC) values. These values can be manually typed in (see rotating_bars example) or the ```vic_table``` (see src/hdmi/vic_table.c) provided by uboot can be used (see examples static_image, resolution change, moving_square)
 
+The following settings also need to be set in hdmi_data
 
+* **rgb_format** - The ordering of the Red, Blue, Green and Alpha channels. See RGB_FORMAT in include/hdmi/hdmi_data.h.
+* **alpha_enable** - Whether or not the alpha channel is present. For an example use see the example static_image.
+* **mode** - Whether or not the image is static or moving.
+* **ms_delay** - How long the each frame lasts for. For moving images, this is the time between the frame. For static images this is how long the image is displayed.
 
+The length of time that moving images are displayed by is set by the ```MAX_FRAME_COUNT``` in src/api/api.c.
 
+### Writing to the buffer 
 
+In the examples the function pointer ```write_fb``` in the ```display_config``` struct is implemented as ```write_frame_buffer()```.
 
+Uses the width and the height
+64, 32 and 8 bit writing implemented
+For moving images global variables are used to keep track of frame data (see example moving_square and rotating_bars)
 
+This function is set up like this and not in a loop because of the dcss...
 
-In the client init() function, the api must be initialised:
-
-``` init_apit() ```
-
-This is followed by a call to static_image() or moving_image(), which takes in a function pointer to a function with no arguments and a returned display_config struct.   
-
-
-
-
-
-hdmi_data struct and what that holds (RGBA ordering, alpha, delay for static and for moving)
-how static images are made
-how moving images are made
-how to end a moving image example
-to add extra files specific to the example, include them nin the makefile 
-
+### Empty client
 
 In the empty_client directory an empty example has been set up, ready to be implemented. (explain how to use the empty client, or maybe self explanatory at this stage)
+to add extra files specific to the example, include them nin the makefile 
