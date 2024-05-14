@@ -61,7 +61,7 @@ Each PD in microkit must implement ```init()``` and ```notified()``` functions. 
 
 The init function is responsible for making the call to initialise the api and to select if the current image will display a static or moving image. See ```static_image()``` and ```moving_image()``` defined in src/api/api.c.
 
-These two functions take in a function pointer as an argument. This function pointer points to a function with no arguments and returns a display config struct. In the examples this function is implemented as ```init_example()```. 
+These two functions take in a function pointer as an argument. This function pointer points to a function with no arguments and returns a ```display_config``` struct. In the examples this function is implemented as ```init_example()```. 
 
 ```
 struct display_config init_example() {
@@ -77,11 +77,11 @@ struct display_config {
 ```
 ### Configuration 
 
-The ```hdmi_data``` struct is used to store the configuration settings. The first members hold Video Information Code (VIC) values. These values can be manually typed in (see rotating_bars example) or the ```vic_table``` (see src/hdmi/vic_table.c) provided by uboot can be used (see examples static_image, resolution change, moving_square)
+The ```hdmi_data``` struct is used to store the configuration settings. The first members hold Video Information Code (VIC) values. These values can be manually typed in (see rotating_bars example) or the ```vic_table``` defined in src/hdmi/vic_table.c can be used (see examples static_image, resolution change and moving_square).
 
-The following settings also need to be set in hdmi_data
+The following settings also need to be set in ```hdmi_data```
 
-* **rgb_format** - The ordering of the Red, Blue, Green and Alpha channels. See RGB_FORMAT in include/hdmi/hdmi_data.h.
+* **rgb_format** - The ordering of the Red, Blue, Green and Alpha channels. See ```RGB_FORMAT``` in include/hdmi/hdmi_data.h.
 * **alpha_enable** - Whether or not the alpha channel is present. For an example use see the example static_image.
 * **mode** - Whether or not the image is static or moving.
 * **ms_delay** - How long the each frame lasts for. For moving images, this is the time between the frame. For static images this is how long the image is displayed.
@@ -92,14 +92,14 @@ The length of time that moving images are displayed by is set by the ```MAX_FRAM
 
 The function to write the frame buffer is set to the member ```write_fb``` in the ```display_config``` struct. In the examples this is implemented as ```write_frame_buffer()```.
 
-A pointer to the active or cached frame buffer can be retrieved using the following two functions where N is the size of the pointer in bytes ```get_active_frame_buffer_uintN()``` ```get_cache_frame_buffer_uintN()```. 8,32 and 64bit pointers are currently implemented. See src/api/framebuffer.c.
+A pointer to the active or cached frame buffer can be retrieved using the following two functions where N is the size of the pointer in bytes ```get_active_frame_buffer_uintN()``` ```get_cache_frame_buffer_uintN()```. 8, 32 and 64 bit pointers are currently implemented. See src/api/framebuffer.c.
 
 The width and the height are defined by ```hdmi_data.H_ACTIVE``` and ```hdmi_data.V_ACTIVE```. A loop can be set up to read left to right and top to bottom to access and modify the data inside the frame buffer. 
 
-For moving images, global variables are used to keep track of frame data (see example moving_square and rotating_bars). This is set up this way so that the dcss PD can notify the client PD when the frame buffer is ready to be modified and so that the client PD can notify the dcss PD when the frame buffer has finished being written to.
+For moving images, global variables are used to keep track of frame data (see example moving_square and rotating_bars). It is set up this way so that the dcss PD can notify the client PD when the frame buffer is ready to be modified and so that the client PD can notify the dcss PD when the frame buffer has finished being written to.
 
 ### Empty client
 
 An empty example has been provided in empty_client/empty_client.c. To use the driver uncomment ```static_image()``` or ```moving_image()``` to choose the type of image you wish to see. Then implement init_static_example by initialising all fields of the ```hdmi_data``` struct. Then modify ```write_static_frame_buffer()``` with your desired image.
 
-To add extra files or build configurations specific to the example, modify empty_client/Makefile.
+Modify empty_client/Makefile to add extra files or build configurations specific to the example.
