@@ -8,33 +8,40 @@ TODO: potentially make another fork of uboot for firmware, if not explain what n
 
 # Building picolibc
 
-This project requires pibolibc. To build picolibc from this repo:
+This project requires pibolibc which can be built from this repo
 
 ```
 cd picolibc
-./build
+./build-picolibc.sh
+```
+Alternatively picolibc can be built from https://github.com/sel4-cap/picolibc.git
+
+Then from within the repo copy the required files into the picolibc directory.
+
+```
+sudo cp picolib-microkit/newlib/libc.a path-to-sel4-hdmi/picolibc
+sudo cp picolib-microkit/picolibc.specs path-to-sel4-hdmi/picolibc
 ```
 
 # Building the project
 
-Talk about the build script variables
-
-This API contains the following examples:
+This API contains the following examples
 
 * static_image - Displays 4 colour bars on the screen.
 * resolution_change - Displays a square of the same size in pixels one after another at three different resolutions.
 * rotating_bars - Displays 4 colour bars rotating across the screen.
-* empty_client - An empty example ready to be used to create a static or moving image
+* moving_square - A small sqaure that moves around the screen, changing direction each time it hits the side of the screen.
 
 To build the project use ./build.sh with an example as the first argument.
 
-__e.g ./build.sh empty_client__
+```./build.sh static_image ```
 
 It is recommended to use a prebuilt docker image to run this project. This can be found at: https://github.com/sel4-cap/microkit-maaxboard-dockerfiles
 
-You can use your own custom configuration by providing "c" as the second argument. If this is the case, the custom configuration will need to be implemented in the build script.
+You can use your own custom configuration by providing "c" as the second argument. For example, the custom configuration in the build script currently is set up to be run in an environment set up by microkit manifest: https://github.com/sel4-cap/microkit-manifest.
 
-__e.g ./build.sh static_image c__
+```./build.sh static_image c```
+
 
 # Running an example
 
