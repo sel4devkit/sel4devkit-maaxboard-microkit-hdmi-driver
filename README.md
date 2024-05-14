@@ -90,15 +90,16 @@ The length of time that moving images are displayed by is set by the ```MAX_FRAM
 
 ### Writing to the buffer 
 
-In the examples the function pointer ```write_fb``` in the ```display_config``` struct is implemented as ```write_frame_buffer()```.
+The function to write the frame buffer is set to the member ```write_fb``` in the ```display_config``` struct. In the examples this is implemented as ```write_frame_buffer()```.
 
-Uses the width and the height
-64, 32 and 8 bit writing implemented
-For moving images global variables are used to keep track of frame data (see example moving_square and rotating_bars)
+A pointer to the active or cached frame buffer can be retrieved using the following two functions where N is the size of the pointer in bytes ```get_active_frame_buffer_uintN()``` ```get_cache_frame_buffer_uintN()```. 8,32 and 64bit pointers are currently implemented. See src/api/framebuffer.c.
 
-This function is set up like this and not in a loop because of the dcss...
+The width and the height are defined by ```hdmi_data.H_ACTIVE``` and ```hdmi_data.V_ACTIVE```. A loop can be set up to read left to right and top to bottom to access and modify the data inside the frame buffer. 
+
+For moving images, global variables are used to keep track of frame data (see example moving_square and rotating_bars). This is set up this way so that the dcss PD can notify the client PD when the frame buffer is ready to be modified and so that the client PD can notify the dcss PD when the frame buffer has finished being written to.
 
 ### Empty client
 
-In the empty_client directory an empty example has been set up, ready to be implemented. (explain how to use the empty client, or maybe self explanatory at this stage)
-to add extra files specific to the example, include them nin the makefile 
+An empty example has been provided in empty_client/empty_client.c. To use the driver uncomment ```static_image()``` or ```moving_image()``` to choose the type of image you wish to see. Then implement init_static_example by initialising all fields of the ```hdmi_data``` struct. Then modify ```write_static_frame_buffer()``` with your desired image.
+
+To add extra files or build configurations specific to the example, modify empty_client/Makefile.
