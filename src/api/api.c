@@ -14,25 +14,38 @@
 
 struct hdmi_data *hd = NULL;
 uintptr_t timer_base;
+int frame_count = 0;
+#define MAX_FRAME_COUNT 10000 // The maximum number of frames displayed for a moving image
 
 // Function pointer to current frame buffer function (used for double buffering)
 void (*write_fb)(struct hdmi_data*);
 
 void init_api() {
 	// Allocate memory to hold the hdmi data
-	hd = malloc(sizeof(struct hdmi_data)); // TODO: free at some point
+	hd = malloc(sizeof(struct hdmi_data));
 
 	// Initialise timer
 	initialise_and_start_timer(timer_base);
 }
 
+void reset_api() {
+	free(hd);
+}
+
 void
 notified(microkit_channel ch) {
+	
 	switch (ch) {
-        // Notified by the context loader to draw the frame buffer that is not being displayed
+        // Notified by the context loader to draw the currently inactive frame buffer
 		case 52:								
-			write_fb(hd);
-			microkit_notify(52);
+			frame_count++;		
+			if (frame_count < MAX_FRAME_COUNT) {
+				write_fb(hd);
+				microkit_notify(52);
+			}
+			else {
+				reset_api();
+			}
 			break;
 		default:
 			printf("Unexpected channel id: %d in api::notified()\n", ch);

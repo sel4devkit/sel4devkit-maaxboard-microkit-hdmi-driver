@@ -11,7 +11,6 @@ void write_sub_sampler_memory_registers(uintptr_t dcss_base, struct hdmi_data *h
 	write_register((uint32_t*)(dcss_base + SS_CLIP_CB), 0x03ff0000);
 	write_register((uint32_t*)(dcss_base + SS_CLIP_CR), 0x03ff0000);
 
-	// TODO: Tidy these up
 	write_register((uint32_t*)(dcss_base + SS_DISPLAY),
 		    (((hdmi_config->TYPE_EOF + hdmi_config->SOF +  hdmi_config->VSYNC +
 			hdmi_config->V_ACTIVE -1) << 16) |
@@ -29,6 +28,6 @@ void write_sub_sampler_memory_registers(uintptr_t dcss_base, struct hdmi_data *h
 		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF + hdmi_config->V_ACTIVE -1) << 16) |
 		    (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
 
-	write_register((uint32_t*)(dcss_base + SS_MODE), 0x0000000);
-	write_register((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x00000001);
+	write_register((uint32_t*)(dcss_base + SS_MODE), 0x0);
+	write_register((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x1);
 }

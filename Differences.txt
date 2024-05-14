@@ -1,0 +1,31 @@
+Differences
+
+Paths are relative to this repo: https://github.com/sel4-cap/uboot-imx
+
+All the files that are used have been copied into include/hdmi and src/hdmi.
+
+##################################################################################################################
+HEADER FILES
+
+./drivers/video/nxp/hdp/API_AFE_t28hpc_hdmitx.h (used hdmi_data struct instead of VIC_MODE)
+./drivers/video/nxp/hdp/API_AVI.h  (used hdmi_data struct instead of VIC_MODE)
+./drivers/video/nxp/hdp/API_HDMITX.h (used hdmi_data struct instead of VIC_MODE)
+./drivers/video/nxp/hdp/externs.h (removed function definition to resolve undefined reference errors)
+
+
+##################################################################################################################
+SRC FILES
+
+./drivers/video/nxp/hdp/API_AFE_t28hpc_hdmitx.c (used hdmi_data struct instead of VIC_MODE)
+./drivers/video/nxp/hdp/API_AVI.c (used hdmi_data struct instead of VIC_MODE)
+./drivers/video/nxp/hdp/API_General.c (removed unused function to fix undefined reference errors, replaced udelay)
+./drivers/video/nxp/hdp/API_HDMITX.c (replaced VIC_MODES)
+./drivers/video/nxp/hdp/test_base_sw.c (Removed multiple functions and defines. Rewrote regsiter write and read functions)
+
+##################################################################################################################
+NEW FILES (reworked existing functionality)
+
+drivers/video/nxp/imx/hdmi/imx8m_hdmi.c (see src/hdmi/hdmi_tx.c ) 
+drivers/video/nxp/imx/imx8m_dcss.c (see src/dcss/dcss.c and each component file for memory register writes (dpr, dtg, scaler, sub sampler))
+
+##################################################################################################################

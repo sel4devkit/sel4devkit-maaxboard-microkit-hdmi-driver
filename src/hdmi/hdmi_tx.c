@@ -13,15 +13,18 @@
 
 void init_hdmi(struct hdmi_data *hdmi_config) {
 	
-	uint8_t bits_per_pixel = 8; // 8 = 24 + alpha, 10= 30 +alpha
+	uint8_t bits_per_pixel = 8;
 	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = PXL_RGB;
 
-	if (init_api() == CDN_OK) {
+	CDN_API_STATUS api_status = init_api();
+
+	if (api_status == CDN_OK) {
 		uint32_t phy_frequency = phy_cfg_t28hpc(4, hdmi_config->PIXEL_FREQ_KHZ, bits_per_pixel, pixel_encoding_format, 1);
 		hdmi_tx_t28hpc_power_config_seq(4);
-		call_api(phy_frequency, pixel_encoding_format, bits_per_pixel, hdmi_config); // TODO: handle the return
+		api_status = call_api(phy_frequency, pixel_encoding_format, bits_per_pixel, hdmi_config); // TODO: handle the return
 	}
-	else {
+
+	if (api_status != CDN_OK) {
 		printf("Failed to initialise API ensure the hdmi firmware is enabled in your boot loader.\n");
 	}
 }
@@ -47,7 +50,7 @@ CDN_API_STATUS init_api() {
 	return api_status;
 }
 
-void call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel, struct hdmi_data *hdmi_config) {
+CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel, struct hdmi_data *hdmi_config) {
 	
 	CDN_API_STATUS api_status = CDN_OK;   
 	BT_TYPE bt_type = 0;
@@ -72,8 +75,7 @@ void call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_for
 	api_status = CDN_API_HDMITX_SetVic_blocking(hdmi_config, bits_per_pixel, pixel_encoding_format);
 	print_api_status_msg(api_status, "CDN_API_HDMITX_SetVic_blocking");
 
-	// TODO: Potentially need timer here
-	// TODO: This only prints if one of these calls fail - it should potentially return something to say at least one of them has returned with a non 0 status.
+	return api_status;
 }
 
 void print_api_status_msg(CDN_API_STATUS status, char* function_name) {

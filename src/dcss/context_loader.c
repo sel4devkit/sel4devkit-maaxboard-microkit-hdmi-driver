@@ -20,6 +20,9 @@
 #define DB_BASE_ADDR 0x23010
 #define DB_COUNT 0x23014
 
+#define ARB_SEL 1
+#define ENABLE 0
+
 int context = 0; // This keeps track of the current context. TODO: An alternative to global counter?
 
 void init_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_data *hdmi_config, uint32_t* active_frame_buffer_offset, uint32_t* cache_frame_buffer_offset) {
@@ -55,20 +58,18 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	// Steps 3,4,5 and 12 of 15.4.2.2 Display state loading sequence
 
 	uint32_t* enable_status = (uint32_t*)(dcss_base + CTXLD_CTRL_STATUS);
-	int context_ld_enabled = 0;
 	
 	// Give priority to the context loader TODO: Probably only needs to be done once per initialisation
-	*enable_status |= ((int)1 << 1);
+	*enable_status = set_bit(*enable_status, ARB_SEL);
 
 	// Set the context offset in memory for the current frame buffer to display
-	int contex_offset = (context == 0) ? CTX_LD_CTX_LDE_ADDR : CTX_LD_DB_TWO_ADDR;		
-
+	int contex_offset = (context == 0) ? CTX_LD_CTX_LDE_ADDR : CTX_LD_DB_TWO_ADDR;
 
 	// STEP 3 waiting until its idle (it will almost definitely just be idle already, but this is here just to follow the spec)
-	context_ld_enabled = (*enable_status >> 0) & (int)1; 
+	int context_ld_enabled = read_bit(*enable_status, ENABLE);
 	
 	while (context_ld_enabled == 1) {																			
-		context_ld_enabled = (*enable_status >> 0) & (int)1;
+		context_ld_enabled = read_bit(*enable_status, ENABLE);
 		seL4_Yield();	
 	}	
 
@@ -79,12 +80,12 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	
 	// STEP 5 Set the context loader status to enable
 	// Set the enable status bit to 1 to kickstart process.
-	*enable_status |= ((int)1 << 0); 								// FIX: Switching the context is what causes the tear.														
-	context_ld_enabled = (*enable_status >> 0) & (int)1; 
+	*enable_status = set_bit(*enable_status, ENABLE);							// FIX: Switching the context is what causes the tear.														
+	context_ld_enabled = read_bit(*enable_status, ENABLE); 
 	
 	// Poll contiously until context loader is not being used.
 	while (context_ld_enabled == 1) {																			
-		context_ld_enabled = (*enable_status >> 0) & (int)1;
+		context_ld_enabled = read_bit(*enable_status, ENABLE);
 		seL4_Yield();	
 	}
 

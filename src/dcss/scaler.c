@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define RUN_EN 0
+#define ENABLE_REPEAT 4
+
+
 void write_scaler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config) {
 
 	write_register((uint32_t*)(dcss_base  + SCALE_SRC_DATA_CTRL), 0x00000000); // This must stay!
@@ -31,6 +35,6 @@ void write_scaler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_c
 		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
 
 	uint32_t* scale_ctrl = (uint32_t*)(dcss_base + SCALE_CTRL);
-	*scale_ctrl |= ((int)1 << 0);	// run enable
-	*scale_ctrl |= ((int)1 << 4); // sh
+	*scale_ctrl = set_bit(*scale_ctrl, RUN_EN);
+	*scale_ctrl = set_bit(*scale_ctrl, ENABLE_REPEAT);
 }

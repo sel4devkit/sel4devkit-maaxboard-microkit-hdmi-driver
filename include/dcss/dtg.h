@@ -17,6 +17,5 @@
 #define TC_LINE2_INT_REG14 0x20054 // 15.3.3.1.22 LINE2 interrupt control: Coordinate where line2 interrupt is assered (TC_LINE2_INT_REG14)
 
 void write_dtg_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
-void write_dtg_memory_registers_ctx_ld(uintptr_t dcss_base, struct hdmi_data *hdmi_config);
 
 #endif

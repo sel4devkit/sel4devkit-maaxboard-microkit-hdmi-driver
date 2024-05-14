@@ -9,7 +9,7 @@
 
 void init_hdmi(struct hdmi_data *hdmi_config);
 CDN_API_STATUS init_api();
-void call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel, struct hdmi_data *hdmi_config);
+CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_encoding_format, uint8_t bits_per_pixel, struct hdmi_data *hdmi_config);
 void print_api_status_msg(CDN_API_STATUS status, char* function_name);
 
 #endif 

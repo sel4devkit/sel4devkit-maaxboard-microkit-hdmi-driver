@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "db_test.h"
+#include "moving_square.h"
 
 #include "frame_buffer.h"
 #include "api.h"
@@ -40,13 +40,13 @@ struct square_positions {
 
 struct square_positions square_pos[4] = {{ 1, 1, LIMIT_NOT_SET, LIMIT_NOT_SET, DOWN_LEFT,  UP_RIGHT}, 	// Down right
 										 {-1, 1, -1, 			LIMIT_NOT_SET, DOWN_RIGHT, UP_LEFT}, 	// Down left
-										 { 1,-1, -1, 			-1, 		   UP_LEFT,    DOWN_RIGHT},	// Up right
-										 {-1,-1, LIMIT_NOT_SET, -1, 		   UP_RIGHT,   DOWN_LEFT}};	// Up Left
+										 { 1,-1, LIMIT_NOT_SET, -1, 		   UP_LEFT,    DOWN_RIGHT},	// Up right
+										 {-1,-1, -1, -1, 		   UP_RIGHT,   DOWN_LEFT}};	// Up Left
 
 // Set these in the init_example_function()
 int y_pos = 300;
 int x_pos = 5;
-int direction = UP_RIGHT;
+int direction = UP_LEFT;
 
 struct buffer_position {
 	int x;
@@ -85,7 +85,7 @@ struct display_config init_example()  {	// example set up -
 	hd.V_TOTAL = vic_table[v_mode][V_TOTAL];
 	hd.rgb_format = RGBA;
 	hd.alpha_enable = ALPHA_OFF;
-	hd.mode = CTX_LD_DB;
+	hd.mode = MOVING_IMAGE;
 	hd.ms_delay = NO_DELAY;
 
 	previous_buffer_position[0].x = x_pos;

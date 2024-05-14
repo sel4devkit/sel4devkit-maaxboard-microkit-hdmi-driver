@@ -6,23 +6,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define RUN_EN 0
+#define REPEAT_EN 2
+#define SHADOW_LOAD_EN 3
+#define SW_SHADOW_LOAD_SEL 4
+
+
 void write_dpr_memory_registers(uintptr_t dcss_base, uintptr_t dma_base, struct hdmi_data *hdmi_config) {
 	
 	uintptr_t* fb_1 =  getPhys((void*) (dma_base));
 	uintptr_t* fb_2 =  getPhys((void*) (dma_base + FRAME_BUFFER_TWO_OFFSET));
 
     write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)fb_1); // The address of the frame buffer
-    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x00000002); 
+    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x2); 
     write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_X_CTRL), hdmi_config->H_ACTIVE);
 	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_Y_CTRL), hdmi_config->V_ACTIVE);
 	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_CTRL0), ((hdmi_config->H_ACTIVE * 4) << 16));
 	write_register((uint32_t*)(dcss_base + DPR_1_MODE_CTRL0), hdmi_config->rgb_format); // 32 bits per pixel (with rgba set to a certain value) This needs to be configured for differrent RGB ordering.
-	write_register((uint32_t*)(dcss_base + DPR_1_RTRAM_CTRL0), 0x00000038);
+	write_register((uint32_t*)(dcss_base + DPR_1_RTRAM_CTRL0), 0x38);
 
 	uint32_t* dpr_sys_ctrl = (uint32_t*)(dcss_base + DPR_1_SYSTEM_CTRL0);
-	*dpr_sys_ctrl |= ((int)1 << 0);	// run enable
-	*dpr_sys_ctrl |= ((int)1 << 3); // shadow load en
-	*dpr_sys_ctrl |= ((int)1 << 4); // shadow load select
-	*dpr_sys_ctrl |= ((int)1 << 2);
+	*dpr_sys_ctrl = set_bit(*dpr_sys_ctrl, RUN_EN);
+	*dpr_sys_ctrl = set_bit(*dpr_sys_ctrl, SHADOW_LOAD_EN);
+	*dpr_sys_ctrl = set_bit(*dpr_sys_ctrl, SW_SHADOW_LOAD_SEL);
+	*dpr_sys_ctrl = set_bit(*dpr_sys_ctrl, REPEAT_EN);
 }
-

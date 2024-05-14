@@ -16,12 +16,13 @@ void init(void) {
 	init_api();
 	static_image(init_example);
 	reset_static_image(50000);
+	reset_api();
 }
 
 struct display_config init_example() {
 	
 	// Initialise the hdmi data with custom values
-	struct hdmi_data hd;//{1650, 1280, 370, 40, 110, 220, 750, 720, 5, 5, 20, 74250, 1, 1, 8, 0, 23, GBRA, ALPHA_OFF, STATIC_IMAGE, NO_DELAY};
+	struct hdmi_data hd;
 
 	int v_mode = 1;
 

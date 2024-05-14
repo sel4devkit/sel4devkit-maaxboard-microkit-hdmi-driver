@@ -13,10 +13,6 @@
 int width_offset = 0;
 int ctx_ld_enable = 0;
 
-// #define RGBA_RED_64 0x000000ff000000ff
-// #define RGBA_GREEN_64 0x0000ff000000ff00
-// #define RGBA_BLUE_64 0x00ff000000ff0000
-// #define RGBA_WHITE_64 0x00ffffff00ffffff
 
 #define RGBA_RED_64 0xff0000ffff0000ff
 #define RGBA_GREEN_64 0xff00ff00ff00ff00
@@ -48,20 +44,12 @@ void write_frame_buffer(struct hdmi_data* hd) {
 	uint64_t* frame_buffer_addr = get_active_frame_buffer_uint64();
 
 	int height = hd->V_ACTIVE;
-	int width = hd->H_ACTIVE/2;
+	int width = hd->H_ACTIVE/2; // for 64 bit writing the width is divided by 2
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
 	int third_quarter = width * 0.75;
 	int j_pos = width_offset;
 
-	/*
-		Each of the 4 values written to the frame buffer reprsents a 32 bit RGBA channel.
-		They are written in the order of the hdmi_data.rgb_format member. If the format is GBRA for example, 
-		Then the order of the values written below will be green, blue, red, alpha. The alpha channel configures the
-		opacity of the colour, at 0xff it will be completely visible and 0x00 it will not be visible.
-		It is turned on or off using hdmi_data.alpha_enable. With this option turned on, this example will display each colour bar
-		starting with a 0 alhpa increasing every 3 pixels.
-	*/ 
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			

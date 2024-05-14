@@ -12,7 +12,7 @@
 #define API_EXAMPLE_2_SIDE_LENGTH 300
 #define RBGA_GREEN 0x00ff0000
 
-int vic_mode = 0;
+int vic_mode = 1;
 
 void init(void) {
 	
@@ -23,6 +23,8 @@ void init(void) {
 		static_image(init_example);
 		reset_static_image(10000);
 	}
+
+	reset_api();
 }
 
 
