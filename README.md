@@ -42,6 +42,9 @@ You can use your own custom configuration by providing "c" as the second argumen
 
 ```./build.sh static_image c```
 
+This will create the loader.img file that will need to be loaded into the maaxboard. The name of this can be changed in the top level Makefile.
+
+For more information setting up an environment for creating Sel4 applications, see https://github.com/sel4devkit.
 
 # Running an example
 
