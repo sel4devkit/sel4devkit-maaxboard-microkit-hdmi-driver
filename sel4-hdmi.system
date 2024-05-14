@@ -51,7 +51,7 @@
     <!-- Run the context loader in the dcss sent from the example client.
          Write the frame buffer in the example client sent from the dcss. -->
     <channel>
-        <end pd="dcss" id="52"/>
+        <end pd="dcss" id="52"/> 
         <end pd="client" id="52"/>
     </channel>
 

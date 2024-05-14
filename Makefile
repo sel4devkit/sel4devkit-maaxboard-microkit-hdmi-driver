@@ -16,7 +16,7 @@ $(error MICROKIT_CONFIG must be specified)
 endif
 
 
-include src/$(CURRENT_EXAMPLE)/Makefile # include the makefile for the example passed in 
+include $(CURRENT_EXAMPLE)/Makefile # include the makefile for the example passed in 
 
 # TOOLCHAIN := aarch64-none-elf
 TOOLCHAIN := aarch64-linux-gnu
@@ -65,7 +65,7 @@ $(BUILD_DIR)/%.o: src/api/%.c Makefile
 	$(CC) -c $(CLIENT_CFLAGS) $< -o $@
 
 # Compile the specific example file. This will contain the implementation of the client init() function
-$(BUILD_DIR)/%.o: src/$(CURRENT_EXAMPLE)/%.c Makefile
+$(BUILD_DIR)/%.o: $(CURRENT_EXAMPLE)/%.c Makefile
 	$(CC) -c $(CLIENT_CFLAGS) $< -o $@
 
 ######################################################
