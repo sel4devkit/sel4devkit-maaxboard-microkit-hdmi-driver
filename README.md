@@ -1,10 +1,29 @@
 # SeL4 HDMI
 
-This repo contains the code for an SeL4 HDMI driver that supports the creation and the display of static and moving images. Double buffering has been implemented for moving images which means that whilst the current frame is being displayed, the next frame is being written to. In it's current state there is a visual glitch that is caused by the screen being redrawn each time the new buffer is displayed. This is more noticeable when the entire screen has changed (see example rotating_bars). 
+This repo contains the code for an SeL4 HDMI driver that can display a static or moving image. To display moving images, double buffering has been implemented. This means that whilst the current frame is being displayed, the next frame is being written to. In it's current state there is a visual glitch that is caused by the screen being redrawn each time the new buffer is displayed. This is more noticeable when the entire screen has changed (see example rotating_bars). 
 
-# Building firmware (uboot)
+# Building firmware
 
-TODO: potentially make another fork of uboot for firmware, if not explain what needs to be removed.
+In order to use this driver, the correct hdmi firmware needs to be flashed onto the maaxboard. The following repo can be used to build and flash uboot with the correct firmware:
+
+https://github.com/sel4-cap/maaxboard-uboot
+
+To ensure that the UBoot driver setup doesn't intefere with this driver, the following modifications need to be made.
+
+Change the setting to "n" for ```CONFIG_DM_VIDEO``` in uboot-imx/configs/maaxboard_defconfig
+
+``` CONFIG_DM_VIDEO=n```
+
+Change the status to disabled for hdmi in uboot-imx/arch/arm/dts/maaxboard.dts
+
+```
+&hdmi {
+	compatible = "fsl,imx8mq-hdmi";
+	status = "disabled";
+	...
+	}
+
+```
 
 # Building picolibc
 
