@@ -78,7 +78,7 @@ This API makes use of two Protection Domains (PD's).
 
 Each PD in microkit must implement ```init()``` and ```notified()```. In this project, the example implements ```init()``` which means that only one example can be built at a time.
 
-init() is responsible for making the call to initialise the api and to select if the current image will display a static or moving image. See ```static_image()``` and ```moving_image()``` defined in src/api/api.c.
+```init()``` is responsible for making the call to initialise the api and to select if the current image will display a static or moving image. See ```static_image()``` and ```moving_image()``` defined in src/api/api.c.
 
 These two functions take in a function pointer as an argument. This function pointer points to a function with no arguments and returns a ```display_config``` struct. In the examples this function is implemented as ```init_example()```. 
 
@@ -87,7 +87,7 @@ struct display_config init_example() {
 }
 ```
 
-The ```display_config``` struct is needs to be initialised so that the configuration settings can be sent to the dcss PD and so that the function to write to the frame buffer is defined. 
+The ```display_config``` struct needs to be initialised so that the configuration settings can be sent to the dcss PD and so that the function to write to the frame buffer is defined. 
 
 ```
 struct display_config {
@@ -102,7 +102,7 @@ The ```hdmi_data``` struct is used to store the configuration settings. The firs
 The following settings also need to be set in ```hdmi_data```
 
 * **rgb_format** - The ordering of the Red, Blue, Green and Alpha channels. See ```RGB_FORMAT``` in include/hdmi/hdmi_data.h.
-* **alpha_enable** - Whether or not the alpha channel is present. For an example use see the example static_image.
+* **alpha_enable** - Whether or not the alpha channel is present. See the example static_image.
 * **mode** - Whether or not the image is static or moving.
 * **ms_delay** - How long the each frame lasts for. For moving images, this is the time between the frame. For static images this is how long the image is displayed.
 
@@ -120,6 +120,6 @@ For moving images, global variables are used to keep track of frame data (see ex
 
 ### Empty client
 
-An empty example has been provided in empty_client/empty_client.c. To use the driver uncomment ```static_image()``` or ```moving_image()``` to choose the type of image you wish to see. Then implement init_static_example by initialising all fields of the ```hdmi_data``` struct. Then modify ```write_static_frame_buffer()``` with your desired image.
+An empty example has been provided in empty_client/empty_client.c. To use the driver uncomment ```static_image()``` or ```moving_image()``` to choose the type of image you wish to see. Then implement ```init_static_example()``` by initialising all fields of the ```hdmi_data``` struct. Then modify ```write_static_frame_buffer()``` or ```write_moving_frame_buffer()``` with your desired image.
 
 Modify empty_client/Makefile to add extra files or build configurations specific to the example.
