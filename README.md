@@ -51,7 +51,7 @@ This API contains the following examples
 * static_image - Displays 4 colour bars on the screen.
 * resolution_change - Displays a square of the same size in pixels one after another at three different resolutions.
 * rotating_bars - Displays 4 colour bars rotating across the screen.
-* moving_square - A small sqaure that moves around the screen, changing direction each time it hits the side of the screen.
+* moving_square - A small square that moves around the screen, changing direction each time it hits the side of the screen.
 
 To build the project use ./build.sh with an example as the first argument.
 
