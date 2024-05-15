@@ -1,10 +1,10 @@
 # SeL4 HDMI
 
-This repo contains the code for an SeL4 HDMI driver that can display a static or moving image. To display moving images, double buffering has been implemented. This means that whilst the current frame is being displayed, the next frame is being written to. In it's current state there is a visual glitch that is caused by the screen being redrawn each time the new buffer is displayed. This is more noticeable when the entire screen has changed (see example rotating_bars). 
+This repo contains the code for an SeL4 HDMI driver that can display a static or moving image. To display moving images, double buffering has been implemented. This means that whilst the current frame is being displayed, the next frame is being written to. Currently there is a visual glitch that is caused by the screen being redrawn each time the new buffer is displayed. This is more noticeable when the entire screen has changed (see example rotating_bars). 
 
 # Building firmware
 
-In order to use this driver, the correct hdmi firmware needs to be flashed onto the maaxboard. The following repo can be used to build and flash uboot with the correct firmware:
+To use this driver the correct hdmi firmware needs to be flashed onto the maaxboard. This can be achieved by using the following repo:
 
 https://github.com/sel4-cap/maaxboard-uboot
 
@@ -12,7 +12,7 @@ To ensure that the UBoot driver setup doesn't intefere with this driver, the fol
 
 Change the setting to "n" for ```CONFIG_DM_VIDEO``` in uboot-imx/configs/maaxboard_defconfig
 
-``` CONFIG_DM_VIDEO=n```
+```CONFIG_DM_VIDEO=n```
 
 Change the status to disabled for hdmi in uboot-imx/arch/arm/dts/maaxboard.dts
 
@@ -86,6 +86,7 @@ These two functions take in a function pointer as an argument. This function poi
 struct display_config init_example() {
 }
 ```
+
 The ```display_config``` struct is needs to be initialised so that the configuration settings can be sent to the dcss PD and so that the function to write to the frame buffer is defined. 
 
 ```
