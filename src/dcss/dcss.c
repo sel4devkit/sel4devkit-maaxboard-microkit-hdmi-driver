@@ -32,11 +32,6 @@ uint32_t* cache_frame_buffer_offset;
 
 struct hdmi_data *hdmi_config = NULL;
 
-// Included to stop error
-// char *__heap_start;
-// char *__heap_end;
-
-
 void init(void) {
 	
 	initialise_and_start_timer(timer_base);
@@ -47,8 +42,6 @@ void init(void) {
 
 	cache_frame_buffer_offset = (uint32_t*)(dma_base + CACHE_FRAME_BUFFER_ADDR_OFFSET);	
 	*cache_frame_buffer_offset = FRAME_BUFFER_TWO_OFFSET; 
-
-	// malloc(5);
 
 	init_gpc();
 }
@@ -79,7 +72,7 @@ protected(microkit_channel ch, microkit_msginfo msginfo) {
 			else {
 				printf("hdmi_data not configured properly in client PD\n");
 			}
-			return seL4_MessageInfo_new((uint64_t)hdmi_config,1,0,0); // what are the arguments?
+			return seL4_MessageInfo_new((uint64_t)hdmi_config,1,0,0);
 			break;
 		default:
 			printf("Unexpected channel id: %d in dcss::protected() \n", ch);
