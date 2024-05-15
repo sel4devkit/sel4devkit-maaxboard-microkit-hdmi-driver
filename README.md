@@ -1,12 +1,12 @@
-# SeL4 HDMI
+# sel4 HDMI
 
-This repo contains the code for an SeL4 HDMI driver that can display a static or moving image. To display moving images, double buffering has been implemented. This means that whilst the current frame is being displayed, the next frame is being written to. 
+This repo contains the code for an sel4 HDMI driver that can display a static or moving image. To display moving images, double buffering has been implemented. This means that whilst the current frame is being displayed, the next frame is being written to. 
 
 **For moving images, a visible redraw of the screen is seen when switching between frames. This is most noticeable when the entire screen has changed (see example rotating_bars).** 
 
 # Building firmware
 
-To use this driver the correct hdmi firmware needs to be flashed onto the maaxboard. This can be achieved by using the following repo:
+To use this driver the correct HDMI firmware needs to be flashed onto the maaxboard. This can be achieved by using the following repo:
 
 https://github.com/sel4-cap/maaxboard-uboot
 
@@ -16,7 +16,7 @@ Change the setting to "n" for ```CONFIG_DM_VIDEO``` in uboot-imx/configs/maaxboa
 
 ```CONFIG_DM_VIDEO=n```
 
-Change the status to disabled for hdmi in uboot-imx/arch/arm/dts/maaxboard.dts
+Change the status to disabled for HDMI in uboot-imx/arch/arm/dts/maaxboard.dts
 
 ```
 &hdmi {
@@ -69,7 +69,7 @@ For more information setting up an environment for creating Sel4 applications se
 
 # Using the API
 
-Microkit is used to create the SeL4 image for this project. For more information on SeL4 and microkit see https://github.com/seL4/microkit/blob/main/docs/manual.md
+Microkit is used to create the sel4 image for this project. For more information on sel4 and microkit see https://github.com/seL4/microkit/blob/main/docs/manual.md
 
 This API makes use of two Protection Domains (PD's). 
 
@@ -78,11 +78,11 @@ This API makes use of two Protection Domains (PD's).
 
 ### Initialising the client PD
 
-Each PD in microkit must implement ```init()``` and ```notified()```. In this project, the example implements ```init()``` which means that only one example can be built at a time.
+Only one example can be built at a time because each example handles the microkit setup by implementing ```init()``` and ```notified()``` 
 
 ```init()``` is responsible for making the call to initialise the api and to select if the current image will display a static or moving image. See ```static_image()``` and ```moving_image()``` defined in src/api/api.c.
 
-These two functions take in a function pointer as an argument. This function pointer points to a function with no arguments and returns a ```display_config``` struct. In the examples this function is implemented as ```init_example()```. 
+These two functions take in a function pointer as an argument. This function pointers type signature takes no arguments and returns a ```display_config``` struct. In the examples this function is implemented as ```init_example()```. 
 
 ```
 struct display_config init_example() {

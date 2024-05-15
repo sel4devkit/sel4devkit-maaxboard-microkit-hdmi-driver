@@ -56,7 +56,10 @@ enum MODE {
 /*
 	This struct holds the user defined display configurations that are set in the client PD and used in the DCSS PD to configure the maaxboard.
 	All those that are in capitals are used to set the VIC data. The other fields are used for extra display configurations. 
-*/
+
+	NOTE: if a delay time is chosen that is smaller than the time taken to switch frame buffer then the delay will not be run.
+	If the delay time is larger than the time taken to switch buffers, then it will subtract the elapsed time from the delay to ensure for
+	consistent time between frames. This time will depend on your system and the logic used to write to the frame buffer. */
 struct hdmi_data {
 
     int H_TOTAL;
