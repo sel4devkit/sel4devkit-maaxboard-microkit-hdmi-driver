@@ -1,6 +1,8 @@
 # SeL4 HDMI
 
-This repo contains the code for an SeL4 HDMI driver that can display a static or moving image. To display moving images, double buffering has been implemented. This means that whilst the current frame is being displayed, the next frame is being written to. Currently there is a visual glitch that is caused by the screen being redrawn each time the new buffer is displayed. This is more noticeable when the entire screen has changed (see example rotating_bars). 
+This repo contains the code for an SeL4 HDMI driver that can display a static or moving image. To display moving images, double buffering has been implemented. This means that whilst the current frame is being displayed, the next frame is being written to. 
+
+**For moving images, a visible redraw of the screen is seen when switching between frames. This is most noticeable when the entire screen has changed (see example rotating_bars).** 
 
 # Building firmware
 
