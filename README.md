@@ -76,9 +76,9 @@ This API makes use of two Protection Domains (PD's).
 
 ### Initialising the client PD
 
-Each PD in microkit must implement ```init()``` and ```notified()``` functions. In this project, the example implements the ```init()``` function, which means that only one example can be built at a time.
+Each PD in microkit must implement ```init()``` and ```notified()```. In this project, the example implements ```init()``` which means that only one example can be built at a time.
 
-The init function is responsible for making the call to initialise the api and to select if the current image will display a static or moving image. See ```static_image()``` and ```moving_image()``` defined in src/api/api.c.
+init() is responsible for making the call to initialise the api and to select if the current image will display a static or moving image. See ```static_image()``` and ```moving_image()``` defined in src/api/api.c.
 
 These two functions take in a function pointer as an argument. This function pointer points to a function with no arguments and returns a ```display_config``` struct. In the examples this function is implemented as ```init_example()```. 
 
