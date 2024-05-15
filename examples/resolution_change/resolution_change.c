@@ -21,7 +21,7 @@ void init(void) {
 	for (int i = 0; i < 3; i++) {
 		vic_mode = i;
 		static_image(init_example);
-		reset_static_image(10000);
+		reset_static_image();
 	}
 
 	reset_api();
@@ -52,7 +52,7 @@ struct display_config init_example() {
 	hd.rgb_format = RBGA;
 	hd.alpha_enable = ALPHA_OFF;
 	hd.mode = STATIC_IMAGE;
-	hd.ms_delay = NO_DELAY;
+	hd.ms_delay = 10000;
 
 	// Return struct containing the hdmi data and the function to write the frame buffer
 	struct display_config dc = {hd, &write_frame_buffer};

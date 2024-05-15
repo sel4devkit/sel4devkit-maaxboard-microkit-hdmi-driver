@@ -33,8 +33,9 @@ uint32_t* cache_frame_buffer_offset;
 struct hdmi_data *hdmi_config = NULL;
 
 // Included to stop error
-char *__heap_start;
-char *__heap_end;
+// char *__heap_start;
+// char *__heap_end;
+
 
 void init(void) {
 	
@@ -46,6 +47,8 @@ void init(void) {
 
 	cache_frame_buffer_offset = (uint32_t*)(dma_base + CACHE_FRAME_BUFFER_ADDR_OFFSET);	
 	*cache_frame_buffer_offset = FRAME_BUFFER_TWO_OFFSET; 
+
+	// malloc(5);
 
 	init_gpc();
 }

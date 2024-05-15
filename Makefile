@@ -37,20 +37,24 @@ CLIENT_OBJS		+=  api.o timer.o picolibc_link.o vic_table.o frame_buffer.o
 # define c flags and includes for the dcss protection domain 
 DCSS_INC := $(BOARD_DIR)/include include include/hdmi include/dcss include/util
 DCSS_INC_PARAMS=$(foreach d, $(DCSS_INC), -I$d)
-DCSS_CFLAGS := -mcpu=$(CPU) -mstrict-align  -nostdlib -nolibc -ffreestanding -g3 -O3 $(DCSS_WARNINGS) $(DCSS_INC_PARAMS) -I$(BOARD_DIR)/include --specs=picolibc/picolibc.specs -DSEL4 #-DSEL4_USB_DEBUG
+DCSS_CFLAGS := -mcpu=$(CPU) -mstrict-align  -nostdlib -nolibc -ffreestanding -g3 -O3 $(DCSS_WARNINGS) $(DCSS_INC_PARAMS) -I$(BOARD_DIR)/include --specs=picolibc/picolibc.specs
 
 # Define separate configuration for the client to avoid code bloat from unused includes
 CLIENT_INC += $(BOARD_DIR)/include include include/hdmi include/util include/api
 CLIENT_INC_PARAMS=$(foreach d, $(CLIENT_INC), -I$d)
-CLIENT_CFLAGS += -mcpu=$(CPU) -mstrict-align  -nostdlib -nolibc -ffreestanding -g3 -O3 $(CLIENT_WARNINGS) $(CLIENT_INC_PARAMS) -I$(BOARD_DIR)/include --specs=picolibc/picolibc.specs -DSEL4 #-DSEL4_USB_DEBUG
+CLIENT_CFLAGS += -mcpu=$(CPU) -mstrict-align  -nostdlib -nolibc -ffreestanding -g3 -O3 $(CLIENT_WARNINGS) $(CLIENT_INC_PARAMS) -I$(BOARD_DIR)/include --specs=picolibc/picolibc.specs
 
 # Microkit lib flags		// TODO move down
 LDFLAGS := -L$(BOARD_DIR)/lib
 CLIENT_LDFLAGS += -L$(BOARD_DIR)/lib
 
 # ideally we shouldn't need the -L path for libgcc
-DCSS_LIBS := -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc -Lpicolibc -lc  -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc 
-CLIENT_LIBS += -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc -Lpicolibc -lc  -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc 
+DCSS_LIBS := -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc -Lpicolibc -lc  picolibc/libc.a  -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc 
+CLIENT_LIBS += picolibc/libc.a  -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc -Lpicolibc -lc  -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc 
+
+
+# DCSS_LIBS := picolibc/libc.a -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc
+# CLIENT_LIBS += picolibc/libc.a  -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc
 
 # The images for each protetction domain
 IMAGES := dcss.elf client.elf
@@ -93,11 +97,11 @@ $(BUILD_DIR)/%.o: src/util/%.c Makefile
 
 # Create elf files for DCSS protection domain
 $(BUILD_DIR)/dcss.elf: $(addprefix $(BUILD_DIR)/, $(DCSS_OBJS))
-	$(LD) $(LDFLAGS) $^ $(DCSS_LIBS) -o $@
+	$(LD) $(LDFLAGS) $^ picolibc/libc.a $(DCSS_LIBS) -o $@
 
 # Create elf files for Client protection domain
 $(BUILD_DIR)/client.elf: $(addprefix $(BUILD_DIR)/, $(CLIENT_OBJS))
-	$(LD) $(CLIENT_LDFLAGS) $^ $(CLIENT_LIBS) -o $@
+	$(LD) $(CLIENT_LDFLAGS) $^ picolibc/libc.a $(CLIENT_LIBS) -o $@
 
 ######################################################
 

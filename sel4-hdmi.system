@@ -5,8 +5,11 @@
     <!-- Frame buffer memory -->
     <memory_region name="dma_pool" size="0x4000000"/>
 
-    <memory_region name="shared_heap" size="0x200_000"/>
-    <memory_region name="shared_heap_end" size="0x1000"/>
+    <!-- <memory_region name="shared_heap_dcss" size="0x200_000"/>
+    <memory_region name="shared_heap_dcss_end" size="0x1000"/> -->
+
+    <memory_region name="shared_heap_client" size="0x200_000"/>
+    <memory_region name="shared_heap_client_end" size="0x1000"/>
     
     <!-- modify THESE physical addresses and sizes to match desired device.
     Default values are associated with the avnet MaaXBoard (This size needs to reflect what is in the document)-->
@@ -26,8 +29,8 @@
         <map mr="ccm_mem" vaddr="0x30380000" perms="rw" cached="false" setvar_vaddr="ccm_base"/>
         <map mr="hdmi_mem" vaddr="0x32c00000" perms="rw" cached="false" setvar_vaddr="hdmi_base"/>
         <map mr="timer_mem" vaddr="0x306c0000" perms="rw" cached="false" setvar_vaddr="timer_base"/>
-        <map mr="shared_heap" vaddr="0x5a00000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
-        <map mr="shared_heap_end" vaddr="0x5bf0000" perms="rw" cached="false" setvar_vaddr="__heap_end"/>
+        <!-- <map mr="shared_heap_dcss" vaddr="0x5a00000" perms="rw" cached="true" setvar_vaddr="__heap_start"/>
+        <map mr="shared_heap_dcss_end" vaddr="0x5bf0000" perms="rw" cached="true" setvar_vaddr="__heap_end"/> -->
         <setvar symbol="dma_base_paddr" region_paddr="dma_pool" />
         <program_image path="dcss.elf" />
     </protection_domain>
@@ -37,8 +40,8 @@
     <protection_domain name="client" pp="true" priority="248">
         <map mr="dma_pool" vaddr="0x50000000" perms="rw" cached="false" setvar_vaddr="dma_base"/>
         <map mr="timer_mem" vaddr="0x306c0000" perms="rw" cached="false" setvar_vaddr="timer_base"/>
-        <map mr="shared_heap" vaddr="0x5a00000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
-        <map mr="shared_heap_end" vaddr="0x5bf0000" perms="rw" cached="false" setvar_vaddr="__heap_end"/>
+        <map mr="shared_heap_client" vaddr="0x5c00000" perms="rw" cached="false" setvar_vaddr="__heap_start"/>
+        <map mr="shared_heap_client_end" vaddr="0x5df0000" perms="rw" cached="false"/>
         <program_image path="client.elf" />
     </protection_domain>
 

@@ -46,7 +46,7 @@ if [ -z "$2" ]; then
 
 elif [ $2 = "c" ] ; then
 
-    export MICROKIT_DIR="$HOME/dev/microkit/mk-manifest/microkit" #! change this to microkit directory
+    export MICROKIT_DIR="$HOME/dev/microkit/mk-manifest/microkit"
     export MICROKIT_SDK="$MICROKIT_DIR/release/microkit-sdk-1.2.6"
     export PATH="$MICROKIT_DIR/../compiler/bin:$PATH"
     

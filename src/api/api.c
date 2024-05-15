@@ -63,13 +63,12 @@ void static_image(struct display_config (*init_func)()) {
 
 	// Send the hdmi data to the dcss PD to initialise the DCSS
 	microkit_ppcall(0, seL4_MessageInfo_new((uint64_t)hd, 1, 0, 0));
+
+	ms_delay(hd->ms_delay);
 }
 
-void reset_static_image(int ms) {
+void reset_static_image() {
 
-	// How long the example is shown for
-	ms_delay(ms);
-	
 	// Clear the frame buffer
 	clear_current_frame_buffer(hd);
 

@@ -16,11 +16,9 @@ void init(void) {
 	init_api();
 
 	/* Write a static image by writing the display configurations in init_static_example() and using
-	   write_static_frame_buffer() to write the frame buffer. Replace MS_DELAY to choose a length of time
-	   for the example to be displayed for */
+	   write_static_frame_buffer() to write the frame buffer. */
 
 	// static_image(init_static_example);
-	// reset_static_image(MS_DELAY);
 
 	/* Write a moving image by writing the display configurations in init_moving_example() and using
 	   write_moving_frame_buffer() to write the frame buffer.*/
@@ -38,7 +36,6 @@ struct display_config init_static_example() {
 	/* Return struct containing the hdmi data and the function to write the frame buffer */
 	struct display_config dc = {hd, &write_static_frame_buffer};
 	return dc;
-
 }
 
 void write_static_frame_buffer(struct hdmi_data* hd){

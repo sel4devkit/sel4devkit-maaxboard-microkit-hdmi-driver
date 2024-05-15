@@ -1,0 +1,22 @@
+{
+    "cmake.sourceDirectory": "/home/tom/dev/sel4/sel4-hdmi/picolibc/picolibc",
+    "files.associations": {
+        "api_general.h": "c",
+        "stdlib.h": "c",
+        "timer.h": "c",
+        "vic_table.h": "c",
+        "frame_buffer.h": "c",
+        "stdio.h": "c",
+        "example_client.h": "c",
+        "dma_offsets.h": "c",
+        "hdmi_data.h": "c",
+        "compare": "c",
+        "api_example_1.h": "c",
+        "resolution_change.h": "c",
+        "write_register.h": "c",
+        "util.h": "c",
+        "dtg.h": "c",
+        "string.h": "c",
+        "stdint.h": "c"
+    }
+}
