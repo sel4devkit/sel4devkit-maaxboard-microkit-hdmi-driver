@@ -8,11 +8,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// 15.7.3.1.2 System Control 0 (SYSTEM_CTRL0)
 #define RUN_EN 0
 #define REPEAT_EN 2
 #define SHADOW_LOAD_EN 3
 #define SW_SHADOW_LOAD_SEL 4
-
 
 void write_dpr_memory_registers(uintptr_t dcss_base, uintptr_t dma_base, struct hdmi_data *hdmi_config) {
 	

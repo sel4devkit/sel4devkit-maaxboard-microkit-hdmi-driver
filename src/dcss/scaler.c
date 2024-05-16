@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// 15.8.3.1.2 Scale Control Register (SCALE_CTRL)
 #define RUN_EN 0
 #define ENABLE_REPEAT 4
-
 
 void write_scaler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config) {
 
