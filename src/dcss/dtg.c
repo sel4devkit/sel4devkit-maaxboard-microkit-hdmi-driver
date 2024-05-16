@@ -26,20 +26,18 @@
 void write_dtg_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config) {
 
 	write_register((uint32_t*)(dcss_base + TC_DTG_REG1),
-		    (((hdmi_config->TYPE_EOF + hdmi_config->SOF +  hdmi_config->VSYNC + hdmi_config->V_ACTIVE -
-		       1) << 16) | (hdmi_config->FRONT_PORCH + hdmi_config->BACK_PORCH + hdmi_config->HSYNC+
-			hdmi_config->H_ACTIVE - 1)));
+			(((hdmi_config->V_TOTAL - 1) << 16) | (hdmi_config->H_TOTAL - 1)));
 	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG2),
 		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF -
 		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
 	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG3),
-		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF + hdmi_config->V_ACTIVE -
+		    ((( hdmi_config->V_TOTAL -
 		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
 	write_register((uint32_t*)(dcss_base + TC_CH1_REG4),
 		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF -
 		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
 	write_register((uint32_t*)(dcss_base + TC_CH1_REG5),
-		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF + hdmi_config->V_ACTIVE -
+		    ((( hdmi_config->V_TOTAL -
 		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
 
 	write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);
