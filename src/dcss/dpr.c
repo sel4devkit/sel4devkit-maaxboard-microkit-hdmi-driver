@@ -20,7 +20,7 @@ void write_dpr_memory_registers(uintptr_t dcss_base, uintptr_t dma_base, struct 
 	uintptr_t* fb_2 =  getPhys((void*) (dma_base + FRAME_BUFFER_TWO_OFFSET));
 
     write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0), (uintptr_t)fb_1); // The address of the frame buffer
-    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x2); 
+    write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_CTRL0), 0x2); // Set 256 bytes per prefetch request
     write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_X_CTRL), hdmi_config->H_ACTIVE);
 	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_1P_PIX_Y_CTRL), hdmi_config->V_ACTIVE);
 	write_register((uint32_t*)(dcss_base + DPR_1_FRAME_CTRL0), ((hdmi_config->H_ACTIVE * 4) << 16));
