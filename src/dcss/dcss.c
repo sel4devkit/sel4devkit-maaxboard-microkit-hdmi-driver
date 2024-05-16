@@ -5,7 +5,6 @@
 
 #include <microkit.h>
 
-
 #include "dcss.h"
 #include "dma.h"
 #include "hdmi_data.h"
@@ -94,21 +93,21 @@ void init_dcss() {
 
 void init_ccm() {
 
-	write_register((uint32_t*)(ccm_base + CCM_CCGR93_SET), 0x3);
-	write_register((uint32_t*)(gpc_base + GPC_PGC_CPU_0_1_MAPPING), 0xffff); 
-	write_register((uint32_t*)(gpc_base + GPC_PU_PGC_SW_PUP_REQ), 0x1 << 10);
+	write_register((uint32_t*)(ccm_base + CCM_CCGR93_SET), 0x3); // Set domain clocks to always needed
+	write_register((uint32_t*)(gpc_base + GPC_PGC_CPU_0_1_MAPPING), 0xffff);  // Set all domains 
+	write_register((uint32_t*)(gpc_base + GPC_PU_PGC_SW_PUP_REQ), 0x400); // Software power up trigger for DISP
 }
 
 void init_gpc() {
 
-	write_register((uint32_t*)(ccm_base + CCM_TARGET_ROOT20), 0x12000000); 
-	write_register((uint32_t*)(ccm_base + CCM_TARGET_ROOT22), 0x11010000);
+	write_register((uint32_t*)(ccm_base + CCM_TARGET_ROOT20), 0x12000000); // Enable clock and select sources
+	write_register((uint32_t*)(ccm_base + CCM_TARGET_ROOT22), 0x11010000); // Enable clock, select sources and set divider
 }
 
 void reset_dcss(){
 	
-	write_register((uint32_t*)(dcss_blk_base), 0xffffffff);
-	write_register((uint32_t*)(dcss_blk_base + CONTROL0), 0x1);
+	write_register((uint32_t*)(dcss_blk_base), 0xffffffff); // Reset all
+	write_register((uint32_t*)(dcss_blk_base + CONTROL0), 0x1); // Writing to reserved memory registers is needed
 	write_register((uint32_t*)(dcss_base +  TC_CONTROL_STATUS), 0); 
 	write_register((uint32_t*)(dcss_base +  SCALE_CTRL), 0);
 	write_register((uint32_t*)(dcss_base +  SCALE_OFIFO_CTRL), 0);
@@ -117,15 +116,8 @@ void reset_dcss(){
 	write_register((uint32_t*)(dcss_base +  SS_SYS_CTRL), 0);
 }
 
-void write_dtrc_memory_registers() {
-    
-    write_register((uint32_t*)(dcss_base + DTCTRL_CHAN2), 0x2);
-    write_register((uint32_t*)(dcss_base + DTCTRL_CHAN3), 0x2);
-}
-
 void write_dcss_memory_registers() {
 
-	write_dtrc_memory_registers(dcss_base, hdmi_config);
 	write_dpr_memory_registers(dcss_base, dma_base, hdmi_config);
 	write_scaler_memory_registers(dcss_base, hdmi_config);
 	write_sub_sampler_memory_registers(dcss_base, hdmi_config);
