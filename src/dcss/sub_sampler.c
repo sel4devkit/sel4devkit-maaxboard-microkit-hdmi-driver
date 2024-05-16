@@ -7,11 +7,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#define COEFF 0x21612161
+
 void write_sub_sampler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config) {
 
-	write_register((uint32_t*)(dcss_base + SS_COEFF), 0x21612161);
-	write_register((uint32_t*)(dcss_base + SS_CLIP_CB), 0x03ff0000);
-	write_register((uint32_t*)(dcss_base + SS_CLIP_CR), 0x03ff0000);
+	write_register((uint32_t*)(dcss_base + SS_COEFF), COEFF);
+	write_register((uint32_t*)(dcss_base + SS_CLIP_CB), 0x3ff << 16); // Set max value for cb clipping function
+	write_register((uint32_t*)(dcss_base + SS_CLIP_CR), 0x3ff << 16); // Set max value for cr clipping function
 
 	write_register((uint32_t*)(dcss_base + SS_DISPLAY),
 		    (((hdmi_config->TYPE_EOF + hdmi_config->SOF +  hdmi_config->VSYNC +
@@ -31,5 +33,5 @@ void write_sub_sampler_memory_registers(uintptr_t dcss_base, struct hdmi_data *h
 		    (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
 
 	write_register((uint32_t*)(dcss_base + SS_MODE), 0x0);
-	write_register((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x1);
+	write_register((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x1); // Enable sub sampler
 }
