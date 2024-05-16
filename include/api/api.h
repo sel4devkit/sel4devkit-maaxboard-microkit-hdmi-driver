@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __API_H__
 #define __API_H__
 

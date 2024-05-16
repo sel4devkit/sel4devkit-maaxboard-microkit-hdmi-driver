@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __DOUBLE_BUFFER_H__
 #define __DOUBLE_BUFFER_H__
 

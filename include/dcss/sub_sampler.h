@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __SUB_SAMPLER_H__
 #define __SUB_SAMPLER_H__
 

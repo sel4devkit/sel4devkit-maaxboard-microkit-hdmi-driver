@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -21,6 +23,7 @@ int frame_count = 0;
 void (*write_fb)(struct hdmi_data*);
 
 void init_api() {
+	
 	// Allocate memory to hold the hdmi data
 	hd = malloc(sizeof(struct hdmi_data));
 

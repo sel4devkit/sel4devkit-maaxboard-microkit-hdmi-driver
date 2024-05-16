@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __MOVING_SQUARE_H__
 #define __MOVING_SQUARE_H__
 

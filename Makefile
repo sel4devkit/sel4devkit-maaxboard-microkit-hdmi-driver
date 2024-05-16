@@ -1,3 +1,5 @@
+# This work is Crown Copyright NCSC, 2024.
+
 # REQUIRED FOR FUNCTIONALITY
 ifeq ($(strip $(BUILD_DIR)),)
 $(error BUILD_DIR must be specified)

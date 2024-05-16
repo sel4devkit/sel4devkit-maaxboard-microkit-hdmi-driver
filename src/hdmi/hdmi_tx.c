@@ -6,6 +6,8 @@
 #include <inttypes.h>
 #include <address.h>
 #include <externs.h>
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include <API_HDMITX.h>
 #include <source_phy.h> 
 #include <API_AVI.h>
@@ -21,7 +23,7 @@ void init_hdmi(struct hdmi_data *hdmi_config) {
 	if (api_status == CDN_OK) {
 		uint32_t phy_frequency = phy_cfg_t28hpc(4, hdmi_config->PIXEL_FREQ_KHZ, bits_per_pixel, pixel_encoding_format, 1);
 		hdmi_tx_t28hpc_power_config_seq(4);
-		api_status = call_api(phy_frequency, pixel_encoding_format, bits_per_pixel, hdmi_config); // TODO: handle the return
+		api_status = call_api(phy_frequency, pixel_encoding_format, bits_per_pixel, hdmi_config);
 	}
 
 	if (api_status != CDN_OK) {

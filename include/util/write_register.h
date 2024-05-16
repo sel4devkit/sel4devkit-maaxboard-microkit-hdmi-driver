@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __WRITE_REGISTER_H__
 #define __WRITE_REGISTER_H__
 

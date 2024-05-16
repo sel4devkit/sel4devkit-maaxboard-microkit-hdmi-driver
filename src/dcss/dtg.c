@@ -1,9 +1,12 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include "dtg.h"
 #include "write_register.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
+// 15.3.3.1.2 Timing Controller Control Register (TC_CONTROL_STATUS)
 #define TC_OVERLAY_PATH_ENABLE 2
 #define TC_BLENDER_VIDEO_ALPHA_SELECT 7
 #define TC_GO 8
@@ -62,6 +65,6 @@ void write_dtg_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_conf
 	*ctrl_status = set_bit(*ctrl_status, TC_BLENDER_VIDEO_ALPHA_SELECT);
 	
 	if (hdmi_config->alpha_enable == ALPHA_ON) {
-		*ctrl_status = set_bit(*ctrl_status, TC_CH1_PER_PEL_ALPHA_SEL); // enable alpha
+		*ctrl_status = set_bit(*ctrl_status, TC_CH1_PER_PEL_ALPHA_SEL);
 	}
 }

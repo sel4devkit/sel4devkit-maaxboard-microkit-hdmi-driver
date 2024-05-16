@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -12,7 +14,7 @@
 #define API_EXAMPLE_2_SIDE_LENGTH 300
 #define RBGA_GREEN 0x00ff0000
 
-int vic_mode = 1;
+int vic_mode = 1; // Must only be values 0-2
 
 void init(void) {
 	
@@ -29,8 +31,6 @@ void init(void) {
 
 
 struct display_config init_example() {
-
-    // TODO: make safer, v mode could exceed array size.
 
 	struct hdmi_data hd;
 	hd.FRONT_PORCH = vic_table[vic_mode][FRONT_PORCH];
@@ -59,7 +59,7 @@ struct display_config init_example() {
 	return dc;
 }
 
-void write_frame_buffer(struct hdmi_data* hd) { // pass in hdmi config
+void write_frame_buffer(struct hdmi_data* hd) {
 	
 	printf("Writing function api 2\n");
 	

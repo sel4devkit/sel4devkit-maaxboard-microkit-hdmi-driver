@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __STATIC_IMAGE_H__
 #define __STATIC_IMAGE_H__
 

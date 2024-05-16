@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -52,8 +54,7 @@ struct display_config init_example() {
 	return dc;
 }
 
-
-void write_frame_buffer(struct hdmi_data* hd) { // pass in hdmi config
+void write_frame_buffer(struct hdmi_data* hd) {
 	
 	printf("Writing function api 1\n");
 	

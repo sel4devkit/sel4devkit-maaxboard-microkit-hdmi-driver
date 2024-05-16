@@ -1,3 +1,4 @@
+/* This work is Crown Copyright NCSC, 2024. */
 
 #include "dma_offsets.h"
 #include "context_loader.h"
@@ -23,14 +24,14 @@
 #define ARB_SEL 1
 #define ENABLE 0
 
-int context = 0; // This keeps track of the current context. TODO: An alternative to global counter?
+int context = 0; // This keeps track of the current context.
 
 void init_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_data *hdmi_config, uint32_t* active_frame_buffer_offset, uint32_t* cache_frame_buffer_offset) {
 
 	// Steps 1 and 2 of 15.4.2.2 Display state loading sequence are done here as the double buffered registers do not need to change what they contain.
 	// So it should only be written once.
     
-	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);                           // get do this before and pass it in.
+	uintptr_t* frame_buffer1_addr = getPhys((void*)dma_base);   
 	uintptr_t* frame_buffer2_addr = getPhys((void*)dma_base + FRAME_BUFFER_TWO_OFFSET);
 
 	/*  
@@ -39,7 +40,7 @@ void init_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_da
 		the DPR memory register where the frame buffer will be set in the second 32 bits. 
 		See 15.4.2.3 System Memory Display state format
 	*/
-	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + CTX_LD_CTX_LDE_ADDR); 	
+	uint32_t* ctx_ld_db1_addr = (uint32_t*)(dma_base + CTX_LD_DB_ONE_ADDR); 	
 	*ctx_ld_db1_addr = (uintptr_t)frame_buffer1_addr;							
 	ctx_ld_db1_addr++; 															
 	*ctx_ld_db1_addr = dcss_base + DPR_1_FRAME_1P_BASE_ADDR_CTRL0; 
@@ -64,7 +65,7 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	*enable_status = set_bit(*enable_status, ARB_SEL);
 
 	// Set the context offset in memory for the current frame buffer to display
-	int contex_offset = (context == 0) ? CTX_LD_CTX_LDE_ADDR : CTX_LD_DB_TWO_ADDR;
+	int contex_offset = (context == 0) ? CTX_LD_DB_ONE_ADDR : CTX_LD_DB_TWO_ADDR;
 
 	// STEP 3 waiting until its idle (it will almost definitely just be idle already, but this is here just to follow the spec)
 	int context_ld_enabled = read_bit(*enable_status, ENABLE);
@@ -81,7 +82,7 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	
 	// STEP 5 Set the context loader status to enable
 	// Set the enable status bit to 1 to kickstart process.
-	*enable_status = set_bit(*enable_status, ENABLE);							// FIX: Switching the context is what causes the tear.														
+	*enable_status = set_bit(*enable_status, ENABLE);												
 	context_ld_enabled = read_bit(*enable_status, ENABLE); 
 	
 	// Poll contiously until context loader is not being used.
@@ -98,7 +99,6 @@ void run_context_loader(uintptr_t dma_base, uintptr_t dcss_base, struct hdmi_dat
 	// Notify the client to draw the frame buffer
 	microkit_notify(52);
 	int time_elapsed = stop_timer();
-	// printf("Time elapsed = %d\n", time_elapsed);
 
 	if (hdmi_config->ms_delay != NO_DELAY) {
 		int delay_time = hdmi_config->ms_delay - time_elapsed;

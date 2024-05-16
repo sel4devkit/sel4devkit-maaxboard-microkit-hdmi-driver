@@ -1,9 +1,10 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include "frame_buffer.h"
 #include <microkit.h>
 #include "dma_offsets.h"
 
 #include <stdio.h>
-//#include <stddef.h>
 #include <stdlib.h>
 
 uintptr_t dma_base; 
@@ -46,8 +47,6 @@ uint64_t* get_cache_frame_buffer_uint64(){
 
 
 void clear_current_frame_buffer(struct hdmi_data* hd) {
-	
-	printf("clearing buffer\n");
 	
 	uint64_t* frame_buffer_addr = get_active_frame_buffer_uint64();
 

@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include "dpr.h"
 #include "write_register.h"
 #include "dma.h"

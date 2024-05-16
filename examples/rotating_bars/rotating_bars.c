@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>

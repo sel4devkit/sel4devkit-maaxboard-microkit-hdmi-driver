@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# This work is Crown Copyright NCSC, 2024.
 
 export MICROKIT_BOARD="maaxboard"
 export MICROKIT_CONFIG="debug"

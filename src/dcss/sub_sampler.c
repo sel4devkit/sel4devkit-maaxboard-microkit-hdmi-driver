@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include "sub_sampler.h"
 #include "write_register.h"
 

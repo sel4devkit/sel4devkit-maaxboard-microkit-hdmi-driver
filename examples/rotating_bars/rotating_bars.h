@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __ROTATING_BARS_H__
 #define __ROTATING_BARS_H__
 

@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __HDMI_DATA_H__
 #define __HDMI_DATA_H__
 
@@ -44,13 +46,12 @@ enum ALPHA_ENABLE {
 };
 
 /*
-	These values are different types of 
+	For the different modes, static or moving image. 
 */
 enum MODE {
 
 	STATIC_IMAGE,
 	MOVING_IMAGE
-
 };
 
 /*

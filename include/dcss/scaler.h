@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __SCALER_H__
 #define __SCALER_H__
 

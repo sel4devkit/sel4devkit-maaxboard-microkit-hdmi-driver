@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __EMPTY_CLIENT_H__
 #define __EMPTY_CLIENT_H__
 

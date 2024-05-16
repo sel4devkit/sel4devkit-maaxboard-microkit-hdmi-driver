@@ -1,4 +1,5 @@
-/* This work is Crown Copyright NCSC, 2023. */
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include <stdint.h>
 
 void initialise_and_start_timer(uintptr_t);

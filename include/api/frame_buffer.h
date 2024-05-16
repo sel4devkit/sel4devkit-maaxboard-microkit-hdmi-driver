@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __FRAME_BUFFER_H__
 #define __FRAME_BUFFER_H__
 

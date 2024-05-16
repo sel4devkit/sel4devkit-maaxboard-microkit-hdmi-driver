@@ -1,4 +1,6 @@
  
+/* This work is Crown Copyright NCSC, 2024. */
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -18,7 +20,6 @@
 #define RBGA_BLACK 0x00000000
 
 #define LIMIT_NOT_SET -5
-
 
 enum Direction {
 
@@ -41,7 +42,7 @@ struct square_positions {
 struct square_positions square_pos[4] = {{ 1, 1, LIMIT_NOT_SET, LIMIT_NOT_SET, DOWN_LEFT,  UP_RIGHT}, 	// Down right
 										 {-1, 1, -1, 			LIMIT_NOT_SET, DOWN_RIGHT, UP_LEFT}, 	// Down left
 										 { 1,-1, LIMIT_NOT_SET, -1, 		   UP_LEFT,    DOWN_RIGHT},	// Up right
-										 {-1,-1, -1, -1, 		   UP_RIGHT,   DOWN_LEFT}};	// Up Left
+										 {-1,-1, -1, -1, 		   UP_RIGHT,   DOWN_LEFT}};				// Up Left
 
 // Set these in the init_example_function()
 int y_pos = 300;
@@ -61,9 +62,9 @@ void init(void) {
 	moving_image(init_example);
 }
 
-struct display_config init_example()  {	// example set up - 
+struct display_config init_example()  {
 
-	int v_mode = 0; // here for debugging to try different display configs
+	int v_mode = 0;
 
    	struct hdmi_data hd;
 
@@ -105,7 +106,7 @@ struct display_config init_example()  {	// example set up -
 
 int current_fb = 0;
 
-void write_frame_buffer(struct hdmi_data* hd) { // pass in hdmi config
+void write_frame_buffer(struct hdmi_data* hd) {
 	
 	if (hd == NULL){
 		printf("hdmi data not yet set, cannot write frame buffer.\n;");

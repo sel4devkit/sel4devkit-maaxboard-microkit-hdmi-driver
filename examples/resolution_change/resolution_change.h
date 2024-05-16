@@ -1,3 +1,5 @@
+/* This work is Crown Copyright NCSC, 2024. */
+
 #ifndef __RESOLUTION_CHANGE_H__
 #define __RESOLUTION_CHANGE_H__
 
