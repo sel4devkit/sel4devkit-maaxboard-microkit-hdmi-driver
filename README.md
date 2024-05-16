@@ -1,10 +1,10 @@
-# sel4 HDMI
+# seL4 HDMI Driver
 
-This repo contains the code for an sel4 HDMI driver that can display a static or moving image. To display moving images, double buffering has been implemented. This means that whilst the current frame is being displayed, the next frame is being written to. 
+This repo contains an sel4 HDMI driver that is compatible with NXP devices that use the Display Controller Subsystem (DCSS) e.g imx8m. To display moving images, double buffering has been implemented. This means that whilst the current frame is being displayed, the next frame is being written to. 
 
 **For moving images, a visible redraw of the screen is seen when switching between frames. This is most noticeable when the entire screen has changed (see example rotating_bars).** 
 
-# Building firmware
+# Building boot loader and firmware
 
 To use this driver the correct HDMI firmware needs to be flashed onto the maaxboard. This can be achieved by using the following repo:
 
@@ -35,13 +35,13 @@ This project requires pibolibc which can be built from this repo
 cd picolibc
 ./build-picolibc.sh
 ```
-Alternatively picolibc can be built from https://github.com/sel4-cap/picolibc.git
+Alternatively picolibc can be built from https://github.com/seL4-cap/picolibc.git
 
 Then from within the repo copy the required files into the picolibc directory.
 
 ```
-sudo cp picolib-microkit/newlib/libc.a path-to-sel4-hdmi/picolibc
-sudo cp picolib-microkit/picolibc.specs path-to-sel4-hdmi/picolibc
+sudo cp picolib-microkit/newlib/libc.a path-to-seL4-hdmi/picolibc
+sudo cp picolib-microkit/picolibc.specs path-to-seL4-hdmi/picolibc
 ```
 
 # Building the project
@@ -57,21 +57,21 @@ To build the project use ./build.sh with an example as the first argument.
 
 ```./build.sh static_image ```
 
-It is recommended to use a prebuilt docker image to build this project. This can be found at: https://github.com/sel4-cap/microkit-maaxboard-dockerfiles
+It is recommended to use a prebuilt docker image to build this project. This can be found at: https://github.com/seL4-cap/microkit-maaxboard-dockerfiles
 
-You can use your own custom configuration by providing "c" as the second argument. For example, the custom configuration in the build script currently is set up to be run in an environment set up by microkit manifest: https://github.com/sel4-cap/microkit-manifest.
+You can use your own custom configuration by providing "c" as the second argument. For example, the custom configuration in the build script currently is set up to be run in an environment set up by microkit manifest: https://github.com/seL4-cap/microkit-manifest.
 
 ```./build.sh static_image c```
 
 This will create the loader.img file that will need to be loaded into the maaxboard. The name of this can be changed in the top level Makefile.
 
-For more information setting up an environment for creating Sel4 applications see https://github.com/sel4devkit.
+For more information setting up an environment for creating seL4 applications see https://github.com/seL4devkit.
 
 # Using the API
 
-Microkit is used to create the sel4 image for this project. For more information on sel4 and microkit see https://github.com/seL4/microkit/blob/main/docs/manual.md
+Microkit is used to create the seL4 image for this project. For more information on seL4 and microkit see https://github.com/seL4/microkit/blob/main/docs/manual.md
 
-This API makes use of two Protection Domains (PD's). 
+This API makes use of two Protection Domains (PD). 
 
 * **dcss** - This PD is responsible for the set up of the driver and the configuration of the Display Controller Subsystem (DCSS) and the HDMI TX controller.
 * **client** - This PD is responsible for the api and writing to the frame buffer. 
@@ -125,3 +125,12 @@ For moving images, global variables are used to keep track of frame data (see ex
 An empty example has been provided in empty_client/empty_client.c. To use the driver uncomment ```static_image()``` or ```moving_image()``` to choose the type of image you wish to see. Then implement ```init_static_example()``` by initialising all fields of the ```hdmi_data``` struct. Then modify ```write_static_frame_buffer()``` or ```write_moving_frame_buffer()``` with your desired image.
 
 Modify empty_client/Makefile to add extra files or build configurations specific to the example.
+
+# Attempted solutions for the HDMI syncing issue
+
+# To do
+
+* Add logging system to replace printf.
+* Intergrate DMA library.
+* Investigate the configuration issue when using https://github.com/sel4-cap/maaxboard-uboot without modification.
+* Add additional branch to https://github.com/sel4-cap/maaxboard-uboot so that no modifications need to be made to run the project.
