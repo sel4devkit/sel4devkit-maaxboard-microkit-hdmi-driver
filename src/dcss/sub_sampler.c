@@ -33,5 +33,5 @@ void write_sub_sampler_memory_registers(uintptr_t dcss_base, struct hdmi_data *h
 	write_register((uint32_t*)(dcss_base + SS_DE_LRC),((de_lrc_y << 16) | de_lrc_x));
 
 	write_register((uint32_t*)(dcss_base + SS_MODE), 0x0);
-	write_register((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x1); // Enable sub sampler
+	write_register((uint32_t*)(dcss_base + SS_SYS_CTRL), 0x1); // Enable subsampler
 }

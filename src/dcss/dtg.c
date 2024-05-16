@@ -25,8 +25,8 @@
 
 void write_dtg_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config) {
 
-	write_register((uint32_t*)(dcss_base + TC_DTG_REG1),
-			(((hdmi_config->V_TOTAL - 1) << 16) | (hdmi_config->H_TOTAL - 1)));
+	// 15.3.2.4 DTG Programming Example
+	write_register((uint32_t*)(dcss_base + TC_DTG_REG1),(((hdmi_config->V_TOTAL - 1) << 16) | (hdmi_config->H_TOTAL - 1)));
 	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG2),
 		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF -
 		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
