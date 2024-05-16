@@ -26,21 +26,21 @@
 void write_dtg_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_config) {
 
 	// 15.3.2.4 DTG Programming Example
-	write_register((uint32_t*)(dcss_base + TC_DTG_REG1),(((hdmi_config->V_TOTAL - 1) << 16) | (hdmi_config->H_TOTAL - 1)));
+	write_register((uint32_t*)(dcss_base + TC_DTG_REG1),(((hdmi_config->v_total - 1) << 16) | (hdmi_config->h_total - 1)));
 	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG2),
-		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF -
-		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
+		    ((( hdmi_config->vsync + hdmi_config->v_front_porch + hdmi_config->v_back_porch -
+		       1) << 16) | (hdmi_config->hsync+ hdmi_config->h_back_porch - 1)));
 	write_register((uint32_t*)(dcss_base + TC_DISPLAY_REG3),
-		    ((( hdmi_config->V_TOTAL -
-		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
+		    ((( hdmi_config->v_total -
+		       1) << 16) | (hdmi_config->hsync+ hdmi_config->h_back_porch + hdmi_config->h_active - 1)));
 	write_register((uint32_t*)(dcss_base + TC_CH1_REG4),
-		    ((( hdmi_config->VSYNC + hdmi_config->TYPE_EOF + hdmi_config->SOF -
-		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH - 1)));
+		    ((( hdmi_config->vsync + hdmi_config->v_front_porch + hdmi_config->v_back_porch -
+		       1) << 16) | (hdmi_config->hsync+ hdmi_config->h_back_porch - 1)));
 	write_register((uint32_t*)(dcss_base + TC_CH1_REG5),
-		    ((( hdmi_config->V_TOTAL -
-		       1) << 16) | (hdmi_config->HSYNC+ hdmi_config->BACK_PORCH + hdmi_config->H_ACTIVE - 1)));
+		    ((( hdmi_config->v_total -
+		       1) << 16) | (hdmi_config->hsync+ hdmi_config->h_back_porch + hdmi_config->h_active - 1)));
 
-	write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10), 0x000b000a);
+	write_register((uint32_t*)(dcss_base + TC_CTX_LD_REG10),((0xb << 16) | (0xa))); // Context loader x y coordinates
 
 	uint32_t* ctrl_status = (uint32_t*)(dcss_base + TC_CONTROL_STATUS);
 

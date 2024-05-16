@@ -63,23 +63,23 @@ enum MODE {
 	consistent time between frames. This time will depend on your system and the logic used to write to the frame buffer. */
 struct hdmi_data {
 
-    int H_TOTAL;
-	int H_ACTIVE;
-	int H_BLANK;
-	int HSYNC;
-	int FRONT_PORCH;
-	int BACK_PORCH;
-	int V_TOTAL;
-	int V_ACTIVE;
-	int VSYNC;
-	int TYPE_EOF;
-	int SOF;
-	int PIXEL_FREQ_KHZ;
-	int HSYNC_POL;
-	int VSYNC_POL;
-	int VIC_R3_0;
-	int VIC_PR;
-	int VIC;
+    int h_total;
+	int h_active;
+	int h_blank;
+	int hsync;
+	int h_front_porch;// change eof to vfront and sof to vback
+	int h_back_porch;
+	int v_total;
+	int v_active;
+	int vsync;
+	int v_front_porch;
+	int v_back_porch;
+	int pixel_frequency_khz;
+	int hsync_pol;
+	int vsync_pol;
+	int vic_r3;
+	int vic_pr;
+	int vic;
 	enum RGB_FORMAT rgb_format;
 	enum ALPHA_ENABLE alpha_enable;
 	enum MODE mode;

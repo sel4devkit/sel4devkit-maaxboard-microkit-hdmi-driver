@@ -55,8 +55,8 @@ void clear_current_frame_buffer(struct hdmi_data* hd) {
 		return;
 	}
 	
-	int height = hd->V_ACTIVE;
-	int width = hd->H_ACTIVE/2;
+	int height = hd->v_active;
+	int width = hd->h_active/2;
 
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {

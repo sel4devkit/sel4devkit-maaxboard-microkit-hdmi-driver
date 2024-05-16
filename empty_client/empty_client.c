@@ -51,8 +51,8 @@ void write_static_frame_buffer(struct hdmi_data* hd){
 	uint32_t* frame_buffer_addr = get_active_frame_buffer_uint32();
 
     /* The width and height of the active display region */
-    int height = hd->V_ACTIVE;
-	int width = hd->H_ACTIVE;
+    int height = hd->v_active;
+	int width = hd->h_active;
 
     /* Write to the frame buffer to display a static image */
 	for (int i = 0; i < height; i++) { 
@@ -85,8 +85,8 @@ void write_moving_frame_buffer(struct hdmi_data* hd){
 
 
     /* The width and height of the active display region */
-    int height = hd->V_ACTIVE;
-	int width = hd->H_ACTIVE;
+    int height = hd->v_active;
+	int width = hd->h_active;
 
     /* Write to the frame buffer here. This function will be called continously to update the buffer.
        Use global variables to alter the contents of this buffer so that the values persist. See Example rotating_bars.*/

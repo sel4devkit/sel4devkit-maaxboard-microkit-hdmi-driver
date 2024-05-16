@@ -45,8 +45,8 @@ void write_frame_buffer(struct hdmi_data* hd) {
 	
 	uint64_t* frame_buffer_addr = get_active_frame_buffer_uint64();
 
-	int height = hd->V_ACTIVE;
-	int width = hd->H_ACTIVE/2; // for 64 bit writing the width is divided by 2
+	int height = hd->v_active;
+	int width = hd->h_active/2; // for 64 bit writing the width is divided by 2
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
 	int third_quarter = width * 0.75;

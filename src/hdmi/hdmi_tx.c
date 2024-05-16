@@ -24,7 +24,7 @@ void init_hdmi(struct hdmi_data *hdmi_config) {
 	CDN_API_STATUS api_status = init_api();
 	handle_api_status(api_status, "cdn_api_general_test_echo_ext_blocking()");		
 
-	uint32_t phy_frequency = phy_cfg_t28hpc(4, hdmi_config->PIXEL_FREQ_KHZ, bits_per_pixel, pixel_encoding_format, 1);
+	uint32_t phy_frequency = phy_cfg_t28hpc(4, hdmi_config->pixel_frequency_khz, bits_per_pixel, pixel_encoding_format, 1);
 	hdmi_tx_t28hpc_power_config_seq(4);
 	api_status = call_api(phy_frequency, pixel_encoding_format, bits_per_pixel, hdmi_config);
 	handle_api_status(api_status, "cdn_api_general_test_echo_ext_blocking()");	

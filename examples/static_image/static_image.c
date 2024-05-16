@@ -28,22 +28,22 @@ struct display_config init_example() {
 
 	int v_mode = 1;
 
-	hd.FRONT_PORCH = vic_table[v_mode][FRONT_PORCH];
-	hd.BACK_PORCH= vic_table[v_mode][BACK_PORCH];
-	hd.HSYNC = vic_table[v_mode][HSYNC];
-	hd.TYPE_EOF = vic_table[v_mode][TYPE_EOF];
-	hd.SOF = vic_table[v_mode][SOF];
-	hd.VSYNC= vic_table[v_mode][VSYNC];
-	hd.H_ACTIVE = vic_table[v_mode][H_ACTIVE];
-	hd.V_ACTIVE = vic_table[v_mode][V_ACTIVE]; 
-	hd.HSYNC_POL = vic_table[v_mode][HSYNC_POL];
-	hd.VSYNC_POL = vic_table[v_mode][VSYNC_POL];
-	hd.PIXEL_FREQ_KHZ = vic_table[v_mode][PIXEL_FREQ_KHZ];
-	hd.H_BLANK = vic_table[v_mode][H_BLANK];
-	hd.H_TOTAL = vic_table[v_mode][H_TOTAL];
-	hd.VIC_R3_0 = vic_table[v_mode][VIC_R3_0];
-	hd.VIC_PR = vic_table[v_mode][VIC_PR];
-	hd.V_TOTAL = vic_table[v_mode][V_TOTAL];
+	hd.h_front_porch = vic_table[v_mode][FRONT_PORCH];
+	hd.h_back_porch= vic_table[v_mode][BACK_PORCH];
+	hd.hsync = vic_table[v_mode][HSYNC];
+	hd.v_front_porch = vic_table[v_mode][TYPE_EOF];
+	hd.v_back_porch = vic_table[v_mode][SOF];
+	hd.vsync= vic_table[v_mode][VSYNC];
+	hd.h_active = vic_table[v_mode][H_ACTIVE];
+	hd.v_active = vic_table[v_mode][V_ACTIVE]; 
+	hd.hsync_pol = vic_table[v_mode][HSYNC_POL];
+	hd.vsync_pol = vic_table[v_mode][VSYNC_POL];
+	hd.pixel_frequency_khz = vic_table[v_mode][PIXEL_FREQ_KHZ];
+	hd.h_blank = vic_table[v_mode][H_BLANK];
+	hd.h_total = vic_table[v_mode][H_TOTAL];
+	hd.vic_r3 = vic_table[v_mode][VIC_R3_0];
+	hd.vic_pr = vic_table[v_mode][VIC_PR];
+	hd.v_total = vic_table[v_mode][V_TOTAL];
 	hd.rgb_format = RBGA;
 	hd.alpha_enable = ALPHA_ON;
 	hd.mode = STATIC_IMAGE;
@@ -65,8 +65,8 @@ void write_frame_buffer(struct hdmi_data* hd) {
 
 	uint8_t* frame_buffer_addr = get_active_frame_buffer_uint8();
 	
-	int height = hd->V_ACTIVE;
-	int width = hd->H_ACTIVE;
+	int height = hd->v_active;
+	int width = hd->h_active;
 	int first_quarter = width * 0.25;
 	int second_quarter = width * 0.5;
 	int third_quarter = width * 0.75;

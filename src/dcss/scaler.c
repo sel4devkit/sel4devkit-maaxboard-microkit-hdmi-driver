@@ -18,11 +18,11 @@ void write_scaler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_c
 	write_register((uint32_t*)(dcss_base  + SCALE_SRC_FORMAT), 0x2); // Sets to RGB
 	write_register((uint32_t*)(dcss_base  + SCALE_DST_FORMAT), 0x2); // Sets to RGB
 	write_register((uint32_t*)(dcss_base  + SCALE_SRC_LUMA_RES),
-		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
+		    ((hdmi_config->v_active - 1) << 16 | (hdmi_config->h_active - 1)));
 	write_register((uint32_t*)(dcss_base  + SCALE_SRC_CHROMA_RES),
-		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
+		    ((hdmi_config->v_active - 1) << 16 | (hdmi_config->h_active - 1)));
 	write_register((uint32_t*)(dcss_base  + SCALE_DST_CHROMA_RES),
-		    ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
+		    ((hdmi_config->v_active - 1) << 16 | (hdmi_config->h_active - 1)));
 	write_register((uint32_t*)(dcss_base  + SCALE_V_LUMA_INC), INC_VAL);
 	write_register((uint32_t*)(dcss_base  + SCALE_H_LUMA_INC), INC_VAL);
 	write_register((uint32_t*)(dcss_base  + SCALE_V_CHROMA_INC), INC_VAL);
@@ -33,7 +33,7 @@ void write_scaler_memory_registers(uintptr_t dcss_base, struct hdmi_data *hdmi_c
 	write_register((uint32_t*)(dcss_base  + 0x1c140), 0x0); // Must be initialised
 	write_register((uint32_t*)(dcss_base  + 0x1c180), 0x40000);
 	write_register((uint32_t*)(dcss_base  + 0x1c1c0), 0x0); // Must be initialised
-	write_register((uint32_t*)(dcss_base  + 0x1c020), ((hdmi_config->V_ACTIVE - 1) << 16 | (hdmi_config->H_ACTIVE - 1)));
+	write_register((uint32_t*)(dcss_base  + 0x1c020), ((hdmi_config->v_active - 1) << 16 | (hdmi_config->h_active - 1)));
 
 	uint32_t* scale_ctrl = (uint32_t*)(dcss_base + SCALE_CTRL);
 	*scale_ctrl = set_bit(*scale_ctrl, RUN_EN);
