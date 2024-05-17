@@ -128,6 +128,28 @@ Modify empty_client/Makefile to add extra files or build configurations specific
 
 # Attempted solutions for the HDMI syncing issue
 
+The solutions can be found on the test_branch and can be built like any other example. (See the build.sh script or examples folder)
+
+The current approach is to use the context loader to switch the buffer set in the DPR. The current issue can most easily be seen when running the db_test example that changes the entire screen from blue to red. The vertical blanking time is the period of time that the screen retrace is out of the active display region. The reason for this issue is likely because the context switch happens outside of the vertical blanking period. There is a chance that the DTG timing settings have not been set up properly and this effect is happening.
+
+### Using the context loader to switch the address of the frame buffer using single buffered registers
+
+The context loader can use either double buffered or single buffered registers. Currently its using double buffered registers which means that the next state is being loaded into the shadow registers during active display time. This is likely the cause for the current problem. The alternative is to use single buffered regsiters, which is where it loads the next state during the vertical blanking time. When using single buffered registers, the same effect is seen with intermittent periods of the whole screen going black. This route is worth exploring further and to make sure that the DTG settings are correct.
+
+### Using the Display Timing Generator to layer to channels with a configurable alpha channel
+
+Two channels can be layered on top of each other with an alpha value set for the first channel. This means that channel 1 can be displayed with no alpha, revealing the channel two behind it, without having to change the source buffer address. The idea is to change this alpha for the channel to switch visibility between the two channels. When attempting this approach the screen redraw is still visible.
+
+
+### Single buffered updates during vertical blanking time
+
+An interrupt can be recieved each time the screen redraw enters a specific x/y position. Current attempts to get interrupts to be recivied have not worked. If this was possible then for smaller screen changes the image could be redrawn during the vertical blanking time.
+
+### Using interrupts to change the address of the frame during vertical blanking time
+
+If interrupts could be switched on correctly, then the address of the frame buffer could be switched during vertical blanking time. This is in theory what the context loader should be doing with single buffered registers. If this did not work then this would indicate that there are issues with how the DTG has been set up
+
+
 # To do
 
 * Add logging system to replace printf.
