@@ -4,7 +4,7 @@ This repo contains an sel4 HDMI driver that is compatible with NXP devices that 
 
 **For moving images, a visible redraw of the screen is seen when switching between frames. This is most noticeable when the entire screen has changed (see example rotating_bars).** 
 
-# Building boot loader and firmware
+# Building the boot loader and firmware
 
 To use this driver the correct HDMI firmware needs to be flashed onto the maaxboard. This can be achieved by using the following repo:
 
