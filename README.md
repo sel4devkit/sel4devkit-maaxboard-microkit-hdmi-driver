@@ -152,6 +152,7 @@ If interrupts could be switched on correctly, then the address of the frame buff
 
 # To do
 
+* Fix HDMI syncing issue with double buffering
 * Add logging system to replace printf.
 * Intergrate DMA library.
 * Investigate the configuration issue when using https://github.com/sel4-cap/maaxboard-uboot without modification.
