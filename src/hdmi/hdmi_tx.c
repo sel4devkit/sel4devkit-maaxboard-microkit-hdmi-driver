@@ -22,12 +22,12 @@ void init_hdmi(struct hdmi_data *hdmi_config) {
 	VIC_PXL_ENCODING_FORMAT pixel_encoding_format = PXL_RGB;
 
 	CDN_API_STATUS api_status = init_api();
-	handle_api_status(api_status, "cdn_api_general_test_echo_ext_blocking()");		
+	handle_api_status(api_status, "init_api()");		
 
 	uint32_t phy_frequency = phy_cfg_t28hpc(4, hdmi_config->pixel_frequency_khz, bits_per_pixel, pixel_encoding_format, 1);
 	hdmi_tx_t28hpc_power_config_seq(4);
 	api_status = call_api(phy_frequency, pixel_encoding_format, bits_per_pixel, hdmi_config);
-	handle_api_status(api_status, "cdn_api_general_test_echo_ext_blocking()");	
+	handle_api_status(api_status, "call_api()");	
 
 }
 
@@ -38,7 +38,7 @@ CDN_API_STATUS init_api() {
 	cdn_api_init();
 	
 	api_status = cdn_api_checkalive();
-	handle_api_status(api_status, "cdn_api_general_test_echo_ext_blocking()");		
+	handle_api_status(api_status, "cdn_api_checkalive()");		
 
 	
 	uint8_t test_message[] = "test message";
@@ -59,13 +59,13 @@ CDN_API_STATUS call_api(uint32_t phy_frequency, VIC_PXL_ENCODING_FORMAT pixel_en
 	BT_TYPE bt_type = 0;
 	HDMI_TX_MAIL_HANDLER_PROTOCOL_TYPE protocol_type = 1;
 	api_status = CDN_API_HDMITX_Init_blocking();
-	handle_api_status(api_status, "cdn_api_general_test_echo_ext_blocking()");		
+	handle_api_status(api_status, "CDN_API_HDMITX_Init_blocking()");		
 
 	api_status = CDN_API_HDMITX_Set_Mode_blocking(protocol_type, phy_frequency);
-	handle_api_status(api_status, "cdn_api_general_test_echo_ext_blocking()");		
+	handle_api_status(api_status, "CDN_API_HDMITX_Set_Mode_blocking()");		
 	
 	api_status = CDN_API_HDMITX_SetVic_blocking(hdmi_config, bits_per_pixel, pixel_encoding_format);
-	handle_api_status(api_status, "cdn_api_general_test_echo_ext_blocking()");		
+	handle_api_status(api_status, "CDN_API_HDMITX_SetVic_blocking()");		
 
 	return api_status;
 }

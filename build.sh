@@ -37,7 +37,7 @@ fi
 
 if [ -z "$2" ]; then
 
-    export MICROKIT_SDK="/util/microkit/sel4_foundation/release/microkit-sdk-1.2.6"
+    export MICROKIT_SDK="/packages/microkit/sel4_foundation_microkit_latest_plus_big_stack/release/microkit-sdk-1.2.6"
     export PATH="/util/sel4_foundation_arm_toolchain_baseline/gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf/bin:$PATH"
     
     export BOARD_DIR="$MICROKIT_SDK/board/maaxboard/debug/"
