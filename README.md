@@ -4,7 +4,7 @@ This repo contains an seL4 HDMI driver that is compatible with NXP devices that 
 
 ----------------------------------------------------------------------------------------
 
-*******For moving images, a visible redraw of the screen is seen when switching between frames. This is most noticeable when the entire screen has changed (see example rotating_bars). For attempted fixes for this issue see the section "Attempted solutions for the HDMI syncing issue" at the end of this README******* 
+*******For moving images, a visible redraw of the screen is seen when switching between frames. This is most noticeable when the entire screen has changed (see example rotating_bars). For a list of attempted fixes to resolve this issue, please see "Attempted solutions for the HDMI syncing issue" at the end of this README.******* 
 
 ----------------------------------------------------------------------------------------
 # Building the boot loader and firmware
