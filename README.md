@@ -56,6 +56,8 @@ This API contains the following examples:
 * rotating_bars - Displays 4 colour bars rotating across the screen.
 * moving_square - A small square that moves around the screen, changing direction each time it hits the side of the screen.
 
+**See the README in the examples folder for more detail.**
+
 To build the project use ./build.sh with an example as the first argument.
 
 ```./build.sh static_image ```
