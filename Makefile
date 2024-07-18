@@ -51,12 +51,8 @@ LDFLAGS := -L$(BOARD_DIR)/lib
 CLIENT_LDFLAGS += -L$(BOARD_DIR)/lib
 
 # ideally we shouldn't need the -L path for libgcc
-DCSS_LIBS := -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc -Lpicolibc -lc  picolibc/libc.a  -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc 
-CLIENT_LIBS += picolibc/libc.a  -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc -Lpicolibc -lc  -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc 
-
-
-# DCSS_LIBS := picolibc/libc.a -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc
-# CLIENT_LIBS += picolibc/libc.a  -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/10 -lgcc
+DCSS_LIBS := -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/12 -lgcc -Lpicolibc -lc  picolibc/libc.a  -L/usr/lib/gcc-cross/aarch64-linux-gnu/12 -lgcc
+CLIENT_LIBS += picolibc/libc.a  -lmicrokit -Tmicrokit.ld -L/usr/lib/gcc-cross/aarch64-linux-gnu/12 -lgcc -Lpicolibc -lc  -L/usr/lib/gcc-cross/aarch64-linux-gnu/12 -lgcc
 
 # The images for each protetction domain
 IMAGES := dcss.elf client.elf
