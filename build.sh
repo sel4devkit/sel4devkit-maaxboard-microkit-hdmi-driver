@@ -32,17 +32,17 @@ else
 fi 
 
 
-# Set up for current development switching between two environments. Use no second argument if using bje docker configuration
-# See https://github.com/sel4-cap/microkit-maaxboard-dockerfiles
+# Use no second argument if using follwoing docker configuration:
+# https://github.com/sel4-cap/sel4devkit-maaxboard-docker-dev-env
 
 if [ -z "$2" ]; then
 
-    export MICROKIT_SDK="/packages/microkit/auts_microkit_stable/release/microkit-sdk-1.2.6"
+    export MICROKIT_SDK="/packages/microkit/sel4_microkit/microkit-sdk-1.3.0/"
     export BOARD_DIR="$MICROKIT_SDK/board/maaxboard/debug/"
     export PYTHONPATH="$MICROKIT_SDK/bin"
     export MICROKIT_TOOL=" $MICROKIT_SDK/bin/microkit"
 
-
+# Example of a custom configuration
 elif [ $2 = "c" ] ; then
 
     export MICROKIT_DIR="$HOME/dev/microkit/mk-manifest/microkit"
