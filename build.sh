@@ -73,18 +73,3 @@ fi
 rm -r $BUILD_DIR/*
 mkdir build
 make -C $SOURCE_LOCATION
-
-# Set tftp location depending on build environment
-if [ -z "$1" ]; then
-    TFTP_LOCATION="/srv/tftp/loader-tom.img"    # TODO:FIX for bje docker configuration
-else 
-    TFTP_LOCATION="/var/lib/tftpboot/loader-tom.img"
-fi
-
-# Copy image file to tftp location 
-sudo cp $BUILD_DIR/loader.img $TFTP_LOCATION
-if [ $? -gt 0 ]; then
-    echo "Error(s) detected, file not copied"
-else
-    echo Copied image file to "$TFTP_LOCATION".
-fi
