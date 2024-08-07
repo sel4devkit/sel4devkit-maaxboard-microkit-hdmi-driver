@@ -37,7 +37,7 @@ fi
 
 if [ -z "$2" ]; then
 
-    export MICROKIT_SDK="/packages/microkit/sel4_microkit/microkit-sdk-1.3.0/"
+    export MICROKIT_SDK="dep/microkit/out/microkit-sdk-1.2.6"
     export BOARD_DIR="$MICROKIT_SDK/board/maaxboard/debug/"
     export PYTHONPATH="$MICROKIT_SDK/bin"
     export MICROKIT_TOOL=" $MICROKIT_SDK/bin/microkit"
