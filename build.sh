@@ -60,7 +60,7 @@ fi
 
 
 # Confirm picolibc files exist
-if  test -e picolibc/libc.a  &&  test -e picolibc/picolibc.specs ; then
+if  test -e dep/picolibc/libc.a  &&  test -e dep/picolibc/picolibc.specs ; then
     echo "Found picolib build files"
 else
     echo "Can't find picolib build files. Place libc.a and picolib.specs from your picolib build into the picolib directory.
