@@ -9,9 +9,11 @@ This repo contains an seL4 HDMI driver that is compatible with NXP devices that 
 ----------------------------------------------------------------------------------------
 # Building the boot loader and firmware
 
+**To build U-Boot, the dependencies and the project use the this [Docker environment](https://github.com/sel4devkit/sel4devkit-maaxboard-microkit-docker-dev-env)**
+
 To use this driver the correct HDMI firmware needs to be flashed onto the Maaxboard. This can be achieved by using the following repo:
 
-https://github.com/sel4-cap/maaxboard-uboot
+[https://github.com/sel4-cap/maaxboard-uboot](https://github.com/sel4devkit/sel4devkit-maaxboard-bootloader-u-boot)
 
 To ensure that the UBoot driver setup doesn't interfere with this driver, the following modifications need to be made.
 
@@ -30,21 +32,20 @@ Change the status to disabled for HDMI in uboot-imx/arch/arm/dts/maaxboard.dts
 
 ```
 
-# Building picolibc
+# Building dependencies
 
-This project requires pibolibc which can be built from this repo
+To build picolibc:
 
 ```
-cd picolibc
+cd dep/picolibc
 ./build-picolibc.sh
 ```
-Alternatively picolibc can be built from https://github.com/seL4-cap/picolibc.git
-
-Then from within the repo copy the required files into the picolibc directory.
+To get microkit:
 
 ```
-sudo cp picolib-microkit/newlib/libc.a path-to-seL4-hdmi/picolibc
-sudo cp picolib-microkit/picolibc.specs path-to-seL4-hdmi/picolibc
+cd dep/microkit
+make get
+make all
 ```
 
 # Building the project
@@ -157,6 +158,8 @@ If interrupts could be switched on correctly, then the address of the frame buff
 
 # To do
 
+* Use make get and make all for picolibc
+* Remove build.sh and use make get and make "example_name"
 * Fix HDMI syncing issue with double buffering
 * Add logging system to replace printf.
 * Integrate DMA library.
