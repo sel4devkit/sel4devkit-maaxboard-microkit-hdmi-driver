@@ -21,8 +21,8 @@ endif
 #===========================================================
 # Layout
 #===========================================================
-TMP_PATH := tmp
 OUT_PATH := out
+LIB_PATH := sel4devkit-maaxboard-microkit-dev
 
 #===========================================================
 # Usage
@@ -33,36 +33,22 @@ usage:
 	@echo ""
 	@echo "<target> is one off:"
 	@echo "get"
-	@echo "all"
 	@echo "clean"
-
 #===========================================================
 # Target
 #===========================================================
+
 .PHONY: get
-get: | ${TMP_PATH}
-	git -C ${TMP_PATH} clone --branch "main" "git@github.com:sel4devkit/sel4devkit-maaxboard-microkit-dev.git" sel4devkit-maaxboard-microkit-dev
-	make -C ${TMP_PATH}/sel4devkit-maaxboard-microkit-dev get
-
-.PHONY: all
-all: ${OUT_PATH}/microkit-sdk-1.2.6
-
-${TMP_PATH}:
-	mkdir ${TMP_PATH}
+get: | ${OUT_PATH}
+	git -C ${OUT_PATH} clone --branch "main" "git@github.com:sel4devkit/sel4devkit-maaxboard-microkit-dev.git" ${LIB_PATH}
 
 ${OUT_PATH}:
 	mkdir ${OUT_PATH}
 
-${OUT_PATH}/microkit-sdk-1.2.6: ${TMP_PATH}/sel4devkit-maaxboard-microkit-dev/out/microkit-sdk-1.2.6 | ${OUT_PATH}
-	cp -r $< $@
-
-${TMP_PATH}/sel4devkit-maaxboard-microkit-dev/out/microkit-sdk-1.2.6: | ${TMP_PATH}
-	make -C ${TMP_PATH}/sel4devkit-maaxboard-microkit-dev all
-	
 .PHONY: clean
 clean:
-	rm -rf ${TMP_PATH}
-	rm -rf ${OUT_PATH}
+	sudo rm -rf ${OUT_PATH}
+	sudo rm -rf ${LIB_PATH}
 
 ################################################################################
 # End of file
