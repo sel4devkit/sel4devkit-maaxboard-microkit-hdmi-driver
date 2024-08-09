@@ -9,7 +9,7 @@ export SOURCE_LOCATION=$(pwd)
 export MICROKIT_SDK="dep/microkit/out/sel4devkit-maaxboard-microkit-dev/out/microkit-sdk-1.2.6"
 export BOARD_DIR="$MICROKIT_SDK/board/maaxboard/debug/"
 export PYTHONPATH="$MICROKIT_SDK/bin"
-export MICROKIT_TOOL="$MICROKIT_SDK/bin"
+export MICROKIT_TOOL="$MICROKIT_SDK/bin/microkit"
 
 example_list=("empty_client" "moving_square" "resolution_change" "rotating_bars" "static_image") 
 
