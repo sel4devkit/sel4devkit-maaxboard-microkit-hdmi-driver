@@ -11,9 +11,7 @@ This repo contains an seL4 HDMI driver that is compatible with NXP devices that 
 
 **To build U-Boot, the dependencies and the project use the this [Docker environment](https://github.com/sel4devkit/sel4devkit-maaxboard-microkit-docker-dev-env)**
 
-To use this driver the correct HDMI firmware needs to be flashed onto the Maaxboard. This can be achieved by using the following repo:
-
-[https://github.com/sel4-cap/maaxboard-uboot](https://github.com/sel4devkit/sel4devkit-maaxboard-bootloader-u-boot)
+To use this driver the correct HDMI firmware needs to be flashed onto the Maaxboard. U-Boot can be built using from this [repository](https://github.com/sel4devkit/sel4devkit-maaxboard-bootloader-u-boot)
 
 To ensure that the UBoot driver setup doesn't interfere with this driver, the following modifications need to be made.
 
@@ -63,19 +61,13 @@ To build the project use ./build.sh with an example as the first argument.
 
 ```./build.sh static_image ```
 
-It is recommended to use a prebuilt docker image to build this project. This can be found at: https://github.com/seL4-cap/microkit-maaxboard-dockerfiles
-
-You can use your own custom configuration by providing "c" as the second argument. For example, the custom configuration in the build script currently is set up to be run in an environment set up by microkit manifest: https://github.com/seL4-cap/microkit-manifest.
-
-```./build.sh static_image c```
-
 This will create the loader.img file that will need to be loaded into the maaxboard. The name of this can be changed in the top level Makefile.
 
 For more information setting up an environment for creating seL4 applications see https://github.com/seL4devkit.
 
 # Using the API
 
-Microkit is used to create the seL4 image for this project. For more information on seL4 and microkit see https://github.com/seL4/microkit/blob/main/docs/manual.md
+Microkit is used to create the seL4 image for this project. For more information on seL4 and Microkit see the [Microkit Manual](https://github.com/seL4/microkit/blob/main/docs/manual.md)
 
 This API makes use of two Protection Domains (PD). 
 
@@ -145,7 +137,6 @@ The context loader can use either double buffered or single buffered registers. 
 ### Using the Display Timing Generator to layer to channels with a configurable alpha channel
 
 Two channels can be layered on top of each other with an alpha value set for the first channel. This means that channel 1 can be displayed with no alpha, revealing the channel two behind it, without having to change the source buffer address. The idea is to change this alpha for the channel to switch visibility between the two channels. When attempting this approach, the screen redraw is still visible.
-
 
 ### Single buffered updates during vertical blanking time
 
