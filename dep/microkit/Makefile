@@ -22,7 +22,7 @@ endif
 # Layout
 #===========================================================
 OUT_PATH := out
-LIB_PATH := sel4devkit-maaxboard-microkit-dev
+LIB_PATH := sel4devkit-maaxboard-microkit
 
 #===========================================================
 # Usage
@@ -40,7 +40,7 @@ usage:
 
 .PHONY: get
 get: | ${OUT_PATH}
-	git -C ${OUT_PATH} clone --branch "main" "git@github.com:sel4devkit/sel4devkit-maaxboard-microkit-dev.git" ${LIB_PATH}
+	git -C ${OUT_PATH} clone --branch "main" "git@github.com:sel4devkit/sel4devkit-maaxboard-microkit.git" ${LIB_PATH}
 
 ${OUT_PATH}:
 	mkdir ${OUT_PATH}
