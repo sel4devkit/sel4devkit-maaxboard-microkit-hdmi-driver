@@ -17,7 +17,7 @@
 struct hdmi_data *hd = NULL;
 uintptr_t timer_base;
 int frame_count = 0;
-#define MAX_FRAME_COUNT 10000 // The maximum number of frames displayed for a moving image
+#define MAX_FRAME_COUNT 50000000 // The maximum number of frames displayed for a moving image
 
 // Function pointer to current frame buffer function (used for double buffering)
 void (*write_fb)(struct hdmi_data*);
@@ -32,6 +32,8 @@ void init_api() {
 }
 
 void reset_api() {
+	clear_current_frame_buffer(hd);
+	clear_current_cache_buffer(hd);
 	free(hd);
 }
 
@@ -74,6 +76,7 @@ void reset_static_image() {
 
 	// Clear the frame buffer
 	clear_current_frame_buffer(hd);
+	clear_current_cache_buffer(hd);
 
 	// Reset the DCSS for next example
 	microkit_notify(55); 

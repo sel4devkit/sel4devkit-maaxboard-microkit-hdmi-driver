@@ -66,3 +66,23 @@ void clear_current_frame_buffer(struct hdmi_data* hd) {
 }
 
 
+void clear_current_cache_buffer(struct hdmi_data* hd) {
+	
+	uint64_t* frame_buffer_addr = get_cache_frame_buffer_uint64();
+
+	if (hd == NULL){
+		printf("hdmi data not yet set, cannot write frame buffer.\n;");
+		return;
+	}
+	
+	int height = hd->v_active;
+	int width = hd->h_active/2;
+
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			*(frame_buffer_addr++) = 0x00;
+		}
+	}
+}
+
+

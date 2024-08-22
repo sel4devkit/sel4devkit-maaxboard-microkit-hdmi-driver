@@ -15,5 +15,6 @@ uint32_t* get_cache_frame_buffer_uint32();
 uint64_t* get_cache_frame_buffer_uint64();
 
 void clear_current_frame_buffer(struct hdmi_data* hd);
+void clear_current_cache_buffer(struct hdmi_data* hd);
 
 #endif

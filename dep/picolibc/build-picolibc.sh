@@ -6,10 +6,10 @@
 cwd=$(pwd)
 
 # cd into that directory
-git clone -b linker_crt https://github.com/sel4-cap/picolibc.git
-cd picolibc
-./build_script_microkit.sh
+git clone https://github.com/sel4devkit/sel4devkit-maaxboard-microkit-picolibc
+cd sel4devkit-maaxboard-microkit-picolibc
+./build_script.sh
 
 # Copy necessary files
-sudo cp picolib-microkit/newlib/libc.a $cwd
-sudo cp picolib-microkit/picolibc.specs $cwd
+sudo cp picolibc-microkit/newlib/libc.a $cwd
+sudo cp picolibc-microkit/picolibc.specs $cwd
