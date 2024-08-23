@@ -118,6 +118,8 @@ The width and the height are defined by ```hdmi_data.h_active``` and ```hdmi_dat
 
 For moving images, global variables are used to keep track of frame data (see example moving_square and rotating_bars). It is set up this way so that the dcss PD can notify the client PD when the frame buffer is ready to be modified and so that the client PD can notify the dcss PD when the frame buffer has finished being written to.
 
+In src/api.c MAX_FRAME_COUNT can be set to determine the length of time the moving image is shown. 
+
 ### Empty client
 
 An empty example has been provided in empty_client/empty_client.c. To use the driver uncomment ```static_image()``` or ```moving_image()``` to choose the type of image you wish to see. Then implement ```init_static_example()``` by initialising all fields of the ```hdmi_data``` struct. Then modify ```write_static_frame_buffer()``` or ```write_moving_frame_buffer()``` with your desired image.
